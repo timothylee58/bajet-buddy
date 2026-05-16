@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+redis
+anthropic==0.40.0
+supabase>=2.15.0
+python-dotenv
+httpx

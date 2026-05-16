@@ -1,0 +1,19 @@
+{
+  "name": "bajetbuddy",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @bajetbuddy/web",
+    "dev:web": "npm run dev -w @bajetbuddy/web",
+    "build": "npm run build -w @bajetbuddy/web",
+    "lint": "npm run lint -w @bajetbuddy/web",
+    "start": "npm run start -w @bajetbuddy/web"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

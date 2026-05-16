@@ -1,0 +1,44 @@
+import { PersonaCard } from "@/components/features/persona/PersonaCard";
+import { XPProgressBar } from "@/components/features/persona/XPProgressBar";
+import { AchievementGrid } from "@/components/features/persona/AchievementGrid";
+import { usePersona } from "@/hooks/usePersona";
+
+export default function PersonaPage() {
+  const { persona, loading } = usePersona();
+
+  if (loading || !persona) {
+    return <div className="px-4 py-6">Loading persona...</div>;
+  }
+
+  return (
+    <div className="px-4 py-6 space-y-6">
+      <h1 className="text-xl font-bold">Your Persona 🧠</h1>
+      <PersonaCard
+        name={persona.name}
+        emoji={persona.emoji}
+        description={persona.description}
+        level={persona.level}
+        confidence={persona.confidence}
+        explanation={persona.explanation}
+        suggestedInterventionRule={persona.suggested_intervention_rule}
+      />
+      {persona.top_signals?.length ? (
+        <div className="rounded-lg border border-zinc-200 bg-white p-4">
+          <h2 className="mb-3 text-sm font-semibold text-zinc-800">Why this persona</h2>
+          <div className="space-y-2">
+            {persona.top_signals.map((signal) => (
+              <div
+                key={signal}
+                className="rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2 text-sm text-zinc-600"
+              >
+                {signal}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+      <XPProgressBar current={persona.xp} max={persona.xp_to_next} level={persona.level} />
+      <AchievementGrid />
+    </div>
+  );
+}
