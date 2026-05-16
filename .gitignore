@@ -12,8 +12,11 @@
 
 # testing
 /coverage
+<<<<<<< HEAD
 .playwright-mcp/
 phase4-sarah-check-result*.png
+=======
+>>>>>>> 1d43a42bf1f5f81df1efa4c06bb3091a1081453b
 
 # next.js
 /.next/
@@ -41,6 +44,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+<<<<<<< HEAD
 
 # LangGraph API
 .langgraph_api
+=======
+>>>>>>> 1d43a42bf1f5f81df1efa4c06bb3091a1081453b
