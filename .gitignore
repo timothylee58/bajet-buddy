@@ -18,9 +18,15 @@ phase4-sarah-check-result*.png
 =======
 >>>>>>> 1d43a42bf1f5f81df1efa4c06bb3091a1081453b
 
-# next.js
-/.next/
-/out/
+# Node / Next.js
+node_modules/
+.next/
+out/
+dist/
+
+# OS junk
+.DS_Store
+Thumbs.db
 
 # production
 /build
