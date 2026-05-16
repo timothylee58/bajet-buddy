@@ -50,3 +50,7 @@ next-env.d.ts
 .langgraph_api
 =======
 >>>>>>> 1d43a42bf1f5f81df1efa4c06bb3091a1081453b
+
+apps/web/.next/
+
+apps/web/*.log
