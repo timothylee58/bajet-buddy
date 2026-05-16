@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # BajetBuddy
 
 AI-powered spending intervention for Malaysia — Next.js web app, FastAPI API, Supabase (Postgres + Auth), Redis.
