@@ -1,62 +1,37 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-<<<<<<< HEAD
-.playwright-mcp/
-phase4-sarah-check-result*.png
-=======
->>>>>>> 1d43a42bf1f5f81df1efa4c06bb3091a1081453b
-
-# Node / Next.js
-node_modules/
-.next/
-out/
-dist/
-
-# OS junk
+# ============================
+# Global ignores
+# ============================
 .DS_Store
 Thumbs.db
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# ============================
+# Node.js / Backend
+# ============================
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.local
+.env.*.local
 
-# vercel
-.vercel
+# ============================
+# Next.js / Frontend
+# ============================
+.next/
+out/
+.vercel/
+.vscode/
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-<<<<<<< HEAD
-
-# LangGraph API
-.langgraph_api
-=======
->>>>>>> 1d43a42bf1f5f81df1efa4c06bb3091a1081453b
-
-apps/web/.next/
-
-apps/web/*.log
+# ============================
+# OS / Editor junk
+# ============================
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig
