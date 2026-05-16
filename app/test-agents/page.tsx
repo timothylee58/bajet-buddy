@@ -2,6 +2,7 @@
 
 import { useChat } from '@ai-sdk/react';
 import { useState } from 'react';
+import { mockTransactions, habitAnalysis } from '@/lib/mock-data';
 
 export default function TestAgentsPage() {
   const { messages, input, handleInputChange, handleSubmit, append, isLoading } = useChat({
@@ -9,6 +10,16 @@ export default function TestAgentsPage() {
   });
 
   const [simulationLoading, setSimulationLoading] = useState(false);
+
+  const simulateHabits = async () => {
+    setSimulationLoading(true);
+    const summary = mockTransactions.map(t => `${t.date}: ${t.description} (RM${t.amount})`).join('\n');
+    await append({
+      role: 'user',
+      content: `Here are my transactions for the last 2 months:\n${summary}\n\nCan you analyze my profile? My current persona is ${habitAnalysis.currentPersona}.`,
+    });
+    setSimulationLoading(false);
+  };
 
   const simulateMidnightShopee = async () => {
     setSimulationLoading(true);
@@ -50,6 +61,13 @@ export default function TestAgentsPage() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Simulations</h2>
             <div className="flex flex-col gap-3">
+              <button
+                onClick={simulateHabits}
+                disabled={isLoading || simulationLoading}
+                className="w-full py-2 px-4 bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 rounded-lg transition-colors disabled:opacity-50 font-medium"
+              >
+                📊 Analyze 2-Month Habits
+              </button>
               <button
                 onClick={simulateMidnightShopee}
                 disabled={isLoading || simulationLoading}
@@ -101,6 +119,7 @@ export default function TestAgentsPage() {
                       : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50'
                   }`}>
                     <p className="whitespace-pre-wrap text-sm">{m.content}</p>
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {m.toolInvocations?.map((toolInvocation: any) => {
                       const { toolName, toolCallId, state } = toolInvocation;
 
