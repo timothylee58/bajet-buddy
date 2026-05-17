@@ -1,5 +1,6 @@
 
 ## BajetBuddy
+"A buddy that reminds your impulse spending"
 
 AI-powered spending intervention for Malaysia — Next.js web app, FastAPI API, Supabase (Postgres + Auth), Redis.
 
