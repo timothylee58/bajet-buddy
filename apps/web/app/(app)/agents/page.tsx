@@ -1,3 +1,5 @@
+"use client";
+
 import { AgentRoster } from "@/components/features/gamification/AgentRoster";
 import { LootBoxReveal } from "@/components/features/gamification/LootBoxReveal";
 

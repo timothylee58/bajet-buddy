@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "@/lib/constants";
 
@@ -99,7 +100,7 @@ export function ReceiptScanner() {
             className="border-2 border-dashed border-zinc-300 dark:border-zinc-600 rounded-3xl p-8 flex flex-col items-center gap-3 cursor-pointer hover:border-emerald-400 transition-colors"
           >
             {preview ? (
-              <img src={preview} alt="Receipt preview" className="max-h-64 rounded-2xl object-contain" />
+              <Image src={preview} alt="Receipt preview" width={400} height={256} className="max-h-64 rounded-2xl object-contain" />
             ) : (
               <>
                 <span className="text-4xl">🧾</span>
