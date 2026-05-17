@@ -78,11 +78,11 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   },
 ];
 
-const typeStyles = {
-  warning: "bg-amber-50 border-amber-200 text-amber-700",
+const typeStyles: Record<Notification["type"], string> = {
+  warning: "bg-tertiary-light border-tertiary text-tertiary",
   success: "bg-emerald-50 border-emerald-200 text-emerald-700",
-  info: "bg-zinc-50 border-zinc-200 text-zinc-600",
-  fomo: "bg-violet-50 border-violet-200 text-violet-700",
+  info:    "bg-neutral-light border-border text-neutral",
+  fomo:    "bg-primary-light border-primary text-primary",
 };
 
 export function TopBar() {
@@ -104,26 +104,24 @@ export function TopBar() {
 
   function handleNotificationClick(n: Notification) {
     if (n.type === "fomo" && n.fomoRequest) {
-      setNotifications((prev) =>
-        prev.map((x) => (x.id === n.id ? { ...x, read: true } : x))
-      );
+      setNotifications((prev) => prev.map((x) => (x.id === n.id ? { ...x, read: true } : x)));
       setOpen(false);
       setFomoRequest(n.fomoRequest);
     }
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-zinc-900/5 bg-zinc-50/95 px-4 py-3 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-border bg-surface/95 px-4 py-3 backdrop-blur">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
             <Wallet className="h-4 w-4" />
           </div>
           <div>
-            <h1 className="text-sm font-semibold text-zinc-950">{title}</h1>
-            <p className="text-xs text-zinc-500">
-              Your AI spending companion
-            </p>
+            <h1 className="text-sm font-semibold text-foreground" style={{ fontFamily: "var(--font-fredoka)" }}>
+              {title}
+            </h1>
+            <p className="text-xs text-muted">Your AI spending companion</p>
           </div>
         </div>
 
@@ -131,12 +129,12 @@ export function TopBar() {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 transition-colors hover:text-zinc-950"
+            className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-surface text-neutral transition-colors hover:border-primary hover:text-primary"
             aria-label="Notifications"
           >
             <Bell className="h-4 w-4" />
             {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[10px] font-bold text-white">
                 {unreadCount}
               </span>
             )}
@@ -145,57 +143,48 @@ export function TopBar() {
           <AnimatePresence>
             {open && (
               <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setOpen(false)}
-                />
+                <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
                 <motion.div
                   initial={{ opacity: 0, y: -8, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-11 z-50 w-80 rounded-xl border border-zinc-200 bg-white shadow-lg"
+                  className="absolute right-0 top-11 z-50 w-80 rounded-2xl border border-border bg-surface shadow-lg"
                 >
-                  <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
-                    <span className="text-sm font-semibold text-zinc-900">Notifications</span>
+                  <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                    <span className="text-sm font-semibold text-foreground">Notifications</span>
                     {unreadCount > 0 && (
-                      <button
-                        type="button"
-                        onClick={markAllRead}
-                        className="text-xs text-emerald-600 hover:text-emerald-700"
-                      >
+                      <button type="button" onClick={markAllRead} className="text-xs text-primary hover:text-primary-dark font-medium">
                         Mark all read
                       </button>
                     )}
                   </div>
-                  <div className="max-h-[360px] overflow-y-auto divide-y divide-zinc-50">
+                  <div className="max-h-[360px] overflow-y-auto divide-y divide-border">
                     {notifications.length === 0 ? (
-                      <p className="px-4 py-6 text-center text-sm text-zinc-400">
-                        All caught up!
-                      </p>
+                      <p className="px-4 py-6 text-center text-sm text-muted">All caught up!</p>
                     ) : (
                       notifications.map((n) => (
                         <div
                           key={n.id}
                           onClick={() => handleNotificationClick(n)}
-                          className={`relative flex gap-3 px-4 py-3 ${!n.read ? "bg-zinc-50/70" : ""} ${n.type === "fomo" ? "cursor-pointer hover:bg-violet-50/50" : ""}`}
+                          className={`relative flex gap-3 px-4 py-3 ${!n.read ? "bg-primary-light/30" : ""} ${n.type === "fomo" ? "cursor-pointer hover:bg-primary-light/40" : ""}`}
                         >
-                          <div className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${!n.read ? "bg-emerald-500" : "bg-transparent"}`} />
+                          <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${!n.read ? "bg-primary" : "bg-transparent"}`} />
                           <div className="min-w-0 flex-1">
                             <div className={`mb-1 inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${typeStyles[n.type]}`}>
                               {n.type === "fomo" ? "FOMO alert" : n.type}
                             </div>
-                            <p className="text-sm font-medium text-zinc-900">{n.title}</p>
-                            <p className="mt-0.5 text-xs leading-5 text-zinc-500">{n.body}</p>
+                            <p className="text-sm font-medium text-foreground">{n.title}</p>
+                            <p className="mt-0.5 text-xs leading-5 text-muted">{n.body}</p>
                             {n.type === "fomo" && (
-                              <p className="mt-1 text-[11px] font-semibold text-violet-600">Tap to open Negotiator →</p>
+                              <p className="mt-1 text-[11px] font-semibold text-primary">Tap to open Negotiator →</p>
                             )}
-                            <p className="mt-1 text-[10px] text-zinc-400">{n.time}</p>
+                            <p className="mt-1 text-[10px] text-neutral">{n.time}</p>
                           </div>
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); dismiss(n.id); }}
-                            className="shrink-0 text-zinc-300 hover:text-zinc-500"
+                            className="shrink-0 text-neutral hover:text-foreground"
                             aria-label="Dismiss"
                           >
                             <X className="h-3.5 w-3.5" />
