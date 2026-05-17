@@ -280,7 +280,7 @@ def _build_chat_messages(
     ]
 
 
-async def run_chat_check(payload: ChatCheckRequest, user_id: str = "demo") -> ChatCheckResponse:
+async def run_chat_check(payload: ChatCheckRequest, user_id: str = "00000000-0000-0000-0000-000000000001") -> ChatCheckResponse:
     """Full chat-based pre-purchase check: parse → reason → respond."""
     try:
         parsed = await parse_spend_intent(payload.message)

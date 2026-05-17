@@ -52,20 +52,19 @@ def level_for_xp(xp: int) -> tuple[int, str, int, int]:
 
 
 def _get_state(user_id: str) -> GamificationState:
-    # Try to fetch from Supabase first if it's not the "demo" user
-    if user_id != "demo":
-        supabase = get_supabase()
-        if supabase:
-            try:
-                res = supabase.table("user_gamification").select("*").eq("user_id", user_id).maybe_single().execute()
-                if res.data:
-                    return {
-                        "xp": res.data.get("xp", 0),
-                        "streak": res.data.get("streak_days", 0),
-                        "last_active_date": date.fromisoformat(res.data["updated_at"][:10]) if res.data.get("updated_at") else None
-                    }
-            except Exception as e:
-                logger.error(f"Failed to fetch gamification from Supabase: {e}")
+    # Try to fetch from Supabase first
+    supabase = get_supabase()
+    if supabase:
+        try:
+            res = supabase.table("user_gamification").select("*").eq("user_id", user_id).maybe_single().execute()
+            if res and hasattr(res, 'data') and res.data:
+                return {
+                    "xp": res.data.get("xp", 0),
+                    "streak": res.data.get("streak_days", 0),
+                    "last_active_date": date.fromisoformat(res.data["updated_at"][:10]) if res.data.get("updated_at") else None
+                }
+        except Exception as e:
+            logger.debug("Gamification not found in Supabase for %s, using local store: %s", user_id, e)
 
     if user_id not in _gamification_store:
         _gamification_store[user_id] = DEFAULT_GAMIFICATION.copy()
@@ -85,7 +84,7 @@ def _update_streak(state: GamificationState, action_date: date) -> None:
     state["last_active_date"] = action_date
 
 
-def get_gamification_status(user_id: str = "demo") -> dict:
+def get_gamification_status(user_id: str = "00000000-0000-0000-0000-000000000001") -> dict:
     state = _get_state(user_id)
     level, name, min_xp, max_xp = level_for_xp(state["xp"])
     return {
@@ -101,7 +100,7 @@ def get_gamification_status(user_id: str = "demo") -> dict:
 
 
 def award_xp_for_verdict(
-    user_id: str = "demo",
+    user_id: str = "00000000-0000-0000-0000-000000000001",
     verdict: str = "boleh",
     *,
     action_at: datetime | None = None,
@@ -117,7 +116,7 @@ def award_xp_for_verdict(
     }
 
 
-def award_xp(user_id: str = "demo", xp: int = 0) -> dict:
+def award_xp(user_id: str = "00000000-0000-0000-0000-000000000001", xp: int = 0) -> dict:
     state = _get_state(user_id)
     state["xp"] += xp
     return {
@@ -126,7 +125,7 @@ def award_xp(user_id: str = "demo", xp: int = 0) -> dict:
     }
 
 
-def spend_xp(user_id: str = "demo", cost: int = 0) -> dict:
+def spend_xp(user_id: str = "00000000-0000-0000-0000-000000000001", cost: int = 0) -> dict:
     state = _get_state(user_id)
     if state["xp"] < cost:
         raise ValueError("Not enough XP to override the freeze")

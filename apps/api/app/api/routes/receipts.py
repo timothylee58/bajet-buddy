@@ -17,5 +17,5 @@ async def scan_receipt_image(
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
     image_bytes = await file.read()
-    user_id = current_user.user_id if current_user else "demo"
+    user_id = current_user.user_id if current_user else "00000000-0000-0000-0000-000000000001"
     return await scan_receipt(image_bytes, file.content_type, user_id=user_id)

@@ -211,7 +211,7 @@ async def _finalize_action_node(state: GraphState) -> GraphState:
     return state
 
 
-async def run_prepurchase_reasoning_graph(payload: Any, user_id: str = "demo") -> GraphState:
+async def run_prepurchase_reasoning_graph(payload: Any, user_id: str = "00000000-0000-0000-0000-000000000001") -> GraphState:
     now = payload.purchase_at or datetime.now(timezone.utc)
     state = GraphState(payload=payload, user_id=user_id, now=now)
     for node in (

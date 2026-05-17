@@ -17,11 +17,11 @@ DEFAULT_STATE = {
 }
 
 
-def get_freeze_status(user_id: str = "demo") -> dict:
+def get_freeze_status(user_id: str = "00000000-0000-0000-0000-000000000001") -> dict:
     return _freeze_store.get(user_id, DEFAULT_STATE.copy())
 
 
-def activate_freeze(user_id: str = "demo", freeze_type: Literal["soft", "hard"] = "soft") -> dict:
+def activate_freeze(user_id: str = "00000000-0000-0000-0000-000000000001", freeze_type: Literal["soft", "hard"] = "soft") -> dict:
     state = {
         "active": True,
         "type": freeze_type,
@@ -39,7 +39,7 @@ def activate_freeze(user_id: str = "demo", freeze_type: Literal["soft", "hard"] 
     return state
 
 
-def override_freeze(user_id: str = "demo") -> dict:
+def override_freeze(user_id: str = "00000000-0000-0000-0000-000000000001") -> dict:
     state = _freeze_store.get(user_id, DEFAULT_STATE.copy())
     if not state.get("can_override", True):
         raise ValueError("Hard freeze cannot be overridden")
@@ -49,7 +49,7 @@ def override_freeze(user_id: str = "demo") -> dict:
 
 
 def maybe_trigger_auto_freeze(
-    user_id: str = "demo",
+    user_id: str = "00000000-0000-0000-0000-000000000001",
     *,
     risk_score: int,
     projected_daily_survival_amount: float,

@@ -13,7 +13,7 @@ async def check_spend(
     current_user: AuthenticatedUser | None = Depends(get_optional_user),
 ) -> CheckResponse:
     """Manual pre-purchase check triggers the 5-node intervention agent."""
-    return await run_manual_prepurchase_check(payload, user_id=current_user.user_id if current_user else "demo")
+    return await run_manual_prepurchase_check(payload, user_id=current_user.user_id if current_user else "00000000-0000-0000-0000-000000000001")
 
 
 @router.post("/chat", response_model=ChatCheckResponse)
@@ -22,4 +22,4 @@ async def chat_check_spend(
     current_user: AuthenticatedUser | None = Depends(get_optional_user),
 ) -> ChatCheckResponse:
     """Natural-language pre-purchase check: chat message → AI parse → reasoning graph → conversational response."""
-    return await run_chat_check(payload, user_id=current_user.user_id if current_user else "demo")
+    return await run_chat_check(payload, user_id=current_user.user_id if current_user else "00000000-0000-0000-0000-000000000001")

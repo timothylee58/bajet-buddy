@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 MOCK_LEADERBOARD = [
     {"rank": 1, "user_id": "u1", "display_name": "Amirah R.", "avatar_emoji": "👸", "xp": 980, "streak": 14, "is_me": False},
-    {"rank": 2, "user_id": "demo", "display_name": "You (Sarah)", "avatar_emoji": "😊", "xp": 420, "streak": 7, "is_me": True},
+    {"rank": 2, "user_id": "00000000-0000-0000-0000-000000000001", "display_name": "You (Sarah)", "avatar_emoji": "😊", "xp": 420, "streak": 7, "is_me": True},
     {"rank": 3, "user_id": "u3", "display_name": "Hafiz K.", "avatar_emoji": "🧑", "xp": 390, "streak": 5, "is_me": False},
     {"rank": 4, "user_id": "u4", "display_name": "Nurul A.", "avatar_emoji": "👩", "xp": 310, "streak": 3, "is_me": False},
     {"rank": 5, "user_id": "u5", "display_name": "Danial M.", "avatar_emoji": "🧔", "xp": 280, "streak": 2, "is_me": False},

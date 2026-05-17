@@ -56,7 +56,7 @@ export function FloatingPet() {
     <>
       {/* Main floating container — responsive: smaller on mobile, larger on md+ */}
       <div
-        className="fixed bottom-[5.5rem] right-3 md:bottom-6 md:right-6 z-30 flex flex-col items-end gap-2"
+        className="fixed bottom-[5.5rem] right-3 md:bottom-6 md:right-6 z-40 flex flex-col items-end gap-2"
         role="complementary"
         aria-label="Pet companion"
       >

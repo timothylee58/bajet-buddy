@@ -76,7 +76,7 @@ def _clean_base64(raw: str) -> str:
     return f"data:{mime_hint};base64,{raw}"
 
 
-async def scan_receipt(request: OCRScanRequest, user_id: str = "demo") -> OCRScanResponse:
+async def scan_receipt(request: OCRScanRequest, user_id: str = "00000000-0000-0000-0000-000000000001") -> OCRScanResponse:
     t0 = time.monotonic()
     settings = get_settings()
     image_data_url = _clean_base64(request.image_base64)
@@ -148,7 +148,7 @@ async def scan_receipt(request: OCRScanRequest, user_id: str = "demo") -> OCRSca
 async def _resolve_user_id(user_id: str) -> str:
     """If user_id is 'demo' use the hard-coded demo UUID.
     Otherwise return as-is if it looks like a valid UUID."""
-    if user_id == "demo" or len(user_id) < 32:
+    if user_id == "00000000-0000-0000-0000-000000000001" or len(user_id) < 32:
         return DEMO_USER_ID
     return user_id
 
