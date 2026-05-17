@@ -29,3 +29,31 @@ where g.user_id = (select id from public.profiles order by created_at asc limit 
 update public.profiles
 set monthly_income = 3200, full_name = 'Sarah (Dev Seed)'
 where id = (select id from public.profiles order by created_at asc limit 1);
+
+insert into public.bnpl_commitments (
+  user_id, merchant, provider, item_name,
+  total_amount, outstanding_amount, monthly_payment,
+  installments_total, installments_remaining, next_due_date, status
+)
+select
+  p.id,
+  v.merchant,
+  v.provider,
+  v.item_name,
+  v.total_amount,
+  v.outstanding_amount,
+  v.monthly_payment,
+  v.installments_total,
+  v.installments_remaining,
+  (date_trunc('month', now()) + (v.due_offset || ' days')::interval)::date,
+  v.status
+from public.profiles p
+cross join (
+  values
+    ('Shopee', 'Atome', 'Samsung Galaxy Buds2 Pro', 599.00::numeric, 399.33::numeric, 199.67::numeric, 3, 2, '15 days', 'active'),
+    ('Zalora', 'Split', 'Nike Air Max 270', 459.00::numeric, 153.00::numeric, 153.00::numeric, 3, 1, '22 days', 'active'),
+    ('Harvey Norman', 'Grab PayLater', 'Dyson V15 Vacuum', 2199.00::numeric, 1099.50::numeric, 366.50::numeric, 6, 3, '8 days', 'active'),
+    ('Lazada', 'Atome', 'Xiaomi Smart Air Purifier', 399.00::numeric, 0.00::numeric, 133.00::numeric, 3, 0, '0 days', 'completed'),
+    ('AEON', 'Split', 'Casio G-Shock Watch', 349.00::numeric, 116.33::numeric, 116.33::numeric, 3, 1, '30 days', 'late')
+) as v(merchant, provider, item_name, total_amount, outstanding_amount, monthly_payment, installments_total, installments_remaining, due_offset, status)
+where p.id = (select id from public.profiles order by created_at asc limit 1);
