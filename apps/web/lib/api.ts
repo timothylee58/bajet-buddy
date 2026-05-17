@@ -2,6 +2,11 @@ import { API_URL } from "./constants";
 import type {
   CheckRequest,
   CheckResponse,
+  FOMONegotiateRequest,
+  FOMONegotiateResponse,
+  FOMOResolveRequest,
+  FOMOResolveResponse,
+  FOMOState,
   FutureYouRequest,
   FutureYouResponse,
   GamificationStatus,
@@ -114,4 +119,25 @@ export async function activateProfilingGoal(
     }
   );
   return response.summary;
+}
+
+/** POST /api/fomo/negotiate */
+export async function fomoNegotiate(payload: FOMONegotiateRequest): Promise<FOMONegotiateResponse> {
+  return apiFetch<FOMONegotiateResponse>("/api/fomo/negotiate", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** POST /api/fomo/resolve */
+export async function fomoResolve(payload: FOMOResolveRequest): Promise<FOMOResolveResponse> {
+  return apiFetch<FOMOResolveResponse>("/api/fomo/resolve", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** GET /api/fomo/state */
+export async function getFOMOState(): Promise<FOMOState> {
+  return apiFetch<FOMOState>("/api/fomo/state");
 }

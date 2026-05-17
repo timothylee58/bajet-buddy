@@ -263,3 +263,59 @@ export interface ProgressiveProfilingSummary {
   streak: number;
   days_observed: number;
 }
+
+// ─── FOMO Negotiator ──────────────────────────────────────────────────────────
+export interface FOMONegotiateRequest {
+  amount: number;
+  item_name: string;
+  merchant: string;
+  category: string;
+  current_balance?: number;
+  days_until_salary?: number;
+  bnpl_load?: number;
+}
+
+export interface FOMOOption {
+  label: string;
+  icon: string;
+  impact_summary: string;
+  warning: string;
+  xp_delta: number;
+  recommended: boolean;
+}
+
+export interface FOMONegotiateResponse {
+  fomo_validation: string;
+  trap_exposure: string;
+  option_cash: FOMOOption;
+  option_bnpl: FOMOOption;
+  option_walk_away: FOMOOption;
+  overspent_cards_used: number;
+  tax_mode_active: boolean;
+  tax_rate_pct: number;
+}
+
+export type FOMOChoice = "cash" | "bnpl" | "walk_away";
+
+export interface FOMOResolveRequest {
+  choice: FOMOChoice;
+  amount: number;
+  category: string;
+}
+
+export interface FOMOResolveResponse {
+  overspent_cards_used: number;
+  tax_mode_active: boolean;
+  tax_mode_triggered_now: boolean;
+  xp_delta: number;
+  message: string;
+  cooldown_until: string | null;
+  tax_amount: number | null;
+}
+
+export interface FOMOState {
+  overspent_cards_used: number;
+  tax_mode_active: boolean;
+  tax_rate_pct: number;
+  cooldown_until: string | null;
+}

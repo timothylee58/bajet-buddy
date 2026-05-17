@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Bell, X, Wallet } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { FOMONegotiatorModal } from "@/components/features/fomo/FOMONegotiatorModal";
+import type { FOMONegotiateRequest } from "@/types";
 
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Bajet Buddy",
@@ -20,10 +22,28 @@ interface Notification {
   body: string;
   time: string;
   read: boolean;
-  type: "warning" | "success" | "info";
+  type: "warning" | "success" | "info" | "fomo";
+  fomoRequest?: FOMONegotiateRequest;
 }
 
 const MOCK_NOTIFICATIONS: Notification[] = [
+  {
+    id: "fomo-1",
+    title: "🧠 FOMO Alert — Shopee Flash Sale",
+    body: "70% off dress ends in 2 hours. Your balance is RM340. Negotiate before you tap.",
+    time: "Just now",
+    read: false,
+    type: "fomo",
+    fomoRequest: {
+      amount: 189,
+      item_name: "Summer Dress",
+      merchant: "Shopee Malaysia",
+      category: "shopping",
+      current_balance: 340,
+      days_until_salary: 7,
+      bnpl_load: 214,
+    },
+  },
   {
     id: "1",
     title: "Spending spike detected",
@@ -62,6 +82,7 @@ const typeStyles = {
   warning: "bg-amber-50 border-amber-200 text-amber-700",
   success: "bg-emerald-50 border-emerald-200 text-emerald-700",
   info: "bg-zinc-50 border-zinc-200 text-zinc-600",
+  fomo: "bg-violet-50 border-violet-200 text-violet-700",
 };
 
 export function TopBar() {
@@ -69,6 +90,7 @@ export function TopBar() {
   const title = PAGE_TITLES[pathname] ?? "BajetBuddy";
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const [fomoRequest, setFomoRequest] = useState<FOMONegotiateRequest | null>(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -78,6 +100,16 @@ export function TopBar() {
 
   function dismiss(id: string) {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+  }
+
+  function handleNotificationClick(n: Notification) {
+    if (n.type === "fomo" && n.fomoRequest) {
+      setNotifications((prev) =>
+        prev.map((x) => (x.id === n.id ? { ...x, read: true } : x))
+      );
+      setOpen(false);
+      setFomoRequest(n.fomoRequest);
+    }
   }
 
   return (
@@ -145,20 +177,24 @@ export function TopBar() {
                       notifications.map((n) => (
                         <div
                           key={n.id}
-                          className={`relative flex gap-3 px-4 py-3 ${!n.read ? "bg-zinc-50/70" : ""}`}
+                          onClick={() => handleNotificationClick(n)}
+                          className={`relative flex gap-3 px-4 py-3 ${!n.read ? "bg-zinc-50/70" : ""} ${n.type === "fomo" ? "cursor-pointer hover:bg-violet-50/50" : ""}`}
                         >
                           <div className={`mt-0.5 h-2 w-2 shrink-0 rounded-full ${!n.read ? "bg-emerald-500" : "bg-transparent"}`} />
                           <div className="min-w-0 flex-1">
                             <div className={`mb-1 inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${typeStyles[n.type]}`}>
-                              {n.type}
+                              {n.type === "fomo" ? "FOMO alert" : n.type}
                             </div>
                             <p className="text-sm font-medium text-zinc-900">{n.title}</p>
                             <p className="mt-0.5 text-xs leading-5 text-zinc-500">{n.body}</p>
+                            {n.type === "fomo" && (
+                              <p className="mt-1 text-[11px] font-semibold text-violet-600">Tap to open Negotiator →</p>
+                            )}
                             <p className="mt-1 text-[10px] text-zinc-400">{n.time}</p>
                           </div>
                           <button
                             type="button"
-                            onClick={() => dismiss(n.id)}
+                            onClick={(e) => { e.stopPropagation(); dismiss(n.id); }}
                             className="shrink-0 text-zinc-300 hover:text-zinc-500"
                             aria-label="Dismiss"
                           >
@@ -174,6 +210,12 @@ export function TopBar() {
           </AnimatePresence>
         </div>
       </div>
+
+      <FOMONegotiatorModal
+        open={fomoRequest !== null}
+        request={fomoRequest}
+        onClose={() => setFomoRequest(null)}
+      />
     </header>
   );
 }
