@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "@/lib/constants";
+import { awardPetXP } from "@/lib/api";
 
 interface ReceiptScanResult {
   store_name: string;
@@ -65,6 +66,7 @@ export function ReceiptScanner() {
       }
       const data: ReceiptScanResult = await res.json();
       setResult(data);
+      awardPetXP({ event: "receipt_scan", amount_rm: data.amount }).catch(() => {});
       if (data.under_category_average && data.badge) {
         setShowReward(true);
         setTimeout(() => setShowReward(false), 3000);

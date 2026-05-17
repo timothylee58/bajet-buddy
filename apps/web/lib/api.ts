@@ -1,4 +1,5 @@
 import { API_URL } from "./constants";
+import { createClient } from "./supabase/client";
 import type {
   AwardXPRequest,
   AwardXPResponse,
@@ -25,12 +26,22 @@ import type {
   SimulateEventResponse,
 } from "@/types";
 
-async function apiFetch<T>(
-  path: string,
-  options?: RequestInit
-): Promise<T> {
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  try {
+    const supabase = createClient();
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (token) return { Authorization: `Bearer ${token}` };
+  } catch {
+    // non-auth environments (demo mode) — proceed without token
+  }
+  return {};
+}
+
+async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const authHeaders = await getAuthHeaders();
   const res = await fetch(`${API_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders },
     ...options,
   });
   if (!res.ok) {
@@ -40,7 +51,7 @@ async function apiFetch<T>(
   return res.json() as Promise<T>;
 }
 
-/** POST /api/check — run the AI verdict pipeline */
+/** POST /api/check */
 export async function checkSpend(payload: CheckRequest): Promise<CheckResponse> {
   return apiFetch<CheckResponse>("/api/check", {
     method: "POST",
@@ -72,9 +83,7 @@ export async function analyzePersona(payload: unknown) {
 }
 
 /** POST /api/simulations/future-you */
-export async function simulateFutureYou(
-  payload: FutureYouRequest
-): Promise<FutureYouResponse> {
+export async function simulateFutureYou(payload: FutureYouRequest): Promise<FutureYouResponse> {
   return apiFetch<FutureYouResponse>("/api/simulations/future-you", {
     method: "POST",
     body: JSON.stringify(payload),
@@ -123,10 +132,7 @@ export async function activateProfilingGoal(
     "/api/profiling/goals/activate",
     {
       method: "POST",
-      body: JSON.stringify({
-        type,
-        commitment_amount: commitmentAmount,
-      }),
+      body: JSON.stringify({ type, commitment_amount: commitmentAmount }),
     }
   );
   return response.summary;

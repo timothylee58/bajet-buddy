@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import type { PetSpecies } from "@/types";
-import { usePetCompanion } from "@/hooks/usePetCompanion";
+import { usePet } from "./PetCompanionProvider";
 import { PetSpeechBubble } from "./PetSpeechBubble";
 import { PetSelectorModal } from "./PetSelectorModal";
 import { PetLevelUpToast, AccessoryUnlockToast } from "./PetLevelUpToast";
@@ -15,7 +15,7 @@ export function FloatingPet() {
     profile, nudge, xpToNext, progressPct,
     loading, levelUpPending, newAccessory,
     refresh, changePet, dismissLevelUp, dismissAccessory,
-  } = usePetCompanion();
+  } = usePet();
 
   const [bubbleVisible, setBubbleVisible] = useState(true);
   const [selectorOpen, setSelectorOpen] = useState(false);
@@ -36,8 +36,7 @@ export function FloatingPet() {
 
   if (loading || !profile) return null;
 
-  const species = profile.species;
-  const stage = getStageForXp(species, profile.xp);
+  const stage = getStageForXp(profile.species, profile.xp);
   const anim = MOOD_ANIMATIONS[profile.mood];
   const glow = MOOD_GLOW[profile.mood];
 
@@ -57,44 +56,44 @@ export function FloatingPet() {
               initial={{ opacity: 0, scale: 0.85, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.85, y: 10 }}
-              className="bg-white/90 backdrop-blur-sm border border-zinc-200 rounded-2xl p-4 shadow-xl w-56"
+              className="bg-surface/90 backdrop-blur-sm border border-border rounded-2xl p-4 shadow-xl w-56"
             >
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-xs font-bold text-zinc-800">{profile.name}</p>
-                  <p className="text-[10px] text-zinc-500">Level {profile.level} · {profile.xp} XP</p>
+                  <p className="text-xs font-bold text-foreground">{profile.name}</p>
+                  <p className="text-[10px] text-muted">Level {profile.level} · {profile.xp} XP</p>
                 </div>
                 <span className="text-xl">{profile.streak > 0 ? "🔥" : "💤"}</span>
               </div>
 
               <div className="mb-3">
-                <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
+                <div className="flex justify-between text-[10px] text-muted mb-1">
                   <span>XP Progress</span>
                   <span>{progressPct}%</span>
                 </div>
-                <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-neutral-light rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full"
+                    className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPct}%` }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
                   />
                 </div>
                 {xpToNext > 0 && (
-                  <p className="text-[10px] text-zinc-400 mt-1">{xpToNext} XP to evolve</p>
+                  <p className="text-[10px] text-muted mt-1">{xpToNext} XP to evolve</p>
                 )}
               </div>
 
               <div className="flex gap-2">
                 <button
                   onClick={() => { setSelectorOpen(true); setExpanded(false); }}
-                  className="flex-1 text-[11px] py-2 rounded-xl bg-indigo-50 text-indigo-700 font-medium hover:bg-indigo-100 transition-colors"
+                  className="flex-1 text-[11px] py-2 rounded-xl bg-primary-light text-primary font-semibold hover:bg-primary hover:text-white transition-colors"
                 >
                   Switch Pet
                 </button>
                 <button
                   onClick={() => { setBubbleVisible(true); setExpanded(false); refresh("dashboard_open"); }}
-                  className="flex-1 text-[11px] py-2 rounded-xl bg-emerald-50 text-emerald-700 font-medium hover:bg-emerald-100 transition-colors"
+                  className="flex-1 text-[11px] py-2 rounded-xl bg-secondary-light text-secondary-dark font-semibold hover:bg-secondary hover:text-white transition-colors"
                 >
                   Get Advice
                 </button>
@@ -106,7 +105,7 @@ export function FloatingPet() {
         <motion.button
           onClick={handlePetClick}
           whileTap={{ scale: 0.9 }}
-          className="relative focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-full"
+          className="relative focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
           aria-label={`${profile.name} — tap for advice`}
         >
           <motion.div
@@ -119,7 +118,7 @@ export function FloatingPet() {
               alt={stage.name}
               width={72}
               height={72}
-              className="w-16 h-16 sm:w-18 sm:h-18 object-contain"
+              className="w-16 h-16 object-contain"
               priority
             />
           </motion.div>
@@ -133,7 +132,6 @@ export function FloatingPet() {
               🔥
             </motion.span>
           )}
-
           {profile.mood === "celebrating" && (
             <motion.span
               className="absolute -top-2 -left-1 text-sm"
@@ -143,7 +141,6 @@ export function FloatingPet() {
               🎉
             </motion.span>
           )}
-
           {profile.mood === "warning" && (
             <motion.span
               className="absolute -top-1 -right-1 text-sm"
@@ -162,16 +159,8 @@ export function FloatingPet() {
         onSelect={handleSpeciesSelect}
         onClose={() => setSelectorOpen(false)}
       />
-
-      <PetLevelUpToast
-        level={levelUpPending ? profile.level : null}
-        onDismiss={dismissLevelUp}
-      />
-
-      <AccessoryUnlockToast
-        accessory={newAccessory}
-        onDismiss={dismissAccessory}
-      />
+      <PetLevelUpToast level={levelUpPending ? profile.level : null} onDismiss={dismissLevelUp} />
+      <AccessoryUnlockToast accessory={newAccessory} onDismiss={dismissAccessory} />
     </>
   );
 }

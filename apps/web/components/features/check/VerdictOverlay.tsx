@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { VERDICT_CONFIG } from "@/lib/constants";
 import { formatRM } from "@/lib/utils";
 import type { CheckResponse } from "@/types";
 import { FOMONegotiatorModal } from "@/components/features/fomo/FOMONegotiatorModal";
+import { usePet } from "@/components/features/pet/PetCompanionProvider";
 
 interface VerdictOverlayProps {
   result: CheckResponse;
@@ -16,6 +17,23 @@ interface VerdictOverlayProps {
 export function VerdictOverlay({ result, amount, onReset }: VerdictOverlayProps) {
   const cfg = VERDICT_CONFIG[result.verdict];
   const [fomoOpen, setFomoOpen] = useState(false);
+  const { award, refresh } = usePet();
+  const bridgedRef = useRef(false);
+
+  useEffect(() => {
+    if (bridgedRef.current) return;
+    bridgedRef.current = true;
+    const event = result.verdict === "boleh" ? "budget_under"
+      : result.verdict === "jangan_dulu" ? "impulse_blocked"
+      : null;
+    if (event) {
+      award({ event, amount_rm: amount });
+    }
+    const context = result.verdict === "boleh" ? "under_budget"
+      : result.verdict === "jangan_dulu" ? "impulse_spend"
+      : "dashboard_open";
+    refresh(context, amount);
+  }, [result.verdict, amount, award, refresh]);
 
   return (
     <motion.div

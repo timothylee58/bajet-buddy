@@ -5,6 +5,7 @@ import {
   getSentinelDashboard,
   simulateMacroEvent,
   completeSentinelQuest,
+  awardPetXP,
 } from "@/lib/api";
 import type {
   SentinelDashboardResponse,
@@ -61,6 +62,7 @@ export function SentinelDashboard() {
       setQuests((prev) =>
         prev.map((q) => (q.id === questId ? { ...q, completed: true } : q))
       );
+      awardPetXP({ event: "goal_complete" }).catch(() => {});
     } catch {
       // ignore
     }

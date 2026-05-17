@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { fomoNegotiate, fomoResolve } from "@/lib/api";
+import { fomoNegotiate, fomoResolve, awardPetXP, getPetNudge } from "@/lib/api";
 import type {
   EmotionalState,
   FOMOChoice,
@@ -73,6 +73,11 @@ export function useFOMONegotiator(): UseFOMONegotiatorReturn {
       const result = await fomoResolve({ choice, amount, category, emotional_state: emotionalState });
       setResolution(result);
       setPhase("resolved");
+      // Fire-and-forget pet XP + mood nudge after FOMO decision
+      const event = choice === "walk_away" ? "walk_away" : choice === "bnpl" ? "impulse_blocked" : "budget_under";
+      const context = choice === "walk_away" ? "savings_goal_met" : "impulse_spend";
+      awardPetXP({ event, amount_rm: amount }).catch(() => {});
+      getPetNudge({ context, amount_rm: amount, category }).catch(() => {});
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setPhase("error");
