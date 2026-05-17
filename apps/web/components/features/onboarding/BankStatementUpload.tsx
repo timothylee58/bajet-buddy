@@ -40,8 +40,8 @@ export function BankStatementUpload({ onComplete, onSkip }: BankStatementUploadP
       const response = await scanReceipt(image);
       setResult(response);
       setIsScanning(false);
-    } catch (err: any) {
-      setError(err?.message || "Failed to connect to API");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to connect to API");
       setIsScanning(false);
     }
   };
@@ -55,7 +55,7 @@ export function BankStatementUpload({ onComplete, onSkip }: BankStatementUploadP
           <div className="mx-auto h-20 w-20 rounded-3xl bg-brand/20 flex items-center justify-center text-brand">
             <FileUp size={40} />
           </div>
-          <h2 className="text-2xl font-bold">Let's see your spending 🔍</h2>
+          <h2 className="text-2xl font-bold">Let&apos;s see your spending 🔍</h2>
           <p className="text-sm text-zinc-400">
             Snap a photo or upload your bank statement — even a screenshot works.
             The more data you share, the smarter your AI gets.
@@ -150,7 +150,7 @@ export function BankStatementUpload({ onComplete, onSkip }: BankStatementUploadP
                 </p>
               </div>
 
-              {result.scan_result?.transactions.slice(0, 3).map((txn: any, i: number) => (
+              {result.scan_result?.transactions.slice(0, 3).map((txn, i) => (
                 <div key={i} className="flex justify-between text-sm text-zinc-300 bg-zinc-800/50 rounded-lg px-3 py-2">
                   <span className="truncate">{txn.merchant}</span>
                   <span className="text-zinc-400">RM{txn.amount.toFixed(2)}</span>
@@ -190,7 +190,7 @@ export function BankStatementUpload({ onComplete, onSkip }: BankStatementUploadP
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
             <button onClick={onSkip} className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors">
               <SkipForward size={16} />
-I'll do this later — take me to the app
+I&apos;ll do this later — take me to the app
             </button>
           </motion.div>
         )}

@@ -42,9 +42,9 @@ export function TransactionReviewCard({
       const next = [...prev];
       const updated = { ...next[editingIndex] };
       if (editField.key === "amount") {
-        (updated as any)[editField.key] = parseFloat(editField.value) || 0;
+        (updated as unknown as Record<string, unknown>)[editField.key] = parseFloat(editField.value) || 0;
       } else {
-        (updated as any)[editField.key] = editField.value;
+        (updated as unknown as Record<string, unknown>)[editField.key] = editField.value;
       }
       next[editingIndex] = updated;
       return next;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getPersona } from "@/lib/api";
 import { useGuestMode } from "@/hooks/useGuestMode";
 import type { PersonaAnalysis } from "@/types";
@@ -28,33 +28,30 @@ const MOCK_PERSONA: PersonaAnalysis = {
 };
 
 export function usePersona() {
-  const [persona, setPersona] = useState<PersonaAnalysis | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [apiPersona, setApiPersona] = useState<PersonaAnalysis | null>(null);
+  const [apiLoading, setApiLoading] = useState(true);
   const { isGuest, guestData } = useGuestMode();
 
   useEffect(() => {
-    if (isGuest && guestData.persona) {
-      setPersona({
-        ...MOCK_PERSONA, // base types
-        ...guestData.persona,
-        xp: guestData.xp,
-        streak: guestData.streak,
-      });
-      setLoading(false);
-      return;
-    }
-
-    if (isGuest && !guestData.persona) {
-      setPersona(null);
-      setLoading(false);
-      return;
-    }
-
+    if (isGuest) return;
     getPersona()
-      .then((data) => setPersona(data as PersonaAnalysis))
-      .catch(() => setPersona(MOCK_PERSONA))
-      .finally(() => setLoading(false));
-  }, [isGuest, guestData]);
+      .then((data) => setApiPersona(data as PersonaAnalysis))
+      .catch(() => setApiPersona(MOCK_PERSONA))
+      .finally(() => setApiLoading(false));
+  }, [isGuest]);
+
+  const persona = useMemo<PersonaAnalysis | null>(() => {
+    if (!isGuest) return apiPersona;
+    if (!guestData.persona) return null;
+    return {
+      ...MOCK_PERSONA,
+      ...(guestData.persona as Partial<PersonaAnalysis>),
+      xp: guestData.xp,
+      streak: guestData.streak,
+    };
+  }, [isGuest, guestData.persona, guestData.xp, guestData.streak, apiPersona]);
+
+  const loading = isGuest ? false : apiLoading;
 
   return { persona, loading };
 }

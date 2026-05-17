@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getBudgetSummary } from "@/lib/api";
 import { useGuestMode } from "@/hooks/useGuestMode";
 import type { BudgetSummary } from "@/types";
@@ -14,34 +14,42 @@ const MOCK_SUMMARY: BudgetSummary = {
 };
 
 export function useBudget() {
-  const [summary, setSummary] = useState<BudgetSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [fetchedSummary, setFetchedSummary] = useState<BudgetSummary | null>(null);
+  const [fetchLoading, setFetchLoading] = useState(true);
   const { isGuest, guestData } = useGuestMode();
 
+  const guestSummary = useMemo<BudgetSummary | null>(() => {
+    if (!isGuest || !guestData.estimated_budget) return null;
+    const totalSpent = guestData.transactions.reduce(
+      (acc, t) => acc + ((t.amount as number) || 0),
+      0
+    );
+    const estimatedTotal = guestData.estimated_budget.reduce(
+      (acc, item) => acc + item.amount,
+      0
+    );
+    return {
+      total_income: estimatedTotal + 500,
+      total_spent: totalSpent,
+      remaining: estimatedTotal - totalSpent,
+      days_left: 30,
+      daily_safe_amount: (estimatedTotal - totalSpent) / 30,
+    };
+  }, [isGuest, guestData.estimated_budget, guestData.transactions]);
+
   useEffect(() => {
-    if (isGuest && guestData.estimated_budget) {
-      const totalSpent = guestData.transactions.reduce((acc, t) => acc + t.amount, 0);
-      const estimatedTotal = guestData.estimated_budget.reduce((acc: number, item: any) => acc + item.amount, 0);
-      
-      setSummary({
-        total_income: estimatedTotal + 500, // assume some buffer
-        total_spent: totalSpent,
-        remaining: estimatedTotal - totalSpent,
-        days_left: 30, // assume month start
-        daily_safe_amount: (estimatedTotal - totalSpent) / 30,
-      });
-      setLoading(false);
-      return;
-    }
+    if (guestSummary) return;
 
     getBudgetSummary()
-      .then((data) => setSummary(data as BudgetSummary))
+      .then((data) => setFetchedSummary(data as BudgetSummary))
       .catch(() => {
-        // Fall back to mock data when backend is unavailable
-        setSummary(MOCK_SUMMARY);
+        setFetchedSummary(MOCK_SUMMARY);
       })
-      .finally(() => setLoading(false));
-  }, [isGuest, guestData]);
+      .finally(() => setFetchLoading(false));
+  }, [guestSummary]);
+
+  const summary = guestSummary ?? fetchedSummary;
+  const loading = guestSummary ? false : fetchLoading;
 
   return { summary, loading, error: null };
 }

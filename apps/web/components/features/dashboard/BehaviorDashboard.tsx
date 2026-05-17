@@ -371,7 +371,7 @@ export function BehaviorDashboard() {
   const [purchaseTriggered, setPurchaseTriggered] = useState(true);
   const pulse = useDashboardPulse();
   const { guestData } = useGuestMode();
-  const ocrTransactions = guestData.transactions.filter((t: any) => t.source === "ocr");
+  const ocrTransactions = guestData.transactions.filter((t) => t.source === "ocr");
   const chartsReady = useSyncExternalStore(
     () => () => undefined,
     () => true,
@@ -958,7 +958,7 @@ export function BehaviorDashboard() {
             </div>
             <div className="rounded-lg border border-zinc-200 bg-white">
               <div className="divide-y divide-zinc-100">
-                {ocrTransactions.map((transaction: any) => (
+                {ocrTransactions.map((transaction) => (
                   <motion.div
                     key={transaction.id}
                     initial={{ opacity: 0, x: -12 }}
@@ -1002,7 +1002,7 @@ export function BehaviorDashboard() {
                 </div>
                 <div className="text-sm">
                   <p className="font-semibold text-emerald-800">
-                    {ocrTransactions.filter((t: any) => t.db_inserted).length}/{ocrTransactions.length} saved to Supabase
+                    {ocrTransactions.filter((t) => t.db_inserted).length}/{ocrTransactions.length} saved to Supabase
                   </p>
                   <p className="text-emerald-600">
                     Agent 4 active — supports receipts & bank statements

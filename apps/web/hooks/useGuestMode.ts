@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export type GuestData = {
   onboarding: {
@@ -8,13 +8,13 @@ export type GuestData = {
     questions_answered: boolean;
     answers: Array<{ question: number; answer: string; xp: number }>;
   };
-  persona: any;
-  estimated_budget: any;
-  transactions: any[];
+  persona: Record<string, unknown> | null;
+  estimated_budget: { category: string; amount: number; color: string; percentage: number }[] | null;
+  transactions: Record<string, unknown>[];
   xp: number;
   streak: number;
   badges: string[];
-  freeze_events: any[];
+  freeze_events: Record<string, unknown>[];
 };
 
 const INITIAL_GUEST_DATA: GuestData = {
@@ -32,27 +32,27 @@ const INITIAL_GUEST_DATA: GuestData = {
   freeze_events: [],
 };
 
-export function useGuestMode() {
-  const [isGuest, setIsGuest] = useState<boolean>(false);
-  const [guestData, setGuestData] = useState<GuestData>(INITIAL_GUEST_DATA);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const guestMode = localStorage.getItem("bb_guest_mode") === "true";
-    setIsGuest(guestMode);
-
-    if (guestMode) {
-      const data = localStorage.getItem("bb_guest_data");
-      if (data) {
-        try {
-          setGuestData(JSON.parse(data));
-        } catch (e) {
-          console.error("Failed to parse guest data", e);
-        }
-      }
+function readGuestState(): { isGuest: boolean; guestData: GuestData } {
+  if (typeof window === "undefined") {
+    return { isGuest: false, guestData: INITIAL_GUEST_DATA };
+  }
+  const isGuest = localStorage.getItem("bb_guest_mode") === "true";
+  if (!isGuest) return { isGuest: false, guestData: INITIAL_GUEST_DATA };
+  const raw = localStorage.getItem("bb_guest_data");
+  if (raw) {
+    try {
+      return { isGuest, guestData: JSON.parse(raw) as GuestData };
+    } catch {
+      // corrupted — fall through to defaults
     }
-    setLoading(false);
-  }, []);
+  }
+  return { isGuest, guestData: INITIAL_GUEST_DATA };
+}
+
+export function useGuestMode() {
+  const [isGuest, setIsGuest] = useState<boolean>(() => readGuestState().isGuest);
+  const [guestData, setGuestData] = useState<GuestData>(() => readGuestState().guestData);
+  const loading = false;
 
   const enableGuestMode = () => {
     localStorage.setItem("bb_guest_mode", "true");

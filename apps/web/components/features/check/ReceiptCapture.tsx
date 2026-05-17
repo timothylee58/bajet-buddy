@@ -58,9 +58,9 @@ export function ReceiptCapture({ onClose, onComplete }: ReceiptCaptureProps) {
         setErrorMsg(msg);
         toast.error(msg);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsScanning(false);
-      const msg = err?.message || "Cannot reach API — is the backend running?";
+      const msg = err instanceof Error ? err.message : "Cannot reach API — is the backend running?";
       setErrorMsg(msg);
       toast.error(msg);
     }

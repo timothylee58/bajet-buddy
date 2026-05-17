@@ -58,7 +58,7 @@ export function OCRPitchCard({
                 Snap, Upload, Drop PDFs
               </h2>
               <p className="text-lg text-zinc-400 leading-relaxed max-w-sm mx-auto">
-                BajetBuddy reads your receipts and bank statements so you don't have to type.
+                BajetBuddy reads your receipts and bank statements so you don&apos;t have to type.
               </p>
             </div>
           </motion.div>

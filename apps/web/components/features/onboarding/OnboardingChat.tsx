@@ -204,7 +204,7 @@ export function OnboardingChat({ onComplete }: OnboardingChatProps) {
                   className="space-y-2"
                 >
                   <h2 className="text-3xl font-bold text-white">Answers collected!</h2>
-                  <p className="text-zinc-400">Now let's see your real spending data...</p>
+                  <p className="text-zinc-400">Now let&apos;s see your real spending data...</p>
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0 }}
