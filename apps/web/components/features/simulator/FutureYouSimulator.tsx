@@ -127,7 +127,7 @@ export function FutureYouSimulator() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6">
       <div className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.18em] text-emerald-700">
+        <p className="text-xs uppercase tracking-[0.18em] text-brand-dark">
           Future Simulator
         </p>
         <h1 className="text-3xl font-semibold text-zinc-950">
@@ -142,7 +142,7 @@ export function FutureYouSimulator() {
             <p className="text-sm font-semibold text-zinc-900">6-month cashflow timeline</p>
             <p className="text-xs text-zinc-500">Animated view of balance outcomes across all three futures.</p>
           </div>
-          <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+          <div className="rounded-full border border-brand/25 bg-brand-light px-3 py-1 text-xs font-medium text-brand-dark">
             Final AI verdict
           </div>
         </div>
@@ -156,16 +156,16 @@ export function FutureYouSimulator() {
             <AreaChart data={chartData} margin={{ top: 12, right: 12, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="bnplFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.18} />
-                  <stop offset="95%" stopColor="#f97316" stopOpacity={0.02} />
+                  <stop offset="5%" stopColor="#BA6200" stopOpacity={0.18} />
+                  <stop offset="95%" stopColor="#BA6200" stopOpacity={0.02} />
                 </linearGradient>
                 <linearGradient id="saveFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.18} />
-                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0.02} />
+                  <stop offset="5%" stopColor="#D97706" stopOpacity={0.18} />
+                  <stop offset="95%" stopColor="#D97706" stopOpacity={0.02} />
                 </linearGradient>
                 <linearGradient id="skipFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.18} />
-                  <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.02} />
+                  <stop offset="5%" stopColor="#944E00" stopOpacity={0.18} />
+                  <stop offset="95%" stopColor="#944E00" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
               <CartesianGrid stroke="#e4e4e7" strokeDasharray="3 3" />
@@ -173,9 +173,9 @@ export function FutureYouSimulator() {
               <YAxis tickFormatter={(value) => `RM${value}`} tick={{ fontSize: 12, fill: "#52525b" }} width={52} />
               <Tooltip formatter={(value) => formatRM(Number(value))} />
               <Legend />
-              <Area type="monotone" dataKey="buy_now_bnpl" name="Buy now" stroke="#f97316" fill="url(#bnplFill)" strokeWidth={2} />
-              <Area type="monotone" dataKey="save_first" name="Save first" stroke="#22c55e" fill="url(#saveFill)" strokeWidth={2} />
-              <Area type="monotone" dataKey="skip_and_save" name="Skip and save" stroke="#0ea5e9" fill="url(#skipFill)" strokeWidth={2} />
+              <Area type="monotone" dataKey="buy_now_bnpl" name="Buy now" stroke="#BA6200" fill="url(#bnplFill)" strokeWidth={2} />
+              <Area type="monotone" dataKey="save_first" name="Save first" stroke="#D97706" fill="url(#saveFill)" strokeWidth={2} />
+              <Area type="monotone" dataKey="skip_and_save" name="Skip and save" stroke="#944E00" fill="url(#skipFill)" strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </motion.div>
@@ -192,7 +192,7 @@ export function FutureYouSimulator() {
               transition={{ duration: 0.35, delay: index * 0.06 }}
               className={`rounded-lg border p-5 ${
                 recommended
-                  ? "border-emerald-400 bg-emerald-50/60"
+                  ? "border-brand/35 bg-brand-light/60"
                   : "border-zinc-200 bg-white"
               }`}
             >
@@ -205,7 +205,7 @@ export function FutureYouSimulator() {
                         ? "bg-red-100 text-red-700"
                         : scenario.stress_score >= 40
                         ? "bg-amber-100 text-amber-700"
-                        : "bg-emerald-100 text-emerald-700"
+                        : "bg-brand-muted text-brand-dark"
                     }`}
                   >
                     Stress {scenario.stress_score}
@@ -244,8 +244,8 @@ export function FutureYouSimulator() {
         })}
       </div>
 
-      <div className="mt-6 rounded-lg border border-zinc-950 bg-zinc-950 p-5 text-white">
-        <p className="text-xs uppercase tracking-[0.18em] text-emerald-300">Final AI verdict</p>
+      <div className="mt-6 rounded-lg border border-brand/25 bg-[#1C140C] p-5 text-white">
+        <p className="text-xs uppercase tracking-[0.18em] text-brand-on-hero">Final AI verdict</p>
         <p className="mt-2 text-lg font-semibold">{data.verdict}</p>
       </div>
     </div>

@@ -1,14 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f7f8;
-  --foreground: #111827;
-  --brand: #16a34a;
-  --brand-light: #dcfce7;
-  --brand-dark: #15803d;
+  --background: #fffaf4;
+  --foreground: #1c1917;
+  --brand: #ba6200;
+  --brand-light: #fff4e8;
+  --brand-dark: #944e00;
+  --brand-muted: #f5e6d6;
+  --brand-on-hero: #fcd9b6;
+  --surface-hero: #1c140c;
+  --surface-card: #ffffff;
+  --surface-muted: #f7efe6;
+  --border-subtle: #ead8c2;
   --danger: #dc2626;
-  --warning: #d97706;
-  --safe: #16a34a;
+  --warning: #b45309;
+  --safe: #ba6200;
 }
 
 @theme inline {
@@ -17,14 +23,25 @@
   --color-brand: var(--brand);
   --color-brand-light: var(--brand-light);
   --color-brand-dark: var(--brand-dark);
+  --color-brand-muted: var(--brand-muted);
+  --color-brand-on-hero: var(--brand-on-hero);
+  --color-surface-hero: var(--surface-hero);
+  --color-surface-card: var(--surface-card);
+  --color-surface-muted: var(--surface-muted);
+  --color-border-subtle: var(--border-subtle);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #08110f;
-    --foreground: #ededed;
+    --background: #14100c;
+    --foreground: #f5f0eb;
+    --surface-card: #1f1a16;
+    --surface-muted: #2a241e;
+    --border-subtle: #3d342c;
+    --brand-light: #2a1f14;
+    --brand-muted: #3d2e1f;
   }
 }
 
@@ -38,17 +55,23 @@ body {
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(circle at top left, rgba(186, 98, 0, 0.14), transparent 34rem),
+    linear-gradient(180deg, #fffaf4 0%, var(--background) 42%, #f8efe5 100%);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(186, 98, 0, 0.24);
+  color: var(--foreground);
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-/* Safe area for mobile bottom nav */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 1rem);
 }

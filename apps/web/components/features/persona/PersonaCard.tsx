@@ -26,7 +26,7 @@ export function PersonaCard({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}
-      className="rounded-lg border border-emerald-500/15 bg-[#071412] p-6 text-white shadow-lg"
+      className="rounded-lg border border-brand/15 bg-[#1C140C] p-6 text-white shadow-lg"
     >
       <div className="flex items-start gap-4">
         <div className="text-5xl" aria-hidden="true">{emoji}</div>
@@ -41,12 +41,12 @@ export function PersonaCard({
               Lv.{level}
               </span>
             </div>
-            <p className="text-sm text-emerald-100 leading-relaxed">{description}</p>
+            <p className="text-sm text-brand-on-hero leading-relaxed">{description}</p>
           </div>
 
           <div className="space-y-3 rounded-lg border border-white/10 bg-white/5 p-4">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-200/70">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-brand-on-hero/70">
                 Persona Explanation
               </p>
               <p className="mt-1 text-sm leading-relaxed text-zinc-200">
@@ -54,7 +54,7 @@ export function PersonaCard({
               </p>
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-200/70">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-brand-on-hero/70">
                 Suggested Intervention Rule
               </p>
               <p className="mt-1 text-sm leading-relaxed text-zinc-200">

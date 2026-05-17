@@ -7,12 +7,11 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-green-50 to-white dark:from-zinc-900 dark:to-zinc-950 px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(186,98,0,0.24),_transparent_34rem),linear-gradient(180deg,_#fff4e8,_#fffaf4_48%,_#f7efe6)] px-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="mb-8 text-center">
-          <span className="text-3xl font-bold text-green-600">💚 BajetBuddy</span>
-          <p className="mt-1 text-sm text-zinc-500">Duit smart, hidup lega.</p>
+          <p className="text-3xl font-bold tracking-tight text-brand-dark">BajetBuddy</p>
+          <p className="mt-1 text-sm text-zinc-600">Duit smart, hidup lega.</p>
         </div>
         {children}
       </div>
