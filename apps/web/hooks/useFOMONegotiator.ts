@@ -36,7 +36,7 @@ export function useFOMONegotiator(): UseFOMONegotiatorReturn {
   const [personaPreference, setPersonaPreference] = useState<PersonaCode>("pak_cik_audit");
   const [error, setError] = useState<string | null>(null);
 
-  const open = useCallback((req: FOMONegotiateRequest) => {
+  const open = useCallback((_req: FOMONegotiateRequest) => {
     setError(null);
     setResolution(null);
     setNegotiation(null);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import {
   getSentinelDashboard,
   simulateMacroEvent,
@@ -29,21 +29,17 @@ export function SentinelDashboard() {
   const [simulating, setSimulating] = useState(false);
   const [quests, setQuests] = useState<InflationQuest[]>([]);
 
-  const fetchDashboard = useCallback(async () => {
-    try {
-      const data = await getSentinelDashboard();
-      setDashboard(data);
-      setQuests(data.quests);
-    } catch {
-      // silently fail — show empty state
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    void fetchDashboard();
-  }, [fetchDashboard]);
+    getSentinelDashboard()
+      .then((data) => {
+        setDashboard(data);
+        setQuests(data.quests);
+      })
+      .catch(() => {
+        // silently fail — show empty state
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   async function handleSimulate(event_type: MacroEventType) {
     setSimulating(true);

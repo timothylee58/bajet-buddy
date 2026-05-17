@@ -193,7 +193,7 @@ function ResolutionView({
 
       {/* Persona reaction */}
       <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700 italic text-center">
-        "{resolution.persona_reaction}"
+        &ldquo;{resolution.persona_reaction}&rdquo;
       </div>
 
       {/* XP */}
@@ -391,7 +391,7 @@ export function FOMONegotiatorModal({ open, request, onClose }: FOMONegotiatorMo
 
                   {/* Persona quip */}
                   <div className="rounded-2xl bg-violet-50 border border-violet-200 px-4 py-3 text-sm font-medium text-violet-800 text-center italic">
-                    "{negotiation.persona_quip}"
+                    &ldquo;{negotiation.persona_quip}&rdquo;
                   </div>
 
                   {/* Validation + Trap */}
