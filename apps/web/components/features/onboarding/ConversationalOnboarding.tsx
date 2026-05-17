@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { API_URL } from "@/lib/constants";
 import { scanReceipt } from "@/lib/api";
@@ -74,6 +74,11 @@ export function ConversationalOnboarding() {
   const [scanResult, setScanResult] = useState<OCRScanResponse | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const currentQuestion = QUESTIONS[step];
 
@@ -481,7 +486,7 @@ export function ConversationalOnboarding() {
                 />
                 <button
                   onClick={handleNext}
-                  disabled={!inputValue.trim()}
+                  disabled={!mounted || !inputValue.trim()}
                   className="w-full rounded-xl bg-primary py-3 font-semibold text-white transition-colors hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Next →

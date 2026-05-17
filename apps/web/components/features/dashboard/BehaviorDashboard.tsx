@@ -16,7 +16,7 @@ import {
 import { useDashboardPulse } from "@/hooks/useDashboardPulse";
 import { useRecentTransactions } from "@/hooks/useRecentTransactions";
 import { createClient } from "@/lib/supabase/client";
-import { formatRM } from "@/lib/utils";
+import { formatRM, formatSignedRM } from "@/lib/utils";
 import { CATEGORIES, VERDICT_CONFIG } from "@/lib/constants";
 
 function useUserName() {
@@ -86,14 +86,17 @@ export function BehaviorDashboard() {
 
   const isLoading = pulseLoading;
 
+  const monthName = new Date().toLocaleString("en-MY", { month: "long", year: "numeric" });
+
   return (
     <div className="mx-auto w-full max-w-md px-4 pb-32 pt-6 sm:px-6 lg:max-w-2xl">
       {/* Dashboard Header */}
       <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-3">
+        <div>
           <h1 className="font-headline text-2xl font-bold text-primary">
             Hi {name} 👋
           </h1>
+          <p className="font-sans text-xs text-muted mt-0.5">{monthName} · Day {new Date().getDate()} of {budget?.total_days ?? 30}</p>
         </div>
         <div className="flex items-center gap-2">
           {/* Streak badge — links to /streak */}
@@ -407,8 +410,12 @@ export function BehaviorDashboard() {
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="font-headline text-lg font-bold text-red-600">
-                      -{formatRM(tx.amount)}
+                    <p
+                      className={`font-headline text-lg font-bold ${
+                        tx.amount < 0 ? "text-red-600" : "text-emerald-600"
+                      }`}
+                    >
+                      {formatSignedRM(tx.amount)}
                     </p>
                     <span
                       className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${verdictCfg.bg} ${verdictCfg.color}`}

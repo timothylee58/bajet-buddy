@@ -16,6 +16,7 @@ export interface BudgetSummary {
   total_spent: number;
   remaining: number;
   days_left: number;
+  total_days?: number;
   daily_safe_amount: number;
 }
 

@@ -629,4 +629,116 @@ export const tools = {
       };
     },
   }),
+
+  // ─── NEW: Monthly Savings Summary ─────────────────────────────────────────
+  monthlySummary: tool({
+    description: 'Generates a comprehensive monthly financial review. Analyzes savings rate, category breakdown, identifies overspending, and gives specific "what to cut before next month" advice. User can ask "how am I doing this month?" or "what should I improve?"',
+    parameters: z.object({
+      monthlyIncome: z.number().describe('Monthly income in RM'),
+      currentBalance: z.number().describe('Current balance in RM'),
+      totalSpentThisMonth: z.number().optional().describe('Total spent this month so far (RM)'),
+      daysLeftInMonth: z.number().optional().describe('Days remaining in current month'),
+      categories: z.array(z.object({
+        category: z.string(),
+        spent: z.number(),
+        budget: z.number().optional(),
+      })).optional().describe('Category breakdown with spent amounts'),
+      hasActiveBnpl: z.boolean().optional().describe('Whether user has active BNPL commitments'),
+      bnplTotalDue: z.number().optional().describe('Total BNPL due this month (RM)'),
+    }),
+    execute: async ({ monthlyIncome, currentBalance, totalSpentThisMonth = 0, daysLeftInMonth = 7, categories = [], hasActiveBnpl = false, bnplTotalDue = 0 }) => {
+      const savingsRate = monthlyIncome > 0 ? Math.round(((monthlyIncome - totalSpentThisMonth) / monthlyIncome) * 100) : 0;
+      const dailyBudgetRemaining = daysLeftInMonth > 0 ? Math.round((currentBalance / daysLeftInMonth) * 100) / 100 : 0;
+      const projectedMonthEnd = currentBalance - (dailyBudgetRemaining * daysLeftInMonth * 0.3); // rough buffer
+      const projectedSavings = Math.round((currentBalance - (dailyBudgetRemaining * daysLeftInMonth)) * 100) / 100;
+
+      // Category analysis
+      const totalBudgeted = categories.reduce((s, c) => s + (c.budget || 0), 0);
+      const overspentCategories = categories.filter(c => c.budget && c.spent > c.budget);
+      const totalOverspend = overspentCategories.reduce((s, c) => s + (c.spent - (c.budget || 0)), 0);
+
+      // Generate improvement advice
+      const improvements: { area: string; action: string; potentialSavingRM: number }[] = [];
+
+      if (savingsRate < 10) {
+        improvements.push({
+          area: 'Overall savings rate',
+          action: `Aim to save at least 20% (RM${Math.round(monthlyIncome * 0.2)}). Currently at ${savingsRate}% — try the 50/30/20 rule.`,
+          potentialSavingRM: Math.round(monthlyIncome * 0.1),
+        });
+      }
+
+      if (overspentCategories.length > 0) {
+        for (const cat of overspentCategories) {
+          const over = Math.round((cat.spent - (cat.budget || 0)) * 100) / 100;
+          improvements.push({
+            area: `${cat.category} overspend`,
+            action: `You're RM${over} over budget on ${cat.category}. Set a weekly cap of RM${Math.round((cat.budget || 100) / 4)}.`,
+            potentialSavingRM: over,
+          });
+        }
+      }
+
+      if (hasActiveBnpl && bnplTotalDue > 0) {
+        improvements.push({
+          area: 'BNPL debt',
+          action: `Clear RM${bnplTotalDue} BNPL this month. Stop using BNPL for discretionary purchases — it's invisible debt.`,
+          potentialSavingRM: Math.round(bnplTotalDue * 0.15), // rough interest savings
+        });
+      }
+
+      if (dailyBudgetRemaining < 30 && daysLeftInMonth > 3) {
+        improvements.push({
+          area: 'Daily runway',
+          action: `Only RM${dailyBudgetRemaining}/day left for ${daysLeftInMonth} days. Cook at home, pause shopping, use cash.`,
+          potentialSavingRM: Math.round((40 - dailyBudgetRemaining) * daysLeftInMonth),
+        });
+      }
+
+      // What to cut before next month
+      const cuts: string[] = [];
+      if (savingsRate < 15) cuts.push('Reduce food delivery — cook 3x/week saves ~RM150/month');
+      if (categories.some(c => c.category === 'shopping' && c.spent > 200)) cuts.push('48-hour wishlist rule for all shopping — cuts impulse buys by ~30%');
+      if (hasActiveBnpl) cuts.push('Pay off BNPL before adding new ones — break the cycle');
+      if (dailyBudgetRemaining < 50) cuts.push('Switch to cash/envelope system for remaining days — physical money hurts more');
+      if (cuts.length === 0) cuts.push('You\'re doing well! Keep tracking and stay consistent.');
+
+      return {
+        currentMonth: new Date().toLocaleString('en-MY', { month: 'long', year: 'numeric' }),
+        monthlyIncomeRM: monthlyIncome,
+        totalSpentThisMonthRM: totalSpentThisMonth,
+        currentBalanceRM: currentBalance,
+        daysLeftInMonth,
+        savingsRatePct: savingsRate,
+        dailyBudgetRemainingRM: dailyBudgetRemaining,
+        projectedMonthEndBalanceRM: projectedMonthEnd,
+        projectedSavingsRM: projectedSavings,
+
+        categoryBreakdown: categories.map(c => ({
+          category: c.category,
+          spentRM: c.spent,
+          budgetRM: c.budget || 0,
+          remainingRM: Math.round(((c.budget || 0) - c.spent) * 100) / 100,
+          status: c.budget ? (c.spent > c.budget ? 'OVER' : c.spent > c.budget! * 0.8 ? 'WARNING' : 'OK') : 'UNTRACKED',
+        })),
+
+        overspendAlert: overspentCategories.length > 0 ? {
+          categories: overspentCategories.map(c => c.category),
+          totalOverspendRM: Math.round(totalOverspend * 100) / 100,
+          message: `You've overspent by RM${totalOverspend.toFixed(2)} across ${overspentCategories.length} categories.`,
+        } : null,
+
+        improvements,
+        whatToCutBeforeNextMonth: cuts,
+
+        healthScore: savingsRate >= 20 ? 'EXCELLENT' : savingsRate >= 10 ? 'OK' : savingsRate >= 0 ? 'TIGHT' : 'CRITICAL',
+        message: savingsRate >= 20
+          ? `Great job! You're saving ${savingsRate}% of your income. Keep it up!`
+          : savingsRate >= 10
+          ? `You're saving ${savingsRate}% — decent, but aim for 20%. ${improvements[0]?.action || ''}`
+          : `Your savings rate is only ${savingsRate}%. ${improvements.map(i => i.action).join(' ')}`,
+        xpEarned: 15,
+      };
+    },
+  }),
 };

@@ -1,4 +1,4 @@
-"""In-memory XP, level, and streak logic for the demo environment."""
+"""Gamification service — reads/writes to Supabase user_gamification table."""
 
 from __future__ import annotations
 
@@ -71,6 +71,22 @@ def _get_state(user_id: str) -> GamificationState:
     return _gamification_store[user_id]
 
 
+def _save_state(user_id: str, state: GamificationState) -> None:
+    """Persist gamification state to Supabase."""
+    supabase = get_supabase()
+    if supabase is None:
+        return
+    try:
+        supabase.table("user_gamification").upsert({
+            "user_id": user_id,
+            "xp": state["xp"],
+            "streak_days": state["streak"],
+            "last_active_date": state["last_active_date"].isoformat() if state["last_active_date"] else None,
+        }).execute()
+    except Exception as e:
+        logger.warning("Failed to save gamification to Supabase: %s", e)
+
+
 def _update_streak(state: GamificationState, action_date: date) -> None:
     last_active = state.get("last_active_date")
     if last_active is None:
@@ -110,6 +126,7 @@ def award_xp_for_verdict(
     action_date = (action_at or datetime.now(timezone.utc)).date()
     _update_streak(state, action_date)
     state["xp"] += xp_delta
+    _save_state(user_id, state)
     return {
         "xp_earned": xp_delta,
         "status": get_gamification_status(user_id),
@@ -119,6 +136,7 @@ def award_xp_for_verdict(
 def award_xp(user_id: str = "00000000-0000-0000-0000-000000000001", xp: int = 0) -> dict:
     state = _get_state(user_id)
     state["xp"] += xp
+    _save_state(user_id, state)
     return {
         "xp_earned": xp,
         "status": get_gamification_status(user_id),
@@ -130,4 +148,5 @@ def spend_xp(user_id: str = "00000000-0000-0000-0000-000000000001", cost: int = 
     if state["xp"] < cost:
         raise ValueError("Not enough XP to override the freeze")
     state["xp"] -= cost
+    _save_state(user_id, state)
     return get_gamification_status(user_id)

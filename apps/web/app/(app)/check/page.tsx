@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { ChatCheckScreen } from "@/components/features/check/ChatCheckScreen";
 import { CheckScreen } from "@/components/features/check/CheckScreen";
-import { MessageSquare, Keyboard } from "lucide-react";
+import { ReceiptScanner } from "@/components/features/receipts/ReceiptScanner";
+import { MessageSquare, Keyboard, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Tab = "ai" | "manual";
+type Tab = "ai" | "manual" | "scan";
 
 export default function CheckPage() {
   const [tab, setTab] = useState<Tab>("ai");
@@ -37,7 +38,20 @@ export default function CheckPage() {
           )}
         >
           <Keyboard className="w-4 h-4" />
-          Manual Entry
+          Manual
+        </button>
+        <button
+          onClick={() => setTab("scan")}
+          className={cn(
+            "flex items-center justify-center gap-2 py-2.5 rounded-xl font-sans text-sm font-bold transition-all",
+            tab === "scan"
+              ? "bg-secondary text-white shadow-sm"
+              : "text-muted hover:text-foreground",
+            "px-4"
+          )}
+        >
+          <Camera className="w-4 h-4" />
+          Scan
         </button>
       </div>
 
@@ -45,8 +59,10 @@ export default function CheckPage() {
       <div className="flex-1 overflow-y-auto">
         {tab === "ai" ? (
           <ChatCheckScreen />
-        ) : (
+        ) : tab === "manual" ? (
           <CheckScreen />
+        ) : (
+          <ReceiptScanner />
         )}
       </div>
     </div>

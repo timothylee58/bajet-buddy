@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { motion } from "framer-motion";
-import { formatRM, cn } from "@/lib/utils";
+import { formatRM, formatSignedRM, cn } from "@/lib/utils";
 import { CATEGORIES, VERDICT_CONFIG } from "@/lib/constants";
 import { getTransactions } from "@/lib/api";
 import { RefreshCw, AlertCircle, ArrowLeft, Filter } from "lucide-react";
@@ -185,7 +185,7 @@ function TransactionsList() {
                 {filtered.length} transaction{filtered.length !== 1 ? "s" : ""}
               </div>
               <span className="font-headline text-sm font-bold text-primary">
-                Total: {formatRM(filtered.reduce((a, t) => a + t.amount, 0))}
+                Total: {formatSignedRM(filtered.reduce((a, t) => a + t.amount, 0))}
               </span>
             </div>
           )}
@@ -228,8 +228,13 @@ function TransactionsList() {
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="font-headline font-bold text-red-600">
-                      -{formatRM(tx.amount)}
+                    <p
+                      className={cn(
+                        "font-headline font-bold",
+                        tx.amount < 0 ? "text-red-600" : "text-emerald-600"
+                      )}
+                    >
+                      {formatSignedRM(tx.amount)}
                     </p>
                     <span
                       className={cn(

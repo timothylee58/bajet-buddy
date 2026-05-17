@@ -45,7 +45,6 @@ export function useGamification() {
       const data = await getGamificationStatus();
       setStatus(data);
     } catch (err) {
-      setStatus(DEFAULT_STATUS);
       setError(err instanceof Error ? err.message : "Unable to load gamification status");
     } finally {
       setLoading(false);

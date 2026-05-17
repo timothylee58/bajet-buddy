@@ -46,7 +46,6 @@ export function useFreeze() {
       const data = await getFreezeStatus();
       setStatus(data as FreezeStatus);
     } catch (err) {
-      setStatus(DEFAULT_STATUS);
       setError(err instanceof Error ? err.message : "Unable to load freeze status");
     } finally {
       setLoading(false);

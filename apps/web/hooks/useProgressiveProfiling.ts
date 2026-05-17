@@ -68,17 +68,11 @@ export function useProgressiveProfiling() {
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    if (isGuest) {
-      setSummary(DEFAULT_SUMMARY);
-      setLoading(false);
-      return;
-    }
     setError(null);
     try {
       const data = await getProfilingSummary();
       setSummary(data);
     } catch (err) {
-      setSummary(DEFAULT_SUMMARY);
       setError(err instanceof Error ? err.message : "Unable to load profiling summary");
     } finally {
       setLoading(false);
