@@ -1,5 +1,5 @@
 
-## BajetBuddy
+# BajetBuddy
 "A buddy that reminds your impulse spending"
 
 AI-powered spending intervention for Malaysia — Next.js web app, FastAPI API, Supabase (Postgres + Auth), Redis.
@@ -18,7 +18,7 @@ The problem statement contains three hidden signals:
 - Touch 'n Go eWallet has 18M+ users — most Malaysians have a digital spending trail they've never analysed
 - "Lepak" culture + "makan" culture = social spending pressure is a real Malaysian behaviour trigger
 
-# Agents
+## Agents Behind The System
 
 # 🤖 AI Agent Architecture & Core Mechanics
 
