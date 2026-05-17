@@ -1099,6 +1099,20 @@ export function BehaviorDashboard() {
             </div>
           </div>
         </section>
+
+        {/* Hidden: Reset Onboarding toggle (for demo / testing) */}
+        <div className="mt-12 pt-6 border-t border-zinc-100 text-center">
+          <button
+            onClick={() => {
+              localStorage.removeItem("bb_guest_data");
+              localStorage.removeItem("bb_guest_mode");
+              window.location.href = "/";
+            }}
+            className="text-[10px] text-zinc-300 hover:text-zinc-500 transition-colors"
+          >
+            Reset Demo
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -16,53 +16,53 @@ interface Question {
 const QUESTIONS: Question[] = [
   {
     id: 1,
-    text: "How much do you spend on coffee / boba in a typical week?",
+    text: "Be honest — your monthly boba / kopi budget is actually...",
     key: "coffee_boba_weekly_estimate",
     options: [
-      { label: "< RM20", value: "under_20" },
-      { label: "RM20-50", value: "20_50" },
-      { label: "> RM50", value: "over_50" },
+      { label: "I'm a RM5 kopi-o person", value: "under_20" },
+      { label: "Brown sugar milk tea owns me", value: "20_50" },
+      { label: "Tealive should give me shares", value: "over_50" },
     ],
   },
   {
     id: 2,
-    text: "What's your biggest guilt purchase — the thing you buy then hide the receipt?",
+    text: "That one purchase you NEVER tell your friends about...",
     key: "impulse_category_lean",
     options: [
-      { label: "Shopee haul", value: "shopee" },
-      { label: "GrabFood", value: "grabfood" },
-      { label: "Steam games", value: "gaming" },
-      { label: "Sneakers", value: "fashion" },
+      { label: "Shopee 12AM flash sale", value: "shopee" },
+      { label: "GrabFood at 3AM", value: "grabfood" },
+      { label: "Steam sale backlog games", value: "gaming" },
+      { label: "That limited-edition sneaker drop", value: "fashion" },
     ],
   },
   {
     id: 3,
-    text: "Do you check your bank balance before or after ordering GrabFood?",
+    text: "When was the last time you checked your bank balance before swiping your card?",
     key: "balance_check_behavior",
     options: [
-      { label: "Before", value: "before" },
-      { label: "After", value: "after" },
-      { label: "Never", value: "never" },
+      { label: "Just now — I'm paranoid", value: "before" },
+      { label: "After the 'insufficient funds' jump scare", value: "after" },
+      { label: "What's a bank balance 😭", value: "never" },
     ],
   },
   {
     id: 4,
-    text: "Shopee sale notification at 2 AM — swipe buy or swipe ignore?",
+    text: "It's 12:30 AM. Shopee live says 'Last stock RM19 only!' You...",
     key: "late_night_impulse_tolerance",
     options: [
-      { label: "Swipe buy", value: "buy" },
-      { label: "Swipe ignore", value: "ignore" },
-      { label: "Add to cart first", value: "cart" },
+      { label: "CHECKOUT. No questions asked.", value: "buy" },
+      { label: "Close the app. I have discipline.", value: "ignore" },
+      { label: "Add to cart then forget for 3 days", value: "cart" },
     ],
   },
   {
     id: 5,
-    text: "If you found RM200 in your pocket right now, where would it go?",
+    text: "Your TNG e-wallet suddenly has RM200 extra. What happens next?",
     key: "savings_disposition",
     options: [
-      { label: "Savings", value: "savings" },
-      { label: "Treat myself", value: "spend" },
-      { label: "Pay a bill", value: "bills" },
+      { label: "Straight to Tabung savings 💪", value: "savings" },
+      { label: "Treat the whole gang to mamak 🍜", value: "spend" },
+      { label: "Pay that one bill I've been avoiding", value: "bills" },
     ],
   },
 ];
@@ -102,20 +102,31 @@ export function OnboardingChat({ onComplete }: OnboardingChatProps) {
       <div className="bg-zinc-950/80 backdrop-blur-xl p-4 pt-10 border-b border-zinc-800/50 flex items-center gap-4 sticky top-0 z-20">
         <div className="relative">
           <div className="absolute inset-0 bg-brand blur-md rounded-full opacity-50 animate-pulse" />
-          <div className="relative bg-gradient-to-br from-zinc-800 to-zinc-900 p-2.5 rounded-xl text-brand border border-zinc-700/50">
-            <Brain size={22} />
+          <div className="relative bg-gradient-to-br from-zinc-800 to-zinc-900 p-2.5 rounded-xl text-brand border border-zinc-700/50 text-2xl">
+            🕵️
           </div>
         </div>
-        <div>
-          <h3 className="font-bold text-white tracking-wide">Profile Agent</h3>
+        <div className="flex-1">
+          <h3 className="font-bold text-white tracking-wide">Agent 1 · Profile Scanner</h3>
           <p className="text-xs text-brand-light font-medium flex items-center gap-1.5">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-brand"></span>
             </span>
-            Learning your style...
+            Reading your financial aura...
           </p>
         </div>
+        {!isFinishing && (
+          <button
+            onClick={() => {
+              setIsFinishing(true);
+              setTimeout(() => onComplete(answers), 800);
+            }}
+            className="text-xs text-zinc-500 hover:text-zinc-300 px-2 py-1"
+          >
+            Skip
+          </button>
+        )}
       </div>
 
       <div className="flex-1 flex flex-col p-6 max-w-md mx-auto w-full relative z-10">
@@ -172,17 +183,38 @@ export function OnboardingChat({ onComplete }: OnboardingChatProps) {
                 className="flex flex-col items-center justify-center h-full text-center space-y-6"
               >
                 <div className="relative">
-                  <div className="absolute inset-0 bg-brand blur-2xl rounded-full opacity-60 animate-pulse" />
-                  <div className="relative h-24 w-24 bg-gradient-to-br from-brand to-emerald-500 rounded-full flex items-center justify-center text-white shadow-2xl border-4 border-zinc-950">
-                    <Check size={48} />
-                  </div>
+                  <motion.div
+                    className="absolute inset-0 bg-brand blur-3xl rounded-full opacity-60"
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.7, 0.4] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                  <motion.div
+                    initial={{ scale: 0, rotate: -30 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                    className="relative h-28 w-28 bg-gradient-to-br from-brand to-emerald-500 rounded-full flex items-center justify-center text-white shadow-2xl border-4 border-zinc-950 text-5xl"
+                  >
+                    🎉
+                  </motion.div>
                 </div>
-                <div className="space-y-3">
-                  <h2 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
-                    All done!
-                  </h2>
-                  <p className="text-lg text-zinc-400">Calculating your persona and XP bonus...</p>
-                </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="space-y-2"
+                >
+                  <h2 className="text-3xl font-bold text-white">Answers collected!</h2>
+                  <p className="text-zinc-400">Now let's see your real spending data...</p>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                  className="flex gap-2 text-xs text-zinc-500"
+                >
+                  <span className="px-2 py-1 rounded-full bg-zinc-800">+60 XP</span>
+                  <span className="px-2 py-1 rounded-full bg-zinc-800">Step 1/2 complete</span>
+                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>

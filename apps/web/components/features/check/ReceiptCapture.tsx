@@ -3,7 +3,7 @@
 import React, { useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Camera, Upload, X, Loader2, CheckCircle2, ImagePlus } from "lucide-react";
+import { Camera, Upload, X, CheckCircle2, ImagePlus } from "lucide-react";
 import { motion } from "framer-motion";
 import { scanReceipt } from "@/lib/api";
 import { toast } from "sonner";
@@ -93,12 +93,45 @@ export function ReceiptCapture({ onClose, onComplete }: ReceiptCaptureProps) {
                   <img src={image} className="w-full max-h-[300px] object-contain bg-black/40" alt="Receipt preview" />
                   
                   {isScanning && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <div className="text-center space-y-3">
-                        <Loader2 className="mx-auto animate-spin text-brand" size={40} />
-                        <p className="text-sm text-white/80">Analyzing with AI...</p>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="absolute inset-0 bg-black/60 flex items-center justify-center"
+                    >
+                      <div className="text-center space-y-4">
+                        {/* Animated scanning rings */}
+                        <div className="relative mx-auto w-24 h-24">
+                          <motion.div
+                            className="absolute inset-0 rounded-full border-2 border-brand/60"
+                            animate={{ scale: [1, 1.5], opacity: [0.6, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
+                          />
+                          <motion.div
+                            className="absolute inset-0 rounded-full border-2 border-brand/40"
+                            animate={{ scale: [1, 1.5], opacity: [0.6, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity, delay: 0.5, ease: "easeOut" }}
+                          />
+                          <motion.div
+                            className="absolute inset-0 rounded-full border-2 border-brand/20"
+                            animate={{ scale: [1, 1.5], opacity: [0.6, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity, delay: 1, ease: "easeOut" }}
+                          />
+                          <motion.div
+                            className="absolute inset-3 rounded-full"
+                            style={{
+                              background: "conic-gradient(from 0deg, transparent, #16a34a, transparent)",
+                            }}
+                            animate={{ rotate: [0, 360] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          />
+                          <div className="absolute inset-[10px] rounded-full bg-zinc-900 flex items-center justify-center">
+                            <Camera size={20} className="text-brand" />
+                          </div>
+                        </div>
+                        <p className="text-sm text-white/80 font-medium">Agent 4 scanning your receipt...</p>
+                        <p className="text-xs text-zinc-400">Reading amounts, merchant, and categories</p>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                   {!isScanning && (
@@ -174,8 +207,13 @@ export function ReceiptCapture({ onClose, onComplete }: ReceiptCaptureProps) {
                 >
                   {isScanning ? (
                     <span className="flex items-center gap-2">
-                      <Loader2 className="animate-spin" size={22} />
-                      Analyzing with AI...
+                      <motion.span
+                        animate={{ rotate: [0, 360] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Camera size={22} />
+                      </motion.span>
+                      Scanning...
                     </span>
                   ) : isDone ? (
                     <span className="flex items-center gap-2">
