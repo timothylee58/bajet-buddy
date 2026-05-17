@@ -1,6 +1,6 @@
 [build]
-  command = "npm ci && npm run build -w @bajetbuddy/web"
-  publish = "apps/web/.next"
+  command = "cd ../.. && npm ci && npm run build -w @bajetbuddy/web"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20.19.2"
@@ -9,11 +9,6 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-[dev]
-  command   = "npm run dev -w @bajetbuddy/web"
-  port      = 3000
-  targetPort = 3000
 
 [[headers]]
   for = "/*"
