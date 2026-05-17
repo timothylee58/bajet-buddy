@@ -6,7 +6,7 @@ Malaysia's AI-powered spending intervention engine. Stops bad financial decision
 
 ## What it does
 
-- **Belanja Guard** — pre-purchase AI check that evaluates spend against your salary cycle, BNPL load, and remaining runway before you tap pay
+- **Bajet Buddy** — pre-purchase AI check that evaluates spend against your salary cycle, BNPL load, and remaining runway before you tap pay
 - **Receipt Scanner** — snap a receipt image; Claude vision extracts store, item, amount, and category in seconds
 - **Voice Input** — say "I spent RM15 on lunch at Nasi Kandar" and the form fills itself
 - **Future You Simulator** — models 6-month cashflow scenarios for any planned purchase
