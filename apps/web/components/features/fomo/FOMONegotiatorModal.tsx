@@ -406,6 +406,44 @@ export function FOMONegotiatorModal({ open, request, onClose }: FOMONegotiatorMo
                     </div>
                   </div>
 
+                  {/* Regret probability */}
+                  {negotiation.regret_probability !== undefined && negotiation.regret_probability > 0 && (
+                    <div className={cn(
+                      "rounded-2xl border px-4 py-3 space-y-1",
+                      negotiation.regret_probability >= 70
+                        ? "border-red-200 bg-red-50"
+                        : negotiation.regret_probability >= 40
+                        ? "border-amber-200 bg-amber-50"
+                        : "border-zinc-200 bg-zinc-50"
+                    )}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
+                          AI Regret Forecast
+                        </span>
+                        <span className={cn(
+                          "text-sm font-bold",
+                          negotiation.regret_probability >= 70 ? "text-red-600" :
+                          negotiation.regret_probability >= 40 ? "text-amber-600" : "text-emerald-600"
+                        )}>
+                          {negotiation.regret_probability}%
+                        </span>
+                      </div>
+                      <div className="h-2 rounded-full bg-white/60 overflow-hidden">
+                        <div
+                          className={cn(
+                            "h-full rounded-full transition-all",
+                            negotiation.regret_probability >= 70 ? "bg-red-500" :
+                            negotiation.regret_probability >= 40 ? "bg-amber-400" : "bg-emerald-500"
+                          )}
+                          style={{ width: `${negotiation.regret_probability}%` }}
+                        />
+                      </div>
+                      {negotiation.heat_reasoning && (
+                        <p className="text-[11px] text-zinc-400 italic">{negotiation.heat_reasoning}</p>
+                      )}
+                    </div>
+                  )}
+
                   {/* Bounty jar */}
                   <ImpulseBountyJar amountRm={negotiation.bounty_jar_rm} />
 

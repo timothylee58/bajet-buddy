@@ -51,6 +51,8 @@ class FOMONegotiateResponse(BaseModel):
     heat_level: float = Field(..., ge=0, le=100)
     walk_away_streak: int
     bounty_jar_rm: float
+    heat_reasoning: str = ""
+    regret_probability: int = Field(default=0, ge=0, le=100)
 
 
 class FOMOResolveRequest(BaseModel):
@@ -80,3 +82,24 @@ class FOMOStateResponse(BaseModel):
     bounty_threshold_rm: float
     unlocked_personas: list[PersonaCode]
     cooldown_until: str | None = None
+
+
+class PatternScanRequest(BaseModel):
+    transactions: list[dict]
+
+
+class PatternScanResponse(BaseModel):
+    primary_pattern: str
+    patterns: list[str]
+    risk_insight: str
+    recommended_alert: str
+
+
+class PersonaRecommendRequest(BaseModel):
+    recent_choices: list[str] = Field(default_factory=list)
+    spending_summary: dict = Field(default_factory=dict)
+
+
+class PersonaRecommendResponse(BaseModel):
+    recommended_persona: str
+    reasoning: str

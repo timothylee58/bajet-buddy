@@ -310,6 +310,8 @@ export interface FOMONegotiateResponse {
   heat_level: number;
   walk_away_streak: number;
   bounty_jar_rm: number;
+  heat_reasoning?: string;
+  regret_probability?: number;
 }
 
 export type FOMOChoice = "cash" | "bnpl" | "walk_away";

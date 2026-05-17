@@ -80,9 +80,11 @@ class FOMOState(TypedDict):
     xp: int
     streak: int
     onboarding_done: bool
+    interaction_history: list[dict]
 
 
 _fomo_store: dict[str, FOMOState] = {}
+_regret_store: dict[str, str] = {}
 
 
 def _get_state(user_id: str) -> FOMOState:
@@ -95,6 +97,7 @@ def _get_state(user_id: str) -> FOMOState:
             "xp": 420,
             "streak": 7,
             "onboarding_done": True,
+            "interaction_history": [],
         }
     return _fomo_store[user_id]
 
@@ -138,6 +141,45 @@ def _strip_fences(text: str) -> str:
     return text.strip()
 
 
+async def _predict_regret(
+    amount: float,
+    category: str,
+    current_balance: float,
+    bnpl_load: float,
+    days_until_salary: int,
+    interaction_history: list[dict],
+    user_id: str,
+) -> int:
+    settings = get_settings()
+    client = anthropic.AsyncAnthropic(
+        api_key=settings.ilmu_api_key or settings.anthropic_api_key,
+        base_url=settings.ilmu_anthropic_base_url,
+    )
+    model = settings.ilmu_model or "claude-opus-4-5"
+
+    prompt = (
+        f"User is considering buying RM{amount} in category {category}. "
+        f"Balance: RM{current_balance}. BNPL load: RM{bnpl_load}. "
+        f"Days until salary: {days_until_salary}. "
+        f"Past 3 negotiations: {json.dumps(interaction_history[-3:])}. "
+        "Based on typical Malaysian spending psychology, what is the probability (0-100) "
+        "that this user will regret this purchase within 24 hours? "
+        'Return only JSON: {"regret_probability": <int>, "regret_reason": "<1 phrase>"}'
+    )
+
+    response = await client.messages.create(
+        model=model,
+        max_tokens=100,
+        system="You are a Malaysian financial psychology expert. Respond ONLY with valid JSON, no markdown fences.",
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    raw = response.content[0].text  # type: ignore[index]
+    data = json.loads(_strip_fences(raw))
+    _regret_store[user_id] = data.get("regret_reason", "")
+    return int(data.get("regret_probability", 0))
+
+
 async def _call_claude(
     item_name: str,
     merchant: str,
@@ -146,7 +188,10 @@ async def _call_claude(
     persona_code: PersonaCode,
     emotional_state: EmotionalState,
     heat_level: float,
-) -> dict[str, str]:
+    interaction_history: list[dict] | None = None,
+    hour_of_day: int = 12,
+    category_repeat_count: int = 0,
+) -> dict[str, str | int]:
     settings = get_settings()
     client = anthropic.AsyncAnthropic(
         api_key=settings.ilmu_api_key or settings.anthropic_api_key,
@@ -192,14 +237,26 @@ async def _call_claude(
         "lapar": "The user is HUNGRY (lapar) right now. Classic bad decision time.",
     }
 
+    history_section = ""
+    if interaction_history:
+        history_section = (
+            f"\nPast 3 interactions: {json.dumps(interaction_history[-3:])}\n"
+            "Adapt your tone based on this history — if user keeps buying anyway, be more direct. "
+            "If user keeps walking away, give more praise."
+        )
+
     prompt = (
         f"Purchase: {item_name} at {merchant}, RM{amount:.2f}, category: {category}.\n"
         f"Emotional state: {emotional_state}. {emotional_context_map[emotional_state]}\n"
-        f"FOMO gauge: {heat_context}.\n\n"
-        "Return ONLY valid JSON with exactly these 3 keys:\n"
+        f"FOMO gauge: {heat_context}.\n"
+        f"Hour of day: {hour_of_day} (0-23). Category repeat purchases this session: {category_repeat_count}.\n"
+        f"{history_section}\n"
+        "Return ONLY valid JSON with exactly these 5 keys:\n"
         "- fomo_validation: 1-2 sentences validating the FOMO (warm, relatable, persona voice)\n"
         "- trap_exposure: 1-2 sentences exposing the hidden financial/psychological trap (honest, persona voice)\n"
-        "- persona_quip: 1 punchy one-liner in full persona voice, max 15 words"
+        "- persona_quip: 1 punchy one-liner in full persona voice, max 15 words\n"
+        "- heat_adjustment: integer from -20 to +30 based on time-of-day risk (midnight=high), category repeats, emotional state, BNPL pressure\n"
+        "- heat_reasoning: 1 short phrase explaining the heat adjustment"
     )
 
     response = await client.messages.create(
@@ -262,9 +319,27 @@ async def negotiate(request: FOMONegotiateRequest, user_id: str) -> FOMONegotiat
     persona_meta = PERSONA_CATALOG[persona_code]
     unlocked = _unlocked_personas(state)
 
+    interaction_history = state.get("interaction_history", [])
+    hour_now = datetime.now(tz=timezone.utc).hour
     claude_data = await _call_claude(
         request.item_name, request.merchant, request.amount,
         request.category, persona_code, request.emotional_state, state["heat_level"],
+        interaction_history=interaction_history,
+        hour_of_day=hour_now,
+        category_repeat_count=0,
+    )
+
+    heat_adj = int(claude_data.get("heat_adjustment", 0))
+    state["heat_level"] = max(0.0, min(_HEAT_MAX, state["heat_level"] + heat_adj))
+
+    regret_probability = await _predict_regret(
+        amount=request.amount,
+        category=request.category,
+        current_balance=request.current_balance,
+        bnpl_load=request.bnpl_load,
+        days_until_salary=request.days_until_salary,
+        interaction_history=interaction_history,
+        user_id=user_id,
     )
 
     cash_opt = _build_cash_option(request.amount, request.current_balance, request.days_until_salary)
@@ -282,15 +357,17 @@ async def negotiate(request: FOMONegotiateRequest, user_id: str) -> FOMONegotiat
 
     return FOMONegotiateResponse(
         persona=persona,
-        fomo_validation=claude_data.get("fomo_validation", ""),
-        trap_exposure=claude_data.get("trap_exposure", ""),
-        persona_quip=claude_data.get("persona_quip", ""),
+        fomo_validation=str(claude_data.get("fomo_validation", "")),
+        trap_exposure=str(claude_data.get("trap_exposure", "")),
+        persona_quip=str(claude_data.get("persona_quip", "")),
         option_cash=cash_opt,
         option_bnpl=bnpl_opt,
         option_walk_away=walk_opt,
         heat_level=state["heat_level"],
         walk_away_streak=state["walk_away_streak"],
         bounty_jar_rm=state["bounty_jar_rm"],
+        heat_reasoning=str(claude_data.get("heat_reasoning", "")),
+        regret_probability=regret_probability,
     )
 
 
@@ -362,6 +439,15 @@ async def resolve(request: FOMOResolveRequest, user_id: str) -> FOMOResolveRespo
     if loot_box_unlocked:
         message += " 🎁 LOOT BOX UNLOCKED — collect from Agents page!"
 
+    persona_code_for_history = _resolve_persona("pak_cik_audit", request.emotional_state, state)
+    state["interaction_history"] = (state.get("interaction_history", []) + [{
+        "choice": request.choice,
+        "category": request.category,
+        "amount": request.amount,
+        "emotional_state": request.emotional_state.value if hasattr(request.emotional_state, "value") else request.emotional_state,
+        "persona": persona_code_for_history,
+    }])[-5:]
+
     return FOMOResolveResponse(
         heat_level=state["heat_level"],
         heat_delta=heat_delta,
@@ -374,6 +460,34 @@ async def resolve(request: FOMOResolveRequest, user_id: str) -> FOMOResolveRespo
         persona_reaction=reaction,
         cooldown_until=cooldown_str,
     )
+
+
+async def recommend_persona(user_id: str, recent_choices: list[str], spending_summary: dict) -> dict:
+    settings = get_settings()
+    client = anthropic.AsyncAnthropic(
+        api_key=settings.ilmu_api_key or settings.anthropic_api_key,
+        base_url=settings.ilmu_anthropic_base_url,
+    )
+    model = settings.ilmu_model or "claude-opus-4-5"
+
+    prompt = (
+        f"User negotiation history (last 5 choices): {json.dumps(recent_choices)}\n"
+        f"Spending summary by category: {json.dumps(spending_summary)}\n\n"
+        "Given this user's negotiation history and spending patterns, which persona "
+        "(pak_cik_audit / kak_therapist / meme_goblin / ice_cfo / hype_man) would be most "
+        "effective at helping them walk away from impulse purchases?\n"
+        'Return JSON: {"recommended_persona": "<persona_code>", "reasoning": "<1-2 sentences>"}'
+    )
+
+    response = await client.messages.create(
+        model=model,
+        max_tokens=200,
+        system="You are a Malaysian financial coaching expert. Respond ONLY with valid JSON, no markdown fences.",
+        messages=[{"role": "user", "content": prompt}],
+    )
+
+    raw = response.content[0].text  # type: ignore[index]
+    return json.loads(_strip_fences(raw))
 
 
 async def get_fomo_state(user_id: str) -> FOMOStateResponse:
