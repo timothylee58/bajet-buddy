@@ -344,3 +344,91 @@ export interface FOMOState {
   unlocked_personas: PersonaCode[];
   cooldown_until: string | null;
 }
+
+// ─── Sentinel ─────────────────────────────────────────────────────────────────
+export type SpendingCategory = "groceries" | "fuel" | "food_delivery" | "entertainment" | "transport" | "utilities";
+export type RiskLabel = "Grocery-Sensitive" | "Fuel-Sensitive" | "Vulnerable Consumer" | "Food-Delivery Dependent" | "Entertainment Spender" | "Resilient Saver";
+export type MacroEventType = "grain_spike" | "fuel_subsidy_cut" | "logistics_surge" | "currency_depreciation" | "electricity_tariff" | "palm_oil_shock";
+
+export interface SpendingSnapshot {
+  category: SpendingCategory;
+  total_rm: number;
+  pct_of_spend: number;
+  transaction_count: number;
+  top_merchant: string;
+  sensitivity_score: number;
+}
+
+export interface RiskProfile {
+  primary_label: RiskLabel;
+  secondary_labels: RiskLabel[];
+  vulnerability_score: number;
+  most_exposed_category: SpendingCategory;
+  top_risk_merchants: string[];
+}
+
+export interface MacroEvent {
+  event_type: MacroEventType;
+  title: string;
+  title_bm: string;
+  severity: number;
+  description: string;
+  icon: string;
+  triggered_at: string;
+}
+
+export interface CategoryImpact {
+  category: SpendingCategory;
+  estimated_increase_rm: number;
+  estimated_increase_pct: number;
+  affected_merchants: string[];
+}
+
+export interface MacroImpactResult {
+  event: MacroEvent;
+  total_monthly_impact_rm: number;
+  category_impacts: CategoryImpact[];
+  ai_intervention_title: string;
+  ai_intervention_bm: string;
+  ai_intervention_body: string;
+  persona_emoji: string;
+  persona_name: string;
+  severity_label: string;
+}
+
+export interface InflationQuest {
+  id: string;
+  title: string;
+  title_bm: string;
+  description: string;
+  category: SpendingCategory;
+  target_rm: number;
+  current_rm: number;
+  xp_reward: number;
+  badge_name: string;
+  badge_emoji: string;
+  difficulty: "easy" | "medium" | "hard" | "legendary";
+  active: boolean;
+  completed: boolean;
+  progress_pct: number;
+}
+
+export interface SentinelDashboardResponse {
+  spending_snapshots: SpendingSnapshot[];
+  risk_profile: RiskProfile;
+  active_event: MacroEvent | null;
+  quests: InflationQuest[];
+  total_monthly_spend_rm: number;
+  sentinel_heat: number;
+  market_mood: string;
+}
+
+export interface SimulateEventRequest {
+  event_type: MacroEventType;
+}
+
+export interface SimulateEventResponse {
+  impact: MacroImpactResult;
+  quests_generated: InflationQuest[];
+  xp_awarded: number;
+}

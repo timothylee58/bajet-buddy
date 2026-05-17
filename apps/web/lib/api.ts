@@ -10,8 +10,12 @@ import type {
   FutureYouRequest,
   FutureYouResponse,
   GamificationStatus,
+  InflationQuest,
+  MacroEventType,
   ProgressiveProfilingSummary,
   ProfilingGoalType,
+  SentinelDashboardResponse,
+  SimulateEventResponse,
 } from "@/types";
 
 async function apiFetch<T>(
@@ -140,4 +144,30 @@ export async function fomoResolve(payload: FOMOResolveRequest): Promise<FOMOReso
 /** GET /api/fomo/state */
 export async function getFOMOState(): Promise<FOMOState> {
   return apiFetch<FOMOState>("/api/fomo/state");
+}
+
+/** GET /api/sentinel/dashboard */
+export async function getSentinelDashboard(): Promise<SentinelDashboardResponse> {
+  return apiFetch<SentinelDashboardResponse>("/api/sentinel/dashboard");
+}
+
+/** POST /api/sentinel/simulate-event */
+export async function simulateMacroEvent(event_type: MacroEventType): Promise<SimulateEventResponse> {
+  return apiFetch<SimulateEventResponse>("/api/sentinel/simulate-event", {
+    method: "POST",
+    body: JSON.stringify({ event_type }),
+  });
+}
+
+/** GET /api/sentinel/quests */
+export async function getSentinelQuests(): Promise<InflationQuest[]> {
+  return apiFetch<InflationQuest[]>("/api/sentinel/quests");
+}
+
+/** POST /api/sentinel/quests/{quest_id}/complete */
+export async function completeSentinelQuest(questId: string): Promise<{ xp_awarded: number; message: string }> {
+  return apiFetch<{ xp_awarded: number; message: string }>(
+    `/api/sentinel/quests/${questId}/complete`,
+    { method: "POST" }
+  );
 }
