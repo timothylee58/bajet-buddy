@@ -4,12 +4,12 @@
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
   "memory": "1024",
-  "executionRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/ecsTaskExecutionRole",
-  "taskRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/ecsTaskRole",
+  "executionRoleArn": "arn:aws:iam::385080556880:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::385080556880:role/ecsTaskRole",
   "containerDefinitions": [
     {
       "name": "bajet-buddy-api",
-      "image": "<ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/bajet-buddy-api:latest",
+      "image": "385080556880.dkr.ecr.ap-southeast-1.amazonaws.com/bajet-buddy-api:latest",
       "essential": true,
       "portMappings": [
         {
@@ -23,23 +23,23 @@
       "secrets": [
         {
           "name": "ANTHROPIC_API_KEY",
-          "valueFrom": "arn:aws:secretsmanager:<REGION>:<ACCOUNT_ID>:secret:bajet-buddy/anthropic-api-key"
+          "valueFrom": "arn:aws:secretsmanager:ap-southeast-1:385080556880:secret:bajet-buddy/anthropic-api-key"
         },
         {
           "name": "SUPABASE_URL",
-          "valueFrom": "arn:aws:secretsmanager:<REGION>:<ACCOUNT_ID>:secret:bajet-buddy/supabase-url"
+          "valueFrom": "arn:aws:secretsmanager:ap-southeast-1:385080556880:secret:bajet-buddy/supabase-url"
         },
         {
           "name": "SUPABASE_SERVICE_ROLE_KEY",
-          "valueFrom": "arn:aws:secretsmanager:<REGION>:<ACCOUNT_ID>:secret:bajet-buddy/supabase-service-role-key"
+          "valueFrom": "arn:aws:secretsmanager:ap-southeast-1:385080556880:secret:bajet-buddy/supabase-service-role-key"
         },
         {
           "name": "REDIS_URL",
-          "valueFrom": "arn:aws:secretsmanager:<REGION>:<ACCOUNT_ID>:secret:bajet-buddy/redis-url"
+          "valueFrom": "arn:aws:secretsmanager:ap-southeast-1:385080556880:secret:bajet-buddy/redis-url"
         },
         {
           "name": "ALLOWED_ORIGINS",
-          "valueFrom": "arn:aws:secretsmanager:<REGION>:<ACCOUNT_ID>:secret:bajet-buddy/allowed-origins"
+          "valueFrom": "arn:aws:secretsmanager:ap-southeast-1:385080556880:secret:bajet-buddy/allowed-origins"
         }
       ],
       "healthCheck": {
@@ -53,7 +53,7 @@
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "/ecs/bajet-buddy-api",
-          "awslogs-region": "<REGION>",
+          "awslogs-region": "ap-southeast-1",
           "awslogs-stream-prefix": "ecs"
         }
       }
