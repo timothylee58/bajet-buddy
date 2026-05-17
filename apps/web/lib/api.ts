@@ -1,5 +1,7 @@
 import { API_URL } from "./constants";
 import type {
+  AwardXPRequest,
+  AwardXPResponse,
   CheckRequest,
   CheckResponse,
   FOMONegotiateRequest,
@@ -12,6 +14,11 @@ import type {
   GamificationStatus,
   InflationQuest,
   MacroEventType,
+  PetNudge,
+  PetNudgeRequest,
+  PetProfile,
+  PetSpecies,
+  PetStatusResponse,
   ProgressiveProfilingSummary,
   ProfilingGoalType,
   SentinelDashboardResponse,
@@ -170,4 +177,47 @@ export async function completeSentinelQuest(questId: string): Promise<{ xp_award
     `/api/sentinel/quests/${questId}/complete`,
     { method: "POST" }
   );
+}
+
+// ─── Pet Companion ────────────────────────────────────────────────────────────
+
+/** GET /api/pet/profile */
+export async function getPetProfile(): Promise<PetProfile> {
+  return apiFetch<PetProfile>("/api/pet/profile");
+}
+
+/** POST /api/pet/select */
+export async function selectPetSpecies(species: PetSpecies): Promise<PetProfile> {
+  return apiFetch<PetProfile>("/api/pet/select", {
+    method: "POST",
+    body: JSON.stringify({ species }),
+  });
+}
+
+/** POST /api/pet/award-xp */
+export async function awardPetXP(payload: AwardXPRequest): Promise<AwardXPResponse> {
+  return apiFetch<AwardXPResponse>("/api/pet/award-xp", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** POST /api/pet/nudge */
+export async function getPetNudge(payload: PetNudgeRequest): Promise<PetNudge> {
+  return apiFetch<PetNudge>("/api/pet/nudge", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** GET /api/pet/status */
+export async function getPetStatus(
+  context: string,
+  amount_rm?: number,
+  category?: string
+): Promise<PetStatusResponse> {
+  const params = new URLSearchParams({ context });
+  if (amount_rm !== undefined) params.set("amount_rm", String(amount_rm));
+  if (category) params.set("category", category);
+  return apiFetch<PetStatusResponse>(`/api/pet/status?${params.toString()}`);
 }

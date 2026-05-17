@@ -432,3 +432,64 @@ export interface SimulateEventResponse {
   quests_generated: InflationQuest[];
   xp_awarded: number;
 }
+
+// ─── Pet Companion ────────────────────────────────────────────────────────────
+export type PetSpecies = "raccoon" | "fox" | "squirrel" | "finance_squirrel";
+export type PetMood = "happy" | "worried" | "celebrating" | "sleepy" | "warning" | "neutral";
+export type AccessorySlot = "hat" | "badge" | "trail" | "aura";
+
+export interface PetProfile {
+  user_id: string;
+  species: PetSpecies;
+  name: string;
+  xp: number;
+  level: number;
+  mood: PetMood;
+  accessories: string[];
+  streak: number;
+  total_saves_rm: number;
+  walk_away_count: number;
+}
+
+export interface PetAccessory {
+  id: string;
+  name: string;
+  emoji: string;
+  slot: AccessorySlot;
+  unlock_xp: number;
+  description: string;
+}
+
+export interface PetNudge {
+  message: string;
+  mood: PetMood;
+  trigger: string;
+  xp_hint: number | null;
+}
+
+export interface AwardXPRequest {
+  event: string;
+  amount_rm?: number;
+}
+
+export interface AwardXPResponse {
+  xp_earned: number;
+  total_xp: number;
+  level: number;
+  level_up: boolean;
+  new_accessory: PetAccessory | null;
+}
+
+export interface PetNudgeRequest {
+  context: string;
+  amount_rm?: number;
+  category?: string;
+}
+
+export interface PetStatusResponse {
+  profile: PetProfile;
+  nudge: PetNudge;
+  available_accessories: PetAccessory[];
+  xp_to_next_level: number;
+  progress_pct: number;
+}
