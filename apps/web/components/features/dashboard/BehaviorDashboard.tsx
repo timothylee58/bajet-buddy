@@ -958,9 +958,10 @@ export function BehaviorDashboard() {
             </div>
             <div className="rounded-lg border border-zinc-200 bg-white">
               <div className="divide-y divide-zinc-100">
-                {ocrTransactions.map((transaction) => (
-                  <motion.div
-                    key={transaction.id}
+                {ocrTransactions.map((transaction) => {
+                  const txn = transaction as { id: string; merchant: string; category: string; amount: number; db_inserted: boolean };
+                  return (<motion.div
+                    key={txn.id}
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="flex items-center justify-between gap-4 px-4 py-4"
@@ -971,26 +972,26 @@ export function BehaviorDashboard() {
                       </div>
                       <div className="min-w-0">
                         <p className="truncate font-medium text-zinc-900">
-                          {transaction.merchant}
+                          {txn.merchant}
                         </p>
                         <p className="text-sm text-zinc-500">
-                          {transaction.category} · OCR scan
+                          {txn.category} · OCR scan
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-zinc-900">
-                        -{formatCurrency(Math.abs(transaction.amount))}
+                        -{formatCurrency(Math.abs(txn.amount))}
                       </p>
                       <div className="flex items-center justify-end gap-1 text-xs">
-                        <Database className={cn("h-3 w-3", transaction.db_inserted ? "text-emerald-500" : "text-amber-500")} />
-                        <span className={cn(transaction.db_inserted ? "text-emerald-600" : "text-amber-600")}>
-                          {transaction.db_inserted ? "DB ✓" : "DB ✗"}
+                        <Database className={cn("h-3 w-3", txn.db_inserted ? "text-emerald-500" : "text-amber-500")} />
+                        <span className={cn(txn.db_inserted ? "text-emerald-600" : "text-amber-600")}>
+                          {txn.db_inserted ? "DB ✓" : "DB ✗"}
                         </span>
                       </div>
                     </div>
-                  </motion.div>
-                ))}
+                  </motion.div>);
+                })}
               </div>
             </div>
 
@@ -1002,7 +1003,7 @@ export function BehaviorDashboard() {
                 </div>
                 <div className="text-sm">
                   <p className="font-semibold text-emerald-800">
-                    {ocrTransactions.filter((t) => t.db_inserted).length}/{ocrTransactions.length} saved to Supabase
+                    {ocrTransactions.filter((t) => (t as { db_inserted?: boolean }).db_inserted).length}/{ocrTransactions.length} saved to Supabase
                   </p>
                   <p className="text-emerald-600">
                     Agent 4 active — supports receipts & bank statements
