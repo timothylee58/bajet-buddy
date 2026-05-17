@@ -62,12 +62,24 @@ export function usePetCompanion(): UsePetCompanionReturn {
       const status = await getPetStatus(context, amount_rm, category);
       if (!mountedRef.current) return;
       setProfile(status.profile);
-      setNudge(status.nudge);
+      // Use API nudge if present, else pick a random Malaysian fallback
+      if (status.nudge) {
+        setNudge(status.nudge);
+      } else {
+        const { MY_FALLBACK_NUDGES } = await import("@/components/features/pet/PetSpeechBubble");
+        const pick = MY_FALLBACK_NUDGES[Math.floor(Math.random() * MY_FALLBACK_NUDGES.length)];
+        setNudge({ message: pick.message, mood: pick.mood, xp_hint: null, trigger: "fallback" });
+      }
       setAvailableAccessories(status.available_accessories);
       setXpToNext(status.xp_to_next_level);
       setProgressPct(status.progress_pct);
     } catch {
-      // silently fail — pet widget is non-critical
+      // On failure, still show a random Malaysian nudge so the pet isn't silent
+      try {
+        const { MY_FALLBACK_NUDGES } = await import("@/components/features/pet/PetSpeechBubble");
+        const pick = MY_FALLBACK_NUDGES[Math.floor(Math.random() * MY_FALLBACK_NUDGES.length)];
+        if (mountedRef.current) setNudge({ message: pick.message, mood: pick.mood, xp_hint: null, trigger: "fallback" });
+      } catch { /* truly silent */ }
     } finally {
       if (mountedRef.current) setLoading(false);
     }

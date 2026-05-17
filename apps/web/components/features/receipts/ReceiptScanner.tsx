@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_URL } from "@/lib/constants";
 import { awardPetXP } from "@/lib/api";
+import { createClient } from "@/lib/supabase/client";
 
 interface ReceiptScanResult {
   store_name: string;
@@ -54,10 +55,16 @@ export function ReceiptScanner() {
     setScanning(true);
     setError(null);
     try {
+      // Get the Supabase session token so the protected endpoint accepts the request
+      const supabase = createClient();
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+
       const form = new FormData();
       form.append("file", file);
       const res = await fetch(`${API_URL}/api/receipts/scan`, {
         method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: form,
       });
       if (!res.ok) {

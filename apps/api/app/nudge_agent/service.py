@@ -97,10 +97,14 @@ def _currency(amount: float) -> str:
     return f"RM{amount:,.2f}"
 
 
-def _build_ctas(verdict: Verdict) -> list[str]:
+def _build_ctas(verdict: Verdict, uses_bnpl: bool = False) -> list[str]:
     if verdict == "JANGAN_DULU":
+        if uses_bnpl:
+            return ["Walk away — avoid BNPL", "Save to cash goal instead", "See safer options without debt"]
         return ["Save to wishlist", "Review after salary", "See safer options"]
     if verdict == "FIKIR_DULU":
+        if uses_bnpl:
+            return ["Wait 48 hours — BNPL is not free", "Calculate real cost", "Cash is safer"]
         return ["Wait 24 hours", "Compare options", "Keep in wishlist"]
     return ["Proceed mindfully", "Track purchase", "Set reminder"]
 
@@ -199,13 +203,41 @@ def _fallback_nudge(payload: NudgeRequestModel) -> NudgeResponseModel:
     elif payload.tone_mode == "friendly":
         alternative_action = alternative_action.replace("Proceed if needed", "Go ahead if you really need it")
 
+    # BNPL-specific override for verdict
+    if payload.transaction_intent.uses_bnpl and verdict == "FIKIR_DULU":
+        verdict = "JANGAN_DULU"
+        amount = _currency(payload.transaction_intent.amount)
+        existing = _currency(payload.bnpl_context.due_this_month)
+        examples = {
+            "bm": f"JANGAN DULU! BNPL untuk {amount} akan tambah hutang. Anda dah berhutang {existing} bulan ni. Simpan duit dulu.",
+            "en": f"HOLD UP! BNPL for {amount} adds to your {existing} debt this month. Save cash, then decide.",
+            "manglish": f"WOI stop. BNPL for {amount} on top of {existing}? You gila ka? Simpan cash dulu boss.",
+        }
+        short_nudge = examples[payload.language_preference]
+        explanation = f"Using BNPL for {_currency(payload.transaction_intent.amount)} adds invisible debt. You already owe {_currency(payload.bnpl_context.due_this_month)} this month."
+        tradeoff = "BNPL feels cheap now but stacks into RM200+ monthly. Future you will be angry."
+        alternative_action = "Save to a sinking fund instead — buy when you have the cash."
+    elif payload.transaction_intent.uses_bnpl:
+        # Already JANGAN_DULU — strengthen the BNPL message
+        amount = _currency(payload.transaction_intent.amount)
+        existing = _currency(payload.bnpl_context.due_this_month)
+        examples = {
+            "bm": f"JANGAN guna BNPL untuk {amount}. Anda dah berhutang {existing} bulan ni. Ini permulaan lingkaran hutang.",
+            "en": f"DON'T use BNPL for {amount}. You already owe {existing} this month. This is how debt spirals start.",
+            "manglish": f"WOI JANGAN. BNPL for {amount}? You already owe {existing} this month. This is how you drown in debt, bro.",
+        }
+        short_nudge = examples[payload.language_preference]
+        explanation = f"BNPL for RM{payload.transaction_intent.amount:.2f}? With {_currency(payload.bnpl_context.due_this_month)} already due? This is how debt spirals start."
+        tradeoff = "You'll pay later but the cost includes interest, late fees, and financial stress."
+        alternative_action = "Wait, save cash, then buy. BNPL is not your friend."
+
     return NudgeResponseModel(
         verdict=verdict,
         short_nudge=short_nudge,
         explanation=explanation,
         tradeoff=tradeoff,
         alternative_action=alternative_action,
-        cta_buttons=_build_ctas(verdict),
+        cta_buttons=_build_ctas(verdict, payload.transaction_intent.uses_bnpl),
         language=payload.language_preference,
         tone_mode=payload.tone_mode,
         provider="template",
@@ -229,15 +261,30 @@ async def _generate_with_ai(payload: NudgeRequestModel) -> NudgeResponseModel:
     )
     client = anthropic.AsyncAnthropic(api_key=api_key, base_url=base_url)
     verdict = _derive_verdict(payload.risk_score)
+    uses_bnpl = payload.transaction_intent.uses_bnpl
+    bnpl_context = ""
+    if uses_bnpl:
+        bnpl_context = f"""
+IMPORTANT: User wants to use BNPL for this purchase of RM{payload.transaction_intent.amount:.2f}.
+They already owe RM{payload.bnpl_context.due_this_month:.2f} in BNPL this month.
+- verdict MUST be JANGAN_DULU — BNPL is always risky
+- short_nudge must warn about invisible debt and stacking BNPL
+- explanation must mention the existing BNPL burden
+- tradeoff must contrast BNPL illusion vs real cost
+- alternative_action must suggest saving cash first
+- cta_buttons must include "Walk away — avoid BNPL"
+"""
+
     prompt = f"""
 You are BajetBuddy, a Malaysian pre-purchase intervention engine.
 Return strict JSON only.
 
 Generate emotionally intelligent nudge copy for this payload:
 {json.dumps(payload, default=lambda obj: obj.__dict__, ensure_ascii=True)}
+{bnpl_context}
 
 Rules:
-- verdict must stay {verdict}
+- verdict must stay {verdict}{" (OVERRIDE: use JANGAN_DULU if BNPL)" if uses_bnpl else ""}
 - tone mode is {payload.tone_mode}
 - preferred language is {payload.language_preference}
 - keep short_nudge under 45 words

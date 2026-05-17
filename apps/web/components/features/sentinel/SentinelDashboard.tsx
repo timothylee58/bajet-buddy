@@ -49,7 +49,13 @@ export function SentinelDashboard() {
       setImpact(result);
       setAlertOpen(true);
       if (result.quests_generated.length > 0) {
-        setQuests((prev) => [...result.quests_generated, ...prev]);
+        setQuests((prev) => {
+          const existingIds = new Set(prev.map((q) => q.id));
+          const newQuests = result.quests_generated.filter(
+            (q) => !existingIds.has(q.id)
+          );
+          return [...newQuests, ...prev];
+        });
       }
     } finally {
       setSimulating(false);

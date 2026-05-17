@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, X, Wallet } from "lucide-react";
+import Image from "next/image";
+import { Bell, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { FOMONegotiatorModal } from "@/components/features/fomo/FOMONegotiatorModal";
@@ -13,6 +14,11 @@ const PAGE_TITLES: Record<string, string> = {
   "/profiles": "My Profile",
   "/freeze": "Account Freeze",
   "/onboarding": "Progressive Profiling",
+  "/sentinel": "Inflasi Watchdog",
+  "/income": "Income & Tax",
+  "/budget": "Budget Settings",
+  "/transactions": "Transactions",
+  "/receipts": "Scan Receipt",
 };
 
 interface Notification {
@@ -110,100 +116,110 @@ export function TopBar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/70 bg-white/80 px-4 py-3 backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary text-white shadow-sm">
-            <Wallet className="h-4 w-4" />
+    <>
+      <header className="sticky top-0 z-40 border-b border-white/70 bg-white/80 px-4 py-3 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl overflow-hidden bg-primary shadow-sm">
+              <Image
+                src="/logo.ico"
+                alt="BajetBuddy logo"
+                width={44}
+                height={44}
+                className="w-11 h-11 object-cover"
+                priority
+              />
+            </div>
+            <div>
+              <h1 className="text-sm font-semibold text-foreground" style={{ fontFamily: "var(--font-fredoka)" }}>
+                {title}
+              </h1>
+              <p className="text-xs text-muted">Your AI spending companion</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-sm font-semibold text-foreground" style={{ fontFamily: "var(--font-fredoka)" }}>
-              {title}
-            </h1>
-            <p className="text-xs text-muted">Your AI spending companion</p>
-          </div>
-        </div>
 
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            className="relative flex h-9 w-9 items-center justify-center rounded-2xl border border-white/80 bg-white text-neutral transition-colors hover:border-primary/30 hover:text-primary shadow-sm"
-            aria-label="Notifications"
-          >
-            <Bell className="h-4 w-4" />
-            {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-tertiary text-[10px] font-bold text-white shadow-sm">
-                {unreadCount}
-              </span>
-            )}
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-white/80 bg-white text-neutral transition-colors hover:border-primary/30 hover:text-primary shadow-sm"
+              aria-label="Notifications"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-tertiary text-[10px] font-bold text-white shadow-sm">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
 
-          <AnimatePresence>
-            {open && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-                <motion.div
-                  initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-11 z-50 w-80 rounded-[1.75rem] border border-border bg-white shadow-lg"
-                >
-                  <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                    <span className="text-sm font-semibold text-foreground">Notifications</span>
-                    {unreadCount > 0 && (
-                      <button type="button" onClick={markAllRead} className="text-xs font-semibold text-primary hover:text-primary-dark">
-                        Mark all read
-                      </button>
-                    )}
-                  </div>
-                  <div className="max-h-[360px] overflow-y-auto divide-y divide-border">
-                    {notifications.length === 0 ? (
-                      <p className="px-4 py-6 text-center text-sm text-muted">All caught up!</p>
-                    ) : (
-                      notifications.map((n) => (
-                        <div
-                          key={n.id}
-                          onClick={() => handleNotificationClick(n)}
-                          className={`relative flex gap-3 px-4 py-3 ${!n.read ? "bg-primary-light/20" : ""} ${n.type === "fomo" ? "cursor-pointer hover:bg-primary-light/35" : ""}`}
-                        >
-                          <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${!n.read ? "bg-primary" : "bg-transparent"}`} />
-                          <div className="min-w-0 flex-1">
-                            <div className={`mb-1 inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${typeStyles[n.type]}`}>
-                              {n.type === "fomo" ? "FOMO alert" : n.type}
-                            </div>
-                            <p className="text-sm font-medium text-foreground">{n.title}</p>
-                            <p className="mt-0.5 text-xs leading-5 text-neutral-dark">{n.body}</p>
-                            {n.type === "fomo" && (
-                              <p className="mt-1 text-[11px] font-semibold text-primary-dark">Tap to open Negotiator →</p>
-                            )}
-                            <p className="mt-1 text-[10px] text-muted">{n.time}</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); dismiss(n.id); }}
-                            className="shrink-0 text-neutral hover:text-foreground"
-                            aria-label="Dismiss"
+            <AnimatePresence>
+              {open && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+                  <motion.div
+                    initial={{ opacity: 0, y: -12, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -12, scale: 0.96 }}
+                    transition={{ duration: 0.18 }}
+                    className="fixed left-1/2 -translate-x-1/2 top-16 z-[60] w-[calc(100vw-2rem)] max-w-sm rounded-[1.75rem] border border-border bg-white shadow-xl"
+                  >
+                    <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                      <span className="text-sm font-semibold text-foreground">Notifications</span>
+                      {unreadCount > 0 && (
+                        <button type="button" onClick={markAllRead} className="text-xs font-semibold text-primary hover:text-primary-dark">
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+                    <div className="max-h-[360px] overflow-y-auto divide-y divide-border">
+                      {notifications.length === 0 ? (
+                        <p className="px-4 py-6 text-center text-sm text-muted">All caught up!</p>
+                      ) : (
+                        notifications.map((n) => (
+                          <div
+                            key={n.id}
+                            onClick={() => handleNotificationClick(n)}
+                            className={`relative flex gap-3 px-4 py-3 ${!n.read ? "bg-primary-light/20" : ""} ${n.type === "fomo" ? "cursor-pointer hover:bg-primary-light/35" : ""}`}
                           >
-                            <X className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatePresence>
+                            <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${!n.read ? "bg-primary" : "bg-transparent"}`} />
+                            <div className="min-w-0 flex-1">
+                              <div className={`mb-1 inline-block rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${typeStyles[n.type]}`}>
+                                {n.type === "fomo" ? "FOMO alert" : n.type}
+                              </div>
+                              <p className="text-sm font-medium text-foreground">{n.title}</p>
+                              <p className="mt-0.5 text-xs leading-5 text-neutral-dark">{n.body}</p>
+                              {n.type === "fomo" && (
+                                <p className="mt-1 text-[11px] font-semibold text-primary-dark">Tap to open Negotiator →</p>
+                              )}
+                              <p className="mt-1 text-[10px] text-muted">{n.time}</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); dismiss(n.id); }}
+                              className="shrink-0 text-neutral hover:text-foreground"
+                              aria-label="Dismiss"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      </div>
+      </header>
 
+      {/* FOMONegotiatorModal rendered OUTSIDE header to avoid stacking context issues */}
       <FOMONegotiatorModal
         open={fomoRequest !== null}
         request={fomoRequest}
         onClose={() => setFomoRequest(null)}
       />
-    </header>
+    </>
   );
 }

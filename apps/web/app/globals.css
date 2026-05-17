@@ -40,6 +40,9 @@
   --surface-card:   #ffffff;
   --surface-muted:  #f9f2ea;
   --border-subtle:  #eadffb;
+
+  /* Font scale — controlled by user preference */
+  --font-scale: 1.0;
 }
 
 @theme inline {
@@ -100,9 +103,16 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-nunito), "Nunito Sans", Arial, sans-serif;
+  font-size: calc(1rem * var(--font-scale));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Font scale tiers */
+[data-font-size="sm"] { --font-scale: 0.925; }
+[data-font-size="md"] { --font-scale: 1.0;   }
+[data-font-size="lg"] { --font-scale: 1.1;   }
+[data-font-size="xl"] { --font-scale: 1.2;   }
 
 ::selection {
   background: rgba(124, 92, 255, 0.22);

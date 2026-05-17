@@ -35,7 +35,7 @@ export function MacroAlertModal({ impact, open, onClose }: Props) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[70] flex items-end justify-center bg-black/60 backdrop-blur-sm"
           onClick={onClose}
         >
           <motion.div
@@ -43,10 +43,10 @@ export function MacroAlertModal({ impact, open, onClose }: Props) {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="bg-white rounded-t-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto pb-8"
+            className="bg-white rounded-t-3xl w-full max-w-lg max-h-[80vh] overflow-y-auto pb-8"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white pt-4 pb-2 px-5 flex justify-between items-center border-b border-zinc-100 z-10">
+            <div className="sticky top-0 bg-white pt-4 pb-2 px-5 flex justify-between items-center border-b border-zinc-100 z-20">
               <div className="flex items-center gap-2">
                 <span className="text-4xl">{impact.impact.persona_emoji}</span>
                 <div>

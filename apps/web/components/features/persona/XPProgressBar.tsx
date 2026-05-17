@@ -15,26 +15,26 @@ export function XPProgressBar({ current, max, level }: XPProgressBarProps) {
   const nextLevel = LEVELS.find((l) => l.level === level + 1);
 
   return (
-    <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-800 p-4">
+    <div className="rounded-2xl bg-emerald-50/40 dark:bg-emerald-950/20 p-4 border border-emerald-100 dark:border-emerald-900/30">
       <div className="flex items-center justify-between mb-2">
         <div>
-          <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+          <span className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
             {levelInfo?.name ?? `Level ${level}`}
           </span>
           {nextLevel && (
-            <span className="text-xs text-zinc-400 ml-2">
+            <span className="text-xs text-emerald-600/60 ml-2">
               → {nextLevel.name}
             </span>
           )}
         </div>
-        <span className="text-xs font-medium text-zinc-500">
+        <span className="text-xs font-medium text-emerald-700/70">
           {current} / {max} XP
         </span>
       </div>
 
-      <div className="h-3 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
+      <div className="h-3 rounded-full bg-emerald-100 dark:bg-emerald-900/40 overflow-hidden">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-600 transition-all duration-700"
+          className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-700"
           style={{ width: `${pct}%` }}
           role="progressbar"
           aria-valuenow={current}
@@ -44,7 +44,7 @@ export function XPProgressBar({ current, max, level }: XPProgressBarProps) {
         />
       </div>
 
-      <p className="text-xs text-zinc-400 mt-2">
+      <p className="text-xs text-emerald-600/60 mt-2">
         {max - current} XP to next level 🚀
       </p>
     </div>

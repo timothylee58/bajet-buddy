@@ -1,16 +1,16 @@
 "use client";
 
-import { Home, Zap, PlusCircle, Medal, User } from "lucide-react";
+import { Home, ShieldAlert, PlusCircle, Medal, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Home",    icon: Home,    isMain: false },
-  { href: "/streak",    label: "Streak",  icon: Zap,     isMain: false },
-  { href: "/check",     label: "Check",   icon: PlusCircle, isMain: true },
-  { href: "/badges",    label: "Badges",  icon: Medal,   isMain: false },
-  { href: "/profiles",  label: "Profile", icon: User,    isMain: false },
+  { href: "/dashboard", label: "Home",     icon: Home,        isMain: false },
+  { href: "/sentinel",  label: "Watchdog", icon: ShieldAlert, isMain: false },
+  { href: "/check",     label: "Check",    icon: PlusCircle,  isMain: true },
+  { href: "/badges",    label: "Badges",   icon: Medal,       isMain: false },
+  { href: "/profiles",  label: "Profile",  icon: User,        isMain: false },
 ] as const;
 
 export function BottomNav() {

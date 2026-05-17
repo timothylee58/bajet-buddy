@@ -48,6 +48,7 @@ export interface CheckRequest {
   merchant_type?: "essential" | "discretionary" | "mixed";
   item_name?: string;
   essential?: boolean;
+  bnpl?: boolean;
   language_preference?: "bm" | "en" | "manglish";
   tone_mode?: "professional" | "friendly" | "manglish" | "strict" | "encouraging";
   purchase_at?: string;
@@ -87,6 +88,7 @@ export interface ChatCheckRequest {
   language_preference?: "bm" | "en" | "manglish";
   tone_mode?: "professional" | "friendly" | "manglish" | "strict" | "encouraging";
   purchase_at?: string;
+  bnpl?: boolean;
 }
 
 export interface ParsedSpendIntent {
@@ -96,6 +98,7 @@ export interface ParsedSpendIntent {
   item_name?: string | null;
   merchant_type: "essential" | "discretionary" | "mixed";
   essential: boolean;
+  bnpl?: boolean;
   confidence: number;
   paraphrased: string;
 }

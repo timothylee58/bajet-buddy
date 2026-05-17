@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ProfileHeader } from "@/components/features/profile/ProfileHeader";
 import { DailyLogin } from "@/components/features/profile/DailyLogin";
 import { ConnectionsList } from "@/components/features/profile/ConnectionsList";
@@ -10,137 +11,337 @@ import { XPProgressBar } from "@/components/features/persona/XPProgressBar";
 import { AchievementGrid } from "@/components/features/persona/AchievementGrid";
 import { VirtualPet, type PetType } from "@/components/features/gamification/VirtualPet";
 import { usePersona } from "@/hooks/usePersona";
-import { Loader2 } from "lucide-react";
+import { Loader2, LayoutDashboard, Medal, Users, Settings2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useTextSize, type FontSize } from "@/components/ui/TextSizeProvider";
+
+// ─── Tab config ───────────────────────────────────────────────────────────────
+
+const TABS = [
+  { id: "overview",      label: "Overview",   icon: LayoutDashboard },
+  { id: "achievements",  label: "Badges",     icon: Medal },
+  { id: "community",     label: "Community",  icon: Users },
+] as const;
+
+type TabId = (typeof TABS)[number]["id"];
+
+// ─── Pet options ──────────────────────────────────────────────────────────────
 
 const PET_OPTIONS: { type: PetType; label: string; emoji: string }[] = [
   { type: "squirrel", label: "Squirrel", emoji: "🐿️" },
-  { type: "fox", label: "Fox", emoji: "🦊" },
-  { type: "raccoon", label: "Raccoon", emoji: "🦝" },
-  { type: "rabbit", label: "Rabbit", emoji: "🐰" },
+  { type: "fox",      label: "Fox",      emoji: "🦊" },
+  { type: "raccoon",  label: "Raccoon",  emoji: "🦝" },
+  { type: "rabbit",   label: "Rabbit",   emoji: "🐰" },
 ];
+
+// ─── Section label ────────────────────────────────────────────────────────────
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="font-sans text-[10px] font-bold uppercase tracking-widest text-muted mb-2">
+      {children}
+    </p>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilesPage() {
   const { persona, loading: personaLoading } = usePersona();
   const [petType, setPetType] = useState<PetType>("squirrel");
+  const [tab, setTab] = useState<TabId>("overview");
 
   return (
-    <div className="px-4 py-6 space-y-6 pb-24">
+    <div className="max-w-md mx-auto px-4 pt-4 pb-28">
       {/* Page title */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black text-zinc-900 dark:text-zinc-50">Your Profile</h1>
+      <h1 className="font-headline text-3xl font-bold text-foreground mb-5">My Profile</h1>
+
+      {/* Tab bar */}
+      <div className="flex gap-1 rounded-2xl bg-zinc-100/80 p-1 mb-6">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2.5 font-sans text-xs font-bold transition-all",
+              tab === t.id
+                ? "bg-white text-primary shadow-sm"
+                : "text-muted hover:text-foreground"
+            )}
+          >
+            <t.icon className="w-3.5 h-3.5" />
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      {/* Level, XP, Streak */}
+      {/* Tab content */}
+      <AnimatePresence mode="wait">
+        {tab === "overview" && (
+          <OverviewTab
+            key="overview"
+            persona={persona}
+            personaLoading={personaLoading}
+            petType={petType}
+            setPetType={setPetType}
+          />
+        )}
+        {tab === "achievements" && <AchievementsTab key="achievements" />}
+        {tab === "community"    && <CommunityTab key="community" />}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Overview Tab ─────────────────────────────────────────────────────────────
+
+function OverviewTab({
+  persona,
+  personaLoading,
+  petType,
+  setPetType,
+}: {
+  persona: ReturnType<typeof usePersona>["persona"];
+  personaLoading: boolean;
+  petType: PetType;
+  setPetType: (t: PetType) => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.2 }}
+      className="space-y-5"
+    >
+      {/* Hero stat card */}
       <ProfileHeader />
 
-      {/* Persona — AI personality analysis */}
-      {personaLoading ? (
-        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-6 flex items-center justify-center">
-          <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
-          <span className="ml-2 text-sm text-zinc-400">Analyzing your spending persona...</span>
+      {/* Persona loading */}
+      {personaLoading && (
+        <div className="rounded-2xl border border-border bg-white p-5 flex items-center justify-center gap-3 chunky-shadow">
+          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+          <span className="font-sans text-sm text-muted">Analyzing your spending persona…</span>
         </div>
-      ) : persona ? (
-        <section>
-          <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">AI Persona</h2>
-          <PersonaCard
-            type={persona.type}
-            name={persona.name}
-            emoji={persona.emoji}
-            description={persona.description}
-            level={persona.level}
-            confidence={persona.confidence}
-            explanation={persona.explanation}
-            suggestedInterventionRule={persona.suggested_intervention_rule}
-          />
+      )}
+
+      {/* Persona + XP/Pet */}
+      {persona && (
+        <>
+          {/* Spending persona — full width */}
+          <div className="space-y-2">
+            <SectionLabel>Your spending persona</SectionLabel>
+            <PersonaCard
+              type={persona.type}
+              name={persona.name}
+              emoji={persona.emoji}
+              description={persona.description}
+              level={persona.level}
+              confidence={persona.confidence}
+              explanation={persona.explanation}
+              suggestedInterventionRule={persona.suggested_intervention_rule}
+            />
+          </div>
+
+          {/* Behaviour signals */}
           {persona.top_signals?.length ? (
-            <div className="mt-3 rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4">
-              <p className="text-xs font-semibold text-zinc-500 mb-2">Why this persona</p>
+            <div className="space-y-2">
+              <SectionLabel>Behaviour signals</SectionLabel>
               <div className="flex flex-wrap gap-2">
-                {persona.top_signals.map((signal) => (
+                {persona.top_signals.map((s) => (
                   <span
-                    key={signal}
-                    className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-xs text-zinc-600 dark:text-zinc-400"
+                    key={s}
+                    className="rounded-full bg-surface-muted border border-border px-3 py-1 font-sans text-xs text-muted font-medium"
                   >
-                    {signal}
+                    {s}
                   </span>
                 ))}
               </div>
             </div>
           ) : null}
-        </section>
-      ) : null}
 
-      {/* XP Progress */}
-      {persona && (
-        <section>
-          <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">Progress</h2>
-          <XPProgressBar
-            current={persona.xp}
-            max={persona.xp_to_next}
-            level={persona.level}
-          />
-        </section>
-      )}
+          {/* XP Progress */}
+          <div className="space-y-2">
+            <SectionLabel>XP progress</SectionLabel>
+            <div className="rounded-2xl border-b-4 border-primary/20 bg-white chunky-shadow p-4">
+              <XPProgressBar
+                current={persona.xp}
+                max={persona.xp_to_next}
+                level={persona.level}
+              />
+            </div>
+          </div>
 
-      {/* Virtual Pet */}
-      {persona && (
-        <section>
-          <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">Companion</h2>
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4">
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-xs text-zinc-400">Choose your BajetBuddy</p>
-              <div className="flex gap-1 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 p-1">
+          {/* Pet companion */}
+          <div className="space-y-2">
+            <SectionLabel>Companion</SectionLabel>
+            <div className="rounded-2xl border-b-4 border-primary/20 bg-white chunky-shadow p-4">
+              {/* Species picker */}
+              <div className="flex gap-1.5 mb-4 overflow-x-auto no-scrollbar">
                 {PET_OPTIONS.map((opt) => (
                   <button
                     key={opt.type}
                     type="button"
                     onClick={() => setPetType(opt.type)}
-                    className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
+                    className={cn(
+                      "flex-shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-sans text-xs font-bold transition-all border",
                       petType === opt.type
-                        ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm"
-                        : "text-zinc-400 hover:text-zinc-600"
-                    }`}
+                        ? "bg-primary text-white border-primary shadow-sm"
+                        : "bg-zinc-50 border-zinc-200 text-muted hover:border-primary/30"
+                    )}
                   >
                     <span>{opt.emoji}</span>
                     {opt.label}
                   </button>
                 ))}
               </div>
+              <VirtualPet xp={persona.xp} streak={persona.streak ?? 0} petType={petType} />
             </div>
-            <VirtualPet xp={persona.xp} streak={persona.streak ?? 0} petType={petType} />
           </div>
-        </section>
+
+          {/* ── Display settings ── */}
+          <div className="space-y-2">
+            <SectionLabel>Display settings</SectionLabel>
+            <TextSizePicker />
+          </div>
+        </>
       )}
+    </motion.div>
+  );
+}
 
-      {/* Achievements */}
-      <section>
-        <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">Achievements</h2>
-        <AchievementGrid />
-      </section>
+// ─── Achievements Tab ─────────────────────────────────────────────────────────
 
-      {/* Active Challenges */}
-      <section>
-        <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">Active Challenges</h2>
-        <ChallengeCard
-          title="No Shopee Week"
-          description="Don't buy anything on Shopee for 7 days"
-          participants={12}
-          daysLeft={3}
-          joined={true}
-        />
-      </section>
+function AchievementsTab() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.2 }}
+    >
+      <AchievementGrid />
+    </motion.div>
+  );
+}
 
-      {/* Leaderboard / Connections */}
-      <section>
-        <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">Leaderboard</h2>
+// ─── Community Tab ────────────────────────────────────────────────────────────
+
+function CommunityTab() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.2 }}
+      className="space-y-6"
+    >
+      {/* Active challenges */}
+      <div className="space-y-3">
+        <SectionLabel>Active challenges</SectionLabel>
+        <div className="space-y-2.5">
+          <ChallengeCard
+            title="No Shopee Week"
+            description="Don't buy anything on Shopee for 7 days"
+            participants={12}
+            daysLeft={3}
+            joined={true}
+          />
+          <ChallengeCard
+            title="RM50 Food Budget"
+            description="Keep food spending under RM50 for 3 days"
+            participants={8}
+            daysLeft={5}
+            joined={false}
+          />
+        </div>
+      </div>
+
+      {/* Leaderboard */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <SectionLabel>Leaderboard</SectionLabel>
+          <span className="font-sans text-[10px] font-bold text-muted bg-zinc-100 px-2 py-0.5 rounded-full">
+            Weekly
+          </span>
+        </div>
         <ConnectionsList />
-      </section>
+      </div>
 
-      {/* Daily login streak */}
-      <section>
-        <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide mb-3">Weekly Streak</h2>
+      {/* Daily streak */}
+      <div className="space-y-3">
+        <SectionLabel>This week</SectionLabel>
         <DailyLogin />
-      </section>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Text Size Picker ─────────────────────────────────────────────────────────
+
+const SIZE_OPTIONS: { value: FontSize; label: string; aLabel: string; desc: string }[] = [
+  { value: "sm", aLabel: "A-", label: "Kecil",      desc: "Compact" },
+  { value: "md", aLabel: "A",  label: "Biasa",      desc: "Default" },
+  { value: "lg", aLabel: "A+", label: "Besar",      desc: "Larger"  },
+  { value: "xl", aLabel: "A++",label: "Besar Gila", desc: "Biggest" },
+];
+
+function TextSizePicker() {
+  const { size, setSize } = useTextSize();
+
+  return (
+    <div className="rounded-2xl border-b-4 border-primary/20 bg-white chunky-shadow p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Settings2 className="w-4 h-4 text-primary" />
+        <p className="font-sans text-sm font-bold text-foreground">Text Size</p>
+        <span className="ml-auto font-sans text-[10px] text-muted bg-zinc-100 px-2 py-0.5 rounded-full">
+          Saves automatically
+        </span>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2">
+        {SIZE_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => setSize(opt.value)}
+            className={cn(
+              "flex flex-col items-center gap-1.5 rounded-xl border-2 py-3 px-1 transition-all",
+              size === opt.value
+                ? "border-primary bg-primary-light shadow-sm"
+                : "border-zinc-200 bg-zinc-50 hover:border-primary/40"
+            )}
+          >
+            <span className={cn(
+              "font-headline font-bold leading-none",
+              opt.value === "sm" ? "text-base"  :
+              opt.value === "md" ? "text-xl"    :
+              opt.value === "lg" ? "text-2xl"   : "text-3xl",
+              size === opt.value ? "text-primary" : "text-foreground"
+            )}>
+              {opt.aLabel}
+            </span>
+            <span className={cn(
+              "font-sans text-[9px] font-bold uppercase tracking-wide",
+              size === opt.value ? "text-primary" : "text-muted"
+            )}>
+              {opt.label}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Live preview */}
+      <div className="mt-4 rounded-xl bg-zinc-50 border border-zinc-100 p-3">
+        <p className="font-sans text-[10px] text-muted uppercase tracking-widest mb-1.5">Preview</p>
+        <p className="font-headline font-bold text-foreground leading-tight" style={{ fontSize: "1.1em" }}>
+          BajetBuddy 💰
+        </p>
+        <p className="font-sans text-muted mt-0.5" style={{ fontSize: "0.85em" }}>
+          Jimat sikit-sikit, lama-lama jadi bukit.
+        </p>
+      </div>
     </div>
   );
 }

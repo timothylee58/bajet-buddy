@@ -1,5 +1,54 @@
+"use client";
+
+import { useState } from "react";
 import { ChatCheckScreen } from "@/components/features/check/ChatCheckScreen";
+import { CheckScreen } from "@/components/features/check/CheckScreen";
+import { MessageSquare, Keyboard } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type Tab = "ai" | "manual";
 
 export default function CheckPage() {
-  return <ChatCheckScreen />;
+  const [tab, setTab] = useState<Tab>("ai");
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Tab switcher */}
+      <div className="flex gap-1 mx-4 mt-4 p-1 bg-surface-muted rounded-2xl">
+        <button
+          onClick={() => setTab("ai")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-sans text-sm font-bold transition-all",
+            tab === "ai"
+              ? "bg-primary text-white shadow-sm"
+              : "text-muted hover:text-foreground"
+          )}
+        >
+          <MessageSquare className="w-4 h-4" />
+          Ask AI
+        </button>
+        <button
+          onClick={() => setTab("manual")}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-sans text-sm font-bold transition-all",
+            tab === "manual"
+              ? "bg-primary text-white shadow-sm"
+              : "text-muted hover:text-foreground"
+          )}
+        >
+          <Keyboard className="w-4 h-4" />
+          Manual Entry
+        </button>
+      </div>
+
+      {/* Tab content */}
+      <div className="flex-1 overflow-y-auto">
+        {tab === "ai" ? (
+          <ChatCheckScreen />
+        ) : (
+          <CheckScreen />
+        )}
+      </div>
+    </div>
+  );
 }
