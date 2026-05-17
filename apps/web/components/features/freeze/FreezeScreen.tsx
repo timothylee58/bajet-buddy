@@ -55,7 +55,7 @@ export function FreezeScreen() {
                 <span>{headerTone.title}</span>
               </div>
               <h1 className="text-2xl font-semibold">
-                {status.active ? "Belanja Guard is blocking new spend checks." : "Freeze can be armed before impulse spending starts."}
+                {status.active ? "Bajet Buddy is blocking new spend checks." : "Freeze can be armed before impulse spending starts."}
               </h1>
               <p className="text-sm leading-6 text-zinc-700">
                 {status.message}

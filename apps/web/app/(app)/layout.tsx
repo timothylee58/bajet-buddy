@@ -1,12 +1,19 @@
 import { BottomNav } from "@/components/layout/BottomNav";
 import { TopBar } from "@/components/layout/TopBar";
+import { CloudSyncBanner } from "@/components/features/onboarding/CloudSyncBanner";
+import { FloatingPet } from "@/components/features/pet/FloatingPet";
+import { PetCompanionProvider } from "@/components/features/pet/PetCompanionProvider";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50">
-      <TopBar />
-      <main className="flex-1 overflow-y-auto pb-24">{children}</main>
-      <BottomNav />
-    </div>
+    <PetCompanionProvider>
+      <div className="flex min-h-screen flex-col bg-background">
+        <TopBar />
+        <CloudSyncBanner />
+        <main className="flex-1 overflow-y-auto pb-24">{children}</main>
+        <BottomNav />
+        <FloatingPet />
+      </div>
+    </PetCompanionProvider>
   );
 }

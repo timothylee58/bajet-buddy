@@ -1,66 +1,109 @@
 @import "tailwindcss";
 
+/* ─── Brand tokens ────────────────────────────────────────────────────────── */
 :root {
-  --background: #fffaf4;
-  --foreground: #1c1917;
-  --brand: #ba6200;
-  --brand-light: #fff4e8;
-  --brand-dark: #944e00;
-  --brand-muted: #f5e6d6;
+  --primary:         #7C5CFF;
+  --primary-dark:    #5E3FD4;
+  --primary-light:   #EDE9FF;
+
+  --secondary:       #4FC3F7;
+  --secondary-dark:  #0288D1;
+  --secondary-light: #E0F7FF;
+
+  --tertiary:        #BA6200;
+  --tertiary-dark:   #8C4A00;
+  --tertiary-light:  #FFF0D6;
+
+  --neutral:         #797581;
+  --neutral-dark:    #3D3B42;
+  --neutral-light:   #F2F1F5;
+
+  --background:      #fffaf4;
+  --surface:         #FFFFFF;
+  --foreground:      #1c1917;
+  --muted:           #797581;
+  --border:          #E5E3EF;
+
+  --success:  #16a34a;
+  --warning:  #b45309;
+  --danger:   #dc2626;
+  --safe:     #ba6200;
+
+  /* Brand identity: #BA6200 */
+  --brand:         #ba6200;
+  --brand-light:   #fff4e8;
+  --brand-dark:    #944e00;
+  --brand-muted:   #f5e6d6;
   --brand-on-hero: #fcd9b6;
-  --surface-hero: #1c140c;
-  --surface-card: #ffffff;
-  --surface-muted: #f7efe6;
-  --border-subtle: #ead8c2;
-  --danger: #dc2626;
-  --warning: #b45309;
-  --safe: #ba6200;
+
+  --surface-hero:   #1c140c;
+  --surface-card:   #ffffff;
+  --surface-muted:  #f7efe6;
+  --border-subtle:  #ead8c2;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-brand: var(--brand);
-  --color-brand-light: var(--brand-light);
-  --color-brand-dark: var(--brand-dark);
-  --color-brand-muted: var(--brand-muted);
-  --color-brand-on-hero: var(--brand-on-hero);
-  --color-surface-hero: var(--surface-hero);
-  --color-surface-card: var(--surface-card);
-  --color-surface-muted: var(--surface-muted);
-  --color-border-subtle: var(--border-subtle);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background:      var(--background);
+  --color-foreground:      var(--foreground);
+  --color-surface:         var(--surface);
+  --color-muted:           var(--muted);
+  --color-border:          var(--border);
+
+  --color-primary:         var(--primary);
+  --color-primary-dark:    var(--primary-dark);
+  --color-primary-light:   var(--primary-light);
+
+  --color-secondary:       var(--secondary);
+  --color-secondary-dark:  var(--secondary-dark);
+  --color-secondary-light: var(--secondary-light);
+
+  --color-tertiary:        var(--tertiary);
+  --color-tertiary-dark:   var(--tertiary-dark);
+  --color-tertiary-light:  var(--tertiary-light);
+
+  --color-neutral:         var(--neutral);
+  --color-neutral-dark:    var(--neutral-dark);
+  --color-neutral-light:   var(--neutral-light);
+
+  --color-brand:           var(--brand);
+  --color-brand-light:     var(--brand-light);
+  --color-brand-dark:      var(--brand-dark);
+  --color-brand-muted:     var(--brand-muted);
+  --color-brand-on-hero:   var(--brand-on-hero);
+  --color-surface-hero:    var(--surface-hero);
+  --color-surface-card:    var(--surface-card);
+  --color-surface-muted:   var(--surface-muted);
+  --color-border-subtle:   var(--border-subtle);
+
+  --font-headline: var(--font-fredoka);
+  --font-sans:     var(--font-nunito);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #14100c;
-    --foreground: #f5f0eb;
-    --surface-card: #1f1a16;
+    --background:    #14100c;
+    --foreground:    #f5f0eb;
+    --surface-card:  #1f1a16;
     --surface-muted: #2a241e;
     --border-subtle: #3d342c;
-    --brand-light: #2a1f14;
-    --brand-muted: #3d2e1f;
+    --brand-light:   #2a1f14;
+    --brand-muted:   #3d2e1f;
   }
 }
 
-* {
-  box-sizing: border-box;
-}
+/* ─── Base ────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
-html,
-body {
-  height: 100%;
-}
+html, body { height: 100%; }
 
 body {
   background:
     radial-gradient(circle at top left, rgba(186, 98, 0, 0.14), transparent 34rem),
     linear-gradient(180deg, #fffaf4 0%, var(--background) 42%, #f8efe5 100%);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-nunito), "Nunito Sans", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 ::selection {
@@ -68,10 +111,11 @@ body {
   color: var(--foreground);
 }
 
-html {
-  scroll-behavior: smooth;
+h1, h2, h3 {
+  font-family: var(--font-fredoka), "Fredoka", Arial, sans-serif;
+  letter-spacing: -0.01em;
 }
 
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 1rem);
-}
+html { scroll-behavior: smooth; }
+
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }

@@ -21,26 +21,28 @@ import {
   CalendarClock,
   CircleAlert,
   CreditCard,
+  Database,
   Flame,
   Landmark,
   LockKeyhole,
   RefreshCw,
+  ScanLine,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
   Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clamp, cn } from "@/lib/utils";
 import { useDashboardPulse } from "@/hooks/useDashboardPulse";
+import { useGuestMode } from "@/hooks/useGuestMode";
+import { CameraFAB } from "@/components/features/check/CameraFAB";
 
 type Locale = "en" | "bm";
 type RiskStatus = "low" | "medium" | "high";
 
 const dashboardCopy = {
   en: {
-    product: "Belanja Guard",
-    badge: "Sarah demo loaded",
+    product: "Bajet Buddy",
     headline: "Stop the bad spending decision before checkout.",
     subheadline:
       "A behavioural finance dashboard for young Malaysians living paycheque to paycheque.",
@@ -62,7 +64,7 @@ const dashboardCopy = {
     budgetUsage: "Budget usage",
     bnplDue: "BNPL due this month",
     riskStatus: "Risk status",
-    nudgeTitle: "Belanja Guard Intervention",
+    nudgeTitle: "Bajet Buddy Intervention",
     nudgeBody:
       "Sarah is about to buy a RM189 dress on Shopee. The engine checks her cycle position, BNPL load, and remaining runway before she taps pay.",
     nudgeCta: "Simulate Shopee purchase",
@@ -100,11 +102,10 @@ const dashboardCopy = {
     dress: "Dress",
     fixedCommitments: "Fixed commitments",
     note: "BM/EN toggle-ready and running on mock data for the no-login demo.",
-    focusNote: "Belanja Guard focuses on prevention, not passive tracking.",
+    focusNote: "Bajet Buddy focuses on prevention, not passive tracking.",
   },
   bm: {
-    product: "Belanja Guard",
-    badge: "Demo Sarah dimuatkan",
+    product: "Bajet Buddy",
     headline: "Hentikan keputusan belanja buruk sebelum checkout.",
     subheadline:
       "Papan pemuka kewangan tingkah laku untuk rakyat muda Malaysia yang hidup ikut gaji ke gaji.",
@@ -126,7 +127,7 @@ const dashboardCopy = {
     budgetUsage: "Penggunaan bajet",
     bnplDue: "BNPL bulan ini",
     riskStatus: "Status risiko",
-    nudgeTitle: "Intervensi Belanja Guard",
+    nudgeTitle: "Intervensi Bajet Buddy",
     nudgeBody:
       "Sarah hampir membeli gaun RM189 di Shopee. Enjin ini semak kedudukan kitaran gaji, beban BNPL, dan baki runway sebelum dia tekan bayar.",
     nudgeCta: "Simulasi pembelian Shopee",
@@ -164,7 +165,7 @@ const dashboardCopy = {
     dress: "Gaun",
     fixedCommitments: "Komitmen tetap",
     note: "Togol BM/EN sedia digunakan dan berjalan atas data demo tanpa log masuk.",
-    focusNote: "Belanja Guard fokus pada pencegahan, bukan penjejakan pasif.",
+    focusNote: "Bajet Buddy fokus pada pencegahan, bukan penjejakan pasif.",
   },
 } as const;
 
@@ -369,6 +370,8 @@ export function BehaviorDashboard() {
   const [locale, setLocale] = useState<Locale>("en");
   const [purchaseTriggered, setPurchaseTriggered] = useState(true);
   const pulse = useDashboardPulse();
+  const { guestData } = useGuestMode();
+  const ocrTransactions = guestData.transactions.filter((t: any) => t.source === "ocr");
   const chartsReady = useSyncExternalStore(
     () => () => undefined,
     () => true,
@@ -427,6 +430,7 @@ export function BehaviorDashboard() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pb-28 pt-6 sm:px-6 lg:px-8">
+      <CameraFAB />
       <section id="home" className="space-y-5">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -437,10 +441,6 @@ export function BehaviorDashboard() {
           <div className="border-b border-white/10 px-4 py-3 sm:px-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-2">
-                <span className="inline-flex w-fit items-center gap-2 rounded-full border border-brand/25 bg-brand/15 px-3 py-1 text-[11px] font-medium text-brand-on-hero">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  {copy.badge}
-                </span>
                 <div className="space-y-2">
                   <p className="text-xs uppercase tracking-[0.24em] text-brand-on-hero/70">
                     {copy.product}
@@ -944,6 +944,75 @@ export function BehaviorDashboard() {
           </div>
         </section>
 
+        {/* OCR Scan Results */}
+        {ocrTransactions.length > 0 && (
+          <section id="ocr-results" className="space-y-3">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-semibold text-zinc-950 flex items-center gap-2">
+                <ScanLine className="h-5 w-5 text-brand" />
+                OCR Scan Results
+              </h2>
+              <p className="max-w-2xl text-sm leading-6 text-zinc-600">
+                Receipt scans processed by Agent 4. DB status shows whether the transaction was saved to Supabase.
+              </p>
+            </div>
+            <div className="rounded-lg border border-zinc-200 bg-white">
+              <div className="divide-y divide-zinc-100">
+                {ocrTransactions.map((transaction: any) => (
+                  <motion.div
+                    key={transaction.id}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center justify-between gap-4 px-4 py-4"
+                  >
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+                        <ScanLine className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-zinc-900">
+                          {transaction.merchant}
+                        </p>
+                        <p className="text-sm text-zinc-500">
+                          {transaction.category} · OCR scan
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-zinc-900">
+                        -{formatCurrency(Math.abs(transaction.amount))}
+                      </p>
+                      <div className="flex items-center justify-end gap-1 text-xs">
+                        <Database className={cn("h-3 w-3", transaction.db_inserted ? "text-emerald-500" : "text-amber-500")} />
+                        <span className={cn(transaction.db_inserted ? "text-emerald-600" : "text-amber-600")}>
+                          {transaction.db_inserted ? "DB ✓" : "DB ✗"}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Summary card */}
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                  <Database className="h-5 w-5" />
+                </div>
+                <div className="text-sm">
+                  <p className="font-semibold text-emerald-800">
+                    {ocrTransactions.filter((t: any) => t.db_inserted).length}/{ocrTransactions.length} saved to Supabase
+                  </p>
+                  <p className="text-emerald-600">
+                    Agent 4 active — supports receipts & bank statements
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         <section id="bnpl" className="space-y-3">
           <div className="space-y-1">
             <h2 className="text-2xl font-semibold text-zinc-950">{copy.bnpl}</h2>
@@ -1092,6 +1161,20 @@ export function BehaviorDashboard() {
             </div>
           </div>
         </section>
+
+        {/* Hidden: Reset Onboarding toggle (for demo / testing) */}
+        <div className="mt-12 pt-6 border-t border-zinc-100 text-center">
+          <button
+            onClick={() => {
+              localStorage.removeItem("bb_guest_data");
+              localStorage.removeItem("bb_guest_mode");
+              window.location.href = "/";
+            }}
+            className="text-[10px] text-zinc-300 hover:text-zinc-500 transition-colors"
+          >
+            Reset Demo
+          </button>
+        </div>
       </div>
     </div>
   );

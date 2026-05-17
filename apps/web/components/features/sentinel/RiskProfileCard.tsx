@@ -1,16 +1,30 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { RiskProfileType } from "@bajetbuddy/shared";
+import type { RiskLabel, RiskProfile, RiskProfileType } from "@bajetbuddy/shared";
 import { RISK_PROFILE_META } from "@/lib/sentinel/engine";
 import { GlassCard } from "./GlassCard";
 
+const LABEL_TO_PROFILE_TYPE: Record<RiskLabel, RiskProfileType> = {
+  "Grocery-Sensitive": "grocery_sensitive",
+  "Fuel-Sensitive": "fuel_sensitive",
+  "Vulnerable Consumer": "vulnerable_consumer",
+  "Food-Delivery Dependent": "delivery_sensitive",
+  "Entertainment Spender": "balanced",
+  "Resilient Saver": "balanced",
+};
+
 interface RiskProfileCardProps {
-  profile: RiskProfileType;
+  profile: RiskProfile | RiskProfileType;
 }
 
 export function RiskProfileCard({ profile }: RiskProfileCardProps) {
-  const meta = RISK_PROFILE_META[profile];
+  const profileType: RiskProfileType =
+    typeof profile === "string"
+      ? profile
+      : LABEL_TO_PROFILE_TYPE[profile.primary_label] ?? "balanced";
+
+  const meta = RISK_PROFILE_META[profileType];
 
   return (
     <GlassCard glow="brand" className="overflow-hidden p-0">
