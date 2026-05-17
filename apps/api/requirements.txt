@@ -7,3 +7,4 @@ anthropic==0.40.0
 supabase>=2.15.0
 python-dotenv
 httpx
+openai>=1.0.0

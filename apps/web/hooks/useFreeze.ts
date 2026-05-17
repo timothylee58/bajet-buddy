@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getFreezeStatus, activateFreeze, overrideFreeze } from "@/lib/api";
+import { useGuestMode } from "./useGuestMode";
 import type { FreezeStatus } from "@/types";
 
 const DEFAULT_STATUS: FreezeStatus = {
@@ -18,7 +19,27 @@ export function useFreeze() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { isGuest, guestData, updateGuestData } = useGuestMode();
+
   const refresh = useCallback(async () => {
+    if (isGuest) {
+      const activeEvent = guestData.freeze_events?.[0]; // simple logic for now
+      if (activeEvent) {
+        setStatus({
+          active: true,
+          type: activeEvent.type || "soft",
+          reason: activeEvent.reason || "manual",
+          message: activeEvent.note || "Frozen by guest mode.",
+          can_override: true,
+          override_cost_xp: 50,
+        });
+      } else {
+        setStatus(DEFAULT_STATUS);
+      }
+      setLoading(false);
+      return;
+    }
+
     setError(null);
     setLoading(true);
     try {

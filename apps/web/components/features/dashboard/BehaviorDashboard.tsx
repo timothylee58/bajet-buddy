@@ -21,10 +21,12 @@ import {
   CalendarClock,
   CircleAlert,
   CreditCard,
+  Database,
   Flame,
   Landmark,
   LockKeyhole,
   RefreshCw,
+  ScanLine,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
@@ -33,6 +35,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { clamp, cn } from "@/lib/utils";
 import { useDashboardPulse } from "@/hooks/useDashboardPulse";
+import { useGuestMode } from "@/hooks/useGuestMode";
+import { CameraFAB } from "@/components/features/check/CameraFAB";
 
 type Locale = "en" | "bm";
 type RiskStatus = "low" | "medium" | "high";
@@ -331,6 +335,8 @@ export function BehaviorDashboard() {
   const [locale, setLocale] = useState<Locale>("en");
   const [purchaseTriggered, setPurchaseTriggered] = useState(true);
   const pulse = useDashboardPulse();
+  const { guestData } = useGuestMode();
+  const ocrTransactions = guestData.transactions.filter((t: any) => t.source === "ocr");
   const chartsReady = useSyncExternalStore(
     () => () => undefined,
     () => true,
@@ -362,6 +368,7 @@ export function BehaviorDashboard() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pb-28 pt-6 sm:px-6 lg:px-8">
+      <CameraFAB />
       <section id="home" className="space-y-5">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -874,6 +881,75 @@ export function BehaviorDashboard() {
             </div>
           </div>
         </section>
+
+        {/* OCR Scan Results */}
+        {ocrTransactions.length > 0 && (
+          <section id="ocr-results" className="space-y-3">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-semibold text-zinc-950 flex items-center gap-2">
+                <ScanLine className="h-5 w-5 text-brand" />
+                OCR Scan Results
+              </h2>
+              <p className="max-w-2xl text-sm leading-6 text-zinc-600">
+                Receipt scans processed by Agent 4. DB status shows whether the transaction was saved to Supabase.
+              </p>
+            </div>
+            <div className="rounded-lg border border-zinc-200 bg-white">
+              <div className="divide-y divide-zinc-100">
+                {ocrTransactions.map((transaction: any) => (
+                  <motion.div
+                    key={transaction.id}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center justify-between gap-4 px-4 py-4"
+                  >
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+                        <ScanLine className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-zinc-900">
+                          {transaction.merchant}
+                        </p>
+                        <p className="text-sm text-zinc-500">
+                          {transaction.category} · OCR scan
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-zinc-900">
+                        -{formatCurrency(Math.abs(transaction.amount))}
+                      </p>
+                      <div className="flex items-center justify-end gap-1 text-xs">
+                        <Database className={cn("h-3 w-3", transaction.db_inserted ? "text-emerald-500" : "text-amber-500")} />
+                        <span className={cn(transaction.db_inserted ? "text-emerald-600" : "text-amber-600")}>
+                          {transaction.db_inserted ? "DB ✓" : "DB ✗"}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Summary card */}
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                  <Database className="h-5 w-5" />
+                </div>
+                <div className="text-sm">
+                  <p className="font-semibold text-emerald-800">
+                    {ocrTransactions.filter((t: any) => t.db_inserted).length}/{ocrTransactions.length} saved to Supabase
+                  </p>
+                  <p className="text-emerald-600">
+                    Agent 4 active — supports receipts & bank statements
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         <section id="bnpl" className="space-y-3">
           <div className="space-y-1">

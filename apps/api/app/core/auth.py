@@ -63,3 +63,17 @@ async def get_current_user(
 
     user = await _fetch_supabase_user(credentials.credentials)
     return AuthenticatedUser(user_id=user["id"], email=user.get("email"))
+
+
+async def get_optional_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+) -> AuthenticatedUser | None:
+    """Like get_current_user but doesn't reject unauthenticated requests.
+    Returns None when no token is provided. Used for public/demo endpoints."""
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        return None
+    try:
+        user = await _fetch_supabase_user(credentials.credentials)
+        return AuthenticatedUser(user_id=user["id"], email=user.get("email"))
+    except Exception:
+        return None

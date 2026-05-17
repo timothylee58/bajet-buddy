@@ -48,20 +48,7 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Redirect unauthenticated users to login
-  if (!user && !isPublic) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-
-  // Redirect authenticated users away from auth pages
-  if (user && isPublic && !pathname.startsWith("/auth/")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
-  }
-
+  // Let the app run in guest mode locally without forcing login
   return supabaseResponse;
 }
 

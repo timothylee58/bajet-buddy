@@ -5,6 +5,7 @@ import type {
   FutureYouRequest,
   FutureYouResponse,
   GamificationStatus,
+  OCRScanResponse,
   ProgressiveProfilingSummary,
   ProfilingGoalType,
 } from "@/types";
@@ -114,4 +115,12 @@ export async function activateProfilingGoal(
     }
   );
   return response.summary;
+}
+
+/** POST /api/ocr/scan — Agent 4: Receipt Scanner */
+export async function scanReceipt(imageBase64: string): Promise<OCRScanResponse> {
+  return apiFetch<OCRScanResponse>("/api/ocr/scan", {
+    method: "POST",
+    body: JSON.stringify({ image_base64: imageBase64 }),
+  });
 }

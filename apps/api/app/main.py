@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import json
-from app.api.routes import check, transactions, persona, buddies, freeze, gamification, risk, nudges, simulations, profiling
+from app.api.routes import check, transactions, persona, buddies, freeze, gamification, risk, nudges, simulations, profiling, ocr, agent1
 from app.core.config import get_settings
 from app.core.database import init_db
 from app.core.logging_config import setup_logging
@@ -46,6 +46,8 @@ app.include_router(risk.router, prefix="/api/risk", tags=["risk"])
 app.include_router(nudges.router, prefix="/api/nudges", tags=["nudges"])
 app.include_router(simulations.router, prefix="/api/simulations", tags=["simulations"])
 app.include_router(profiling.router, prefix="/api/profiling", tags=["profiling"])
+app.include_router(ocr.router, prefix="/api/ocr", tags=["ocr"])
+app.include_router(agent1.router, prefix="/api/agent1", tags=["agent1"])
 
 
 @app.get("/health")
