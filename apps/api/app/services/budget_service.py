@@ -1,9 +1,6 @@
 """
 Budget calculations — works with mock data when Supabase is not configured.
 """
-from datetime import date
-
-
 MOCK_BUDGET = {
     "total_income": 3200.0,
     "total_spent": 2860.0,

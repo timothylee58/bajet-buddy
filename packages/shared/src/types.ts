@@ -263,3 +263,233 @@ export interface ProgressiveProfilingSummary {
   streak: number;
   days_observed: number;
 }
+
+// ─── FOMO Negotiator ──────────────────────────────────────────────────────────
+export type PersonaCode = "pak_cik_audit" | "kak_therapist" | "meme_goblin" | "ice_cfo" | "hype_man";
+export type EmotionalState = "stressed" | "bored" | "happy" | "yolo" | "lapar";
+
+export interface FOMOPersona {
+  code: PersonaCode;
+  name: string;
+  emoji: string;
+  tagline: string;
+  unlocked: boolean;
+  unlock_condition: string;
+}
+
+export interface FOMONegotiateRequest {
+  amount: number;
+  item_name: string;
+  merchant: string;
+  category: string;
+  current_balance?: number;
+  days_until_salary?: number;
+  bnpl_load?: number;
+  emotional_state?: EmotionalState;
+  persona_preference?: PersonaCode;
+}
+
+export interface FOMOOption {
+  label: string;
+  icon: string;
+  impact_summary: string;
+  warning: string;
+  xp_delta: number;
+  bounty_rm: number;
+  recommended: boolean;
+}
+
+export interface FOMONegotiateResponse {
+  persona: FOMOPersona;
+  fomo_validation: string;
+  trap_exposure: string;
+  persona_quip: string;
+  option_cash: FOMOOption;
+  option_bnpl: FOMOOption;
+  option_walk_away: FOMOOption;
+  heat_level: number;
+  walk_away_streak: number;
+  bounty_jar_rm: number;
+  heat_reasoning?: string;
+  regret_probability?: number;
+}
+
+export type FOMOChoice = "cash" | "bnpl" | "walk_away";
+
+export interface FOMOResolveRequest {
+  choice: FOMOChoice;
+  amount: number;
+  category: string;
+  emotional_state?: EmotionalState;
+}
+
+export interface FOMOResolveResponse {
+  heat_level: number;
+  heat_delta: number;
+  walk_away_streak: number;
+  bounty_jar_rm: number;
+  bounty_earned_rm: number;
+  xp_delta: number;
+  loot_box_unlocked: boolean;
+  message: string;
+  persona_reaction: string;
+  cooldown_until: string | null;
+}
+
+export interface FOMOState {
+  heat_level: number;
+  walk_away_streak: number;
+  bounty_jar_rm: number;
+  bounty_threshold_rm: number;
+  unlocked_personas: PersonaCode[];
+  cooldown_until: string | null;
+}
+
+// ─── Sentinel ─────────────────────────────────────────────────────────────────
+export type SpendingCategory = "groceries" | "fuel" | "food_delivery" | "entertainment" | "transport" | "utilities";
+export type RiskLabel = "Grocery-Sensitive" | "Fuel-Sensitive" | "Vulnerable Consumer" | "Food-Delivery Dependent" | "Entertainment Spender" | "Resilient Saver";
+export type MacroEventType = "grain_spike" | "fuel_subsidy_cut" | "logistics_surge" | "currency_depreciation" | "electricity_tariff" | "palm_oil_shock";
+
+export interface SpendingSnapshot {
+  category: SpendingCategory;
+  total_rm: number;
+  pct_of_spend: number;
+  transaction_count: number;
+  top_merchant: string;
+  sensitivity_score: number;
+}
+
+export interface RiskProfile {
+  primary_label: RiskLabel;
+  secondary_labels: RiskLabel[];
+  vulnerability_score: number;
+  most_exposed_category: SpendingCategory;
+  top_risk_merchants: string[];
+}
+
+export interface MacroEvent {
+  event_type: MacroEventType;
+  title: string;
+  title_bm: string;
+  severity: number;
+  description: string;
+  icon: string;
+  triggered_at: string;
+}
+
+export interface CategoryImpact {
+  category: SpendingCategory;
+  estimated_increase_rm: number;
+  estimated_increase_pct: number;
+  affected_merchants: string[];
+}
+
+export interface MacroImpactResult {
+  event: MacroEvent;
+  total_monthly_impact_rm: number;
+  category_impacts: CategoryImpact[];
+  ai_intervention_title: string;
+  ai_intervention_bm: string;
+  ai_intervention_body: string;
+  persona_emoji: string;
+  persona_name: string;
+  severity_label: string;
+}
+
+export interface InflationQuest {
+  id: string;
+  title: string;
+  title_bm: string;
+  description: string;
+  category: SpendingCategory;
+  target_rm: number;
+  current_rm: number;
+  xp_reward: number;
+  badge_name: string;
+  badge_emoji: string;
+  difficulty: "easy" | "medium" | "hard" | "legendary";
+  active: boolean;
+  completed: boolean;
+  progress_pct: number;
+}
+
+export interface SentinelDashboardResponse {
+  spending_snapshots: SpendingSnapshot[];
+  risk_profile: RiskProfile;
+  active_event: MacroEvent | null;
+  quests: InflationQuest[];
+  total_monthly_spend_rm: number;
+  sentinel_heat: number;
+  market_mood: string;
+}
+
+export interface SimulateEventRequest {
+  event_type: MacroEventType;
+}
+
+export interface SimulateEventResponse {
+  impact: MacroImpactResult;
+  quests_generated: InflationQuest[];
+  xp_awarded: number;
+}
+
+// ─── Pet Companion ────────────────────────────────────────────────────────────
+export type PetSpecies = "raccoon" | "fox" | "squirrel" | "rabbit" | "finance_squirrel";
+export type PetMood = "happy" | "worried" | "celebrating" | "sleepy" | "warning" | "neutral";
+export type AccessorySlot = "hat" | "badge" | "trail" | "aura";
+
+export interface PetProfile {
+  user_id: string;
+  species: PetSpecies;
+  name: string;
+  xp: number;
+  level: number;
+  mood: PetMood;
+  accessories: string[];
+  streak: number;
+  total_saves_rm: number;
+  walk_away_count: number;
+}
+
+export interface PetAccessory {
+  id: string;
+  name: string;
+  emoji: string;
+  slot: AccessorySlot;
+  unlock_xp: number;
+  description: string;
+}
+
+export interface PetNudge {
+  message: string;
+  mood: PetMood;
+  trigger: string;
+  xp_hint: number | null;
+}
+
+export interface AwardXPRequest {
+  event: string;
+  amount_rm?: number;
+}
+
+export interface AwardXPResponse {
+  xp_earned: number;
+  total_xp: number;
+  level: number;
+  level_up: boolean;
+  new_accessory: PetAccessory | null;
+}
+
+export interface PetNudgeRequest {
+  context: string;
+  amount_rm?: number;
+  category?: string;
+}
+
+export interface PetStatusResponse {
+  profile: PetProfile;
+  nudge: PetNudge;
+  available_accessories: PetAccessory[];
+  xp_to_next_level: number;
+  progress_pct: number;
+}

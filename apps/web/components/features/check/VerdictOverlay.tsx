@@ -1,9 +1,12 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { VERDICT_CONFIG } from "@/lib/constants";
 import { formatRM } from "@/lib/utils";
 import type { CheckResponse } from "@/types";
+import { FOMONegotiatorModal } from "@/components/features/fomo/FOMONegotiatorModal";
+import { usePet } from "@/components/features/pet/PetCompanionProvider";
 
 interface VerdictOverlayProps {
   result: CheckResponse;
@@ -13,6 +16,24 @@ interface VerdictOverlayProps {
 
 export function VerdictOverlay({ result, amount, onReset }: VerdictOverlayProps) {
   const cfg = VERDICT_CONFIG[result.verdict];
+  const [fomoOpen, setFomoOpen] = useState(false);
+  const { award, refresh } = usePet();
+  const bridgedRef = useRef(false);
+
+  useEffect(() => {
+    if (bridgedRef.current) return;
+    bridgedRef.current = true;
+    const event = result.verdict === "boleh" ? "budget_under"
+      : result.verdict === "jangan_dulu" ? "impulse_blocked"
+      : null;
+    if (event) {
+      award({ event, amount_rm: amount });
+    }
+    const context = result.verdict === "boleh" ? "under_budget"
+      : result.verdict === "jangan_dulu" ? "impulse_spend"
+      : "dashboard_open";
+    refresh(context, amount);
+  }, [result.verdict, amount, award, refresh]);
 
   return (
     <motion.div
@@ -75,23 +96,39 @@ export function VerdictOverlay({ result, amount, onReset }: VerdictOverlayProps)
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-2">
         {result.verdict === "jangan_dulu" && (
           <button
-            data-testid="save-to-wishlist-button"
-            className="flex-1 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 py-3 text-sm font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 transition-colors"
+            onClick={() => setFomoOpen(true)}
+            className="w-full rounded-2xl bg-amber-500 py-3 text-sm font-semibold text-white hover:bg-amber-600 transition-colors"
           >
-            💾 Save to Wishlist
+            🧠 Negotiate with FOMO Negotiator
           </button>
         )}
-        <button
-          onClick={onReset}
-          data-testid="check-another-button"
-          className="flex-1 rounded-2xl bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 py-3 text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          Check Another
-        </button>
+        <div className="flex gap-2">
+          {result.verdict === "jangan_dulu" && (
+            <button
+              data-testid="save-to-wishlist-button"
+              className="flex-1 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 py-3 text-sm font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 transition-colors"
+            >
+              💾 Wishlist
+            </button>
+          )}
+          <button
+            onClick={onReset}
+            data-testid="check-another-button"
+            className="flex-1 rounded-2xl bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 py-3 text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            Check Another
+          </button>
+        </div>
       </div>
+
+      <FOMONegotiatorModal
+        open={fomoOpen}
+        request={fomoOpen ? { amount, item_name: "Purchase", merchant: "Unknown", category: "general" } : null}
+        onClose={() => setFomoOpen(false)}
+      />
     </motion.div>
   );
 }
