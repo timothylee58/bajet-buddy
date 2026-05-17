@@ -1,21 +1,48 @@
 import { API_URL } from "./constants";
+import { createClient } from "./supabase/client";
 import type {
+  AwardXPRequest,
+  AwardXPResponse,
   CheckRequest,
   CheckResponse,
+  FOMONegotiateRequest,
+  FOMONegotiateResponse,
+  FOMOResolveRequest,
+  FOMOResolveResponse,
+  FOMOState,
   FutureYouRequest,
   FutureYouResponse,
   GamificationStatus,
   OCRScanResponse,
+  InflationQuest,
+  MacroEventType,
+  PetNudge,
+  PetNudgeRequest,
+  PetProfile,
+  PetSpecies,
+  PetStatusResponse,
   ProgressiveProfilingSummary,
   ProfilingGoalType,
+  SentinelDashboardResponse,
+  SimulateEventResponse,
 } from "@/types";
 
-async function apiFetch<T>(
-  path: string,
-  options?: RequestInit
-): Promise<T> {
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  try {
+    const supabase = createClient();
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (token) return { Authorization: `Bearer ${token}` };
+  } catch {
+    // non-auth environments (demo mode) — proceed without token
+  }
+  return {};
+}
+
+async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const authHeaders = await getAuthHeaders();
   const res = await fetch(`${API_URL}${path}`, {
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders },
     ...options,
   });
   if (!res.ok) {
@@ -25,7 +52,7 @@ async function apiFetch<T>(
   return res.json() as Promise<T>;
 }
 
-/** POST /api/check — run the AI verdict pipeline */
+/** POST /api/check */
 export async function checkSpend(payload: CheckRequest): Promise<CheckResponse> {
   return apiFetch<CheckResponse>("/api/check", {
     method: "POST",
@@ -57,9 +84,7 @@ export async function analyzePersona(payload: unknown) {
 }
 
 /** POST /api/simulations/future-you */
-export async function simulateFutureYou(
-  payload: FutureYouRequest
-): Promise<FutureYouResponse> {
+export async function simulateFutureYou(payload: FutureYouRequest): Promise<FutureYouResponse> {
   return apiFetch<FutureYouResponse>("/api/simulations/future-you", {
     method: "POST",
     body: JSON.stringify(payload),
@@ -108,10 +133,7 @@ export async function activateProfilingGoal(
     "/api/profiling/goals/activate",
     {
       method: "POST",
-      body: JSON.stringify({
-        type,
-        commitment_amount: commitmentAmount,
-      }),
+      body: JSON.stringify({ type, commitment_amount: commitmentAmount }),
     }
   );
   return response.summary;
@@ -123,4 +145,93 @@ export async function scanReceipt(imageBase64: string): Promise<OCRScanResponse>
     method: "POST",
     body: JSON.stringify({ image_base64: imageBase64 }),
   });
+}
+/** POST /api/fomo/negotiate */
+export async function fomoNegotiate(payload: FOMONegotiateRequest): Promise<FOMONegotiateResponse> {
+  return apiFetch<FOMONegotiateResponse>("/api/fomo/negotiate", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** POST /api/fomo/resolve */
+export async function fomoResolve(payload: FOMOResolveRequest): Promise<FOMOResolveResponse> {
+  return apiFetch<FOMOResolveResponse>("/api/fomo/resolve", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** GET /api/fomo/state */
+export async function getFOMOState(): Promise<FOMOState> {
+  return apiFetch<FOMOState>("/api/fomo/state");
+}
+
+/** GET /api/sentinel/dashboard */
+export async function getSentinelDashboard(): Promise<SentinelDashboardResponse> {
+  return apiFetch<SentinelDashboardResponse>("/api/sentinel/dashboard");
+}
+
+/** POST /api/sentinel/simulate-event */
+export async function simulateMacroEvent(event_type: MacroEventType): Promise<SimulateEventResponse> {
+  return apiFetch<SimulateEventResponse>("/api/sentinel/simulate-event", {
+    method: "POST",
+    body: JSON.stringify({ event_type }),
+  });
+}
+
+/** GET /api/sentinel/quests */
+export async function getSentinelQuests(): Promise<InflationQuest[]> {
+  return apiFetch<InflationQuest[]>("/api/sentinel/quests");
+}
+
+/** POST /api/sentinel/quests/{quest_id}/complete */
+export async function completeSentinelQuest(questId: string): Promise<{ xp_awarded: number; message: string }> {
+  return apiFetch<{ xp_awarded: number; message: string }>(
+    `/api/sentinel/quests/${questId}/complete`,
+    { method: "POST" }
+  );
+}
+
+// ─── Pet Companion ────────────────────────────────────────────────────────────
+
+/** GET /api/pet/profile */
+export async function getPetProfile(): Promise<PetProfile> {
+  return apiFetch<PetProfile>("/api/pet/profile");
+}
+
+/** POST /api/pet/select */
+export async function selectPetSpecies(species: PetSpecies): Promise<PetProfile> {
+  return apiFetch<PetProfile>("/api/pet/select", {
+    method: "POST",
+    body: JSON.stringify({ species }),
+  });
+}
+
+/** POST /api/pet/award-xp */
+export async function awardPetXP(payload: AwardXPRequest): Promise<AwardXPResponse> {
+  return apiFetch<AwardXPResponse>("/api/pet/award-xp", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** POST /api/pet/nudge */
+export async function getPetNudge(payload: PetNudgeRequest): Promise<PetNudge> {
+  return apiFetch<PetNudge>("/api/pet/nudge", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** GET /api/pet/status */
+export async function getPetStatus(
+  context: string,
+  amount_rm?: number,
+  category?: string
+): Promise<PetStatusResponse> {
+  const params = new URLSearchParams({ context });
+  if (amount_rm !== undefined) params.set("amount_rm", String(amount_rm));
+  if (category) params.set("category", category);
+  return apiFetch<PetStatusResponse>(`/api/pet/status?${params.toString()}`);
 }

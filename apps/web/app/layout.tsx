@@ -1,5 +1,20 @@
 import type { Metadata, Viewport } from "next";
+import { Fredoka, Nunito_Sans } from "next/font/google";
 import "./globals.css";
+
+const fredoka = Fredoka({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-fredoka",
+  display: "swap",
+});
+
+const nunitoSans = Nunito_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-nunito",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "BajetBuddy — Duit smart, hidup lega",
@@ -12,7 +27,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#16a34a",
+  themeColor: "#7C5CFF",
 };
 
 export default function RootLayout({
@@ -21,8 +36,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col bg-zinc-50 dark:bg-zinc-950">
+    <html lang="en" className={`h-full antialiased ${fredoka.variable} ${nunitoSans.variable}`}>
+      <body className="min-h-full flex flex-col bg-background">
         {children}
       </body>
     </html>

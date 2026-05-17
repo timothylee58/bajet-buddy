@@ -12,5 +12,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </main>
       <BottomNav />
     </div>
+import { FloatingPet } from "@/components/features/pet/FloatingPet";
+import { PetCompanionProvider } from "@/components/features/pet/PetCompanionProvider";
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <PetCompanionProvider>
+      <div className="flex min-h-screen flex-col bg-background">
+        <TopBar />
+        <main className="flex-1 overflow-y-auto pb-24">{children}</main>
+        <BottomNav />
+        <FloatingPet />
+      </div>
+    </PetCompanionProvider>
   );
 }

@@ -98,6 +98,15 @@ def award_xp_for_verdict(
     }
 
 
+def award_xp(user_id: str = "demo", xp: int = 0) -> dict:
+    state = _get_state(user_id)
+    state["xp"] += xp
+    return {
+        "xp_earned": xp,
+        "status": get_gamification_status(user_id),
+    }
+
+
 def spend_xp(user_id: str = "demo", cost: int = 0) -> dict:
     state = _get_state(user_id)
     if state["xp"] < cost:

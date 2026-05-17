@@ -1,24 +1,33 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97]",
   {
     variants: {
       variant: {
-        default: "bg-brand text-white hover:bg-brand-dark",
-        outline:
-          "border border-zinc-200 bg-transparent hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800",
-        ghost: "hover:bg-zinc-100 dark:hover:bg-zinc-800",
+        // Primary — purple filled (design system "Primary" button)
+        default: "bg-primary text-white hover:bg-primary-dark shadow-sm",
+        // Secondary — white with border (design system "Secondary" button)
+        secondary: "bg-white border border-border text-foreground hover:bg-neutral-light shadow-sm",
+        // Inverted — dark filled (design system "Inverted" button)
+        inverted: "bg-neutral-dark text-white hover:bg-foreground shadow-sm",
+        // Outlined — white with tertiary border (design system "Outlined" button)
+        outlined: "bg-white border-2 border-tertiary text-tertiary hover:bg-tertiary-light",
+        // Ghost — no background
+        ghost: "hover:bg-primary-light text-primary",
+        // Danger
+        destructive: "bg-danger text-white hover:opacity-90 shadow-sm",
+        // Legacy compat
+        outline: "bg-white border border-border text-foreground hover:bg-neutral-light shadow-sm",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        default: "h-10 px-5 py-2",
+        sm: "h-9 rounded-lg px-4 text-xs",
+        lg: "h-12 rounded-xl px-8 text-base",
+        icon: "h-10 w-10 rounded-xl",
       },
     },
     defaultVariants: {
@@ -34,19 +43,10 @@ export interface ButtonProps
   asChild?: boolean;
 }
 
-function Button({
-  className,
-  variant,
-  size,
-  asChild = false,
-  ...props
-}: ButtonProps) {
+function Button({ className, variant, size, asChild = false, ...props }: ButtonProps) {
   const Comp = asChild ? Slot : "button";
   return (
-    <Comp
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
+    <Comp className={cn(buttonVariants({ variant, size, className }))} {...props} />
   );
 }
 

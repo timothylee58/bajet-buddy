@@ -29,7 +29,6 @@ import {
   ScanLine,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
   Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -43,8 +42,7 @@ type RiskStatus = "low" | "medium" | "high";
 
 const dashboardCopy = {
   en: {
-    product: "Belanja Guard",
-    badge: "Sarah demo loaded",
+    product: "Bajet Buddy",
     headline: "Stop the bad spending decision before checkout.",
     subheadline:
       "A behavioural finance dashboard for young Malaysians living paycheque to paycheque.",
@@ -66,7 +64,7 @@ const dashboardCopy = {
     budgetUsage: "Budget usage",
     bnplDue: "BNPL due this month",
     riskStatus: "Risk status",
-    nudgeTitle: "Belanja Guard Intervention",
+    nudgeTitle: "Bajet Buddy Intervention",
     nudgeBody:
       "Sarah is about to buy a RM189 dress on Shopee. The engine checks her cycle position, BNPL load, and remaining runway before she taps pay.",
     nudgeCta: "Simulate Shopee purchase",
@@ -104,11 +102,10 @@ const dashboardCopy = {
     dress: "Dress",
     fixedCommitments: "Fixed commitments",
     note: "BM/EN toggle-ready and running on mock data for the no-login demo.",
-    focusNote: "Belanja Guard focuses on prevention, not passive tracking.",
+    focusNote: "Bajet Buddy focuses on prevention, not passive tracking.",
   },
   bm: {
-    product: "Belanja Guard",
-    badge: "Demo Sarah dimuatkan",
+    product: "Bajet Buddy",
     headline: "Hentikan keputusan belanja buruk sebelum checkout.",
     subheadline:
       "Papan pemuka kewangan tingkah laku untuk rakyat muda Malaysia yang hidup ikut gaji ke gaji.",
@@ -130,7 +127,7 @@ const dashboardCopy = {
     budgetUsage: "Penggunaan bajet",
     bnplDue: "BNPL bulan ini",
     riskStatus: "Status risiko",
-    nudgeTitle: "Intervensi Belanja Guard",
+    nudgeTitle: "Intervensi Bajet Buddy",
     nudgeBody:
       "Sarah hampir membeli gaun RM189 di Shopee. Enjin ini semak kedudukan kitaran gaji, beban BNPL, dan baki runway sebelum dia tekan bayar.",
     nudgeCta: "Simulasi pembelian Shopee",
@@ -168,7 +165,7 @@ const dashboardCopy = {
     dress: "Gaun",
     fixedCommitments: "Komitmen tetap",
     note: "Togol BM/EN sedia digunakan dan berjalan atas data demo tanpa log masuk.",
-    focusNote: "Belanja Guard fokus pada pencegahan, bukan penjejakan pasif.",
+    focusNote: "Bajet Buddy fokus pada pencegahan, bukan penjejakan pasif.",
   },
 } as const;
 
@@ -379,10 +376,6 @@ export function BehaviorDashboard() {
           <div className="border-b border-white/10 px-4 py-3 sm:px-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-2">
-                <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-medium text-emerald-100">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  {copy.badge}
-                </span>
                 <div className="space-y-2">
                   <p className="text-xs uppercase tracking-[0.24em] text-emerald-200/70">
                     {copy.product}

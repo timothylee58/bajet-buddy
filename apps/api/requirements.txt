@@ -8,3 +8,4 @@ supabase>=2.15.0
 python-dotenv
 httpx
 openai>=1.0.0
+python-multipart
