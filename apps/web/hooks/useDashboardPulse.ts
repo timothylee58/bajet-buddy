@@ -31,7 +31,7 @@ export function useDashboardPulse() {
 
     async function refreshBudget() {
       if (isGuest && guestData.estimated_budget) {
-        const totalSpent = guestData.transactions.reduce((acc, t) => acc + t.amount, 0);
+        const totalSpent = guestData.transactions.reduce((acc, t) => acc + ((t.amount as number) || 0), 0);
         const estimatedTotal = guestData.estimated_budget.reduce((acc: number, item) => acc + item.amount, 0);
         
         setBudget({

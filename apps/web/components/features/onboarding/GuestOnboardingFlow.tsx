@@ -18,7 +18,7 @@ export function GuestOnboardingFlow({ onComplete }: GuestOnboardingFlowProps) {
   const [persona, setPersona] = useState<Record<string, unknown> | null>(null);
   const [budget, setBudget] = useState<{ category: string; amount: number; color: string; percentage: number }[] | null>(null);
   const [totalXP, setTotalXP] = useState(0);
-  const [scannedTxns, setScannedTxns] = useState<Record<string, unknown>[]>([]);
+  const [scannedTxns, setScannedTxns] = useState<OCRTransaction[]>([]);
 
   useEffect(() => {
     if (guestData.onboarding?.questions_answered) {
@@ -98,7 +98,7 @@ export function GuestOnboardingFlow({ onComplete }: GuestOnboardingFlowProps) {
 
   const runCombinedAnalysis = async (
     qa: Record<string, string>,
-    txns: Record<string, unknown>[],
+    txns: OCRTransaction[],
     extraXP: number,
     hasRealData: boolean
   ) => {
@@ -356,14 +356,14 @@ function PersonaSummary({ persona, estimatedBudget, xpEarned, hasRealData }: Per
     >
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-6">
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
-          className="text-7xl">{persona.emoji}</motion.div>
+          className="text-7xl">{persona.emoji as string}</motion.div>
         <div>
-          <h2 className="text-3xl font-bold">{persona.name}</h2>
+          <h2 className="text-3xl font-bold">{persona.name as string}</h2>
           <p className="text-sm text-zinc-400 mt-1">
             {hasRealData ? "Analyzed from your real spending data" : "Estimated from your answers"}
           </p>
-          {persona.confidence && (
-            <p className="text-xs text-zinc-500 mt-1">Confidence: {persona.confidence}%</p>
+          {!!persona.confidence && (
+            <p className="text-xs text-zinc-500 mt-1">Confidence: {persona.confidence as number}%</p>
           )}
         </div>
         <p className="text-lg text-zinc-300 italic max-w-sm">&quot;{persona.roast as string}&quot;</p>

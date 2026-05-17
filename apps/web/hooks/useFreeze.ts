@@ -27,9 +27,9 @@ export function useFreeze() {
       if (activeEvent) {
         setStatus({
           active: true,
-          type: activeEvent.type || "soft",
-          reason: activeEvent.reason || "manual",
-          message: activeEvent.note || "Frozen by guest mode.",
+          type: (activeEvent.type as "soft" | "hard") || "soft",
+          reason: (activeEvent.reason as "auto" | "manual" | "buddy") || "manual",
+          message: (activeEvent.note as string) || "Frozen by guest mode.",
           can_override: true,
           override_cost_xp: 50,
         });
