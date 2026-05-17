@@ -31,7 +31,15 @@ def get_persona_info(persona_type: str) -> dict:
     )["persona"].model_dump()
 
 
-def learn_persona_from_transaction_signals(transactions: list[dict]) -> dict:
+def learn_persona_from_transaction_signals(
+    transactions: list[dict],
+    onboarding_data: dict | None = None,
+    savings_rate: float | None = None,
+    active_subscriptions: int = 0,
+    bnpl_commitments: int = 0,
+    monthly_income: float = 3200,
+    current_balance: float = 340,
+) -> dict:
     payload = analyze_persona(
         transactions=[
             {
@@ -43,10 +51,13 @@ def learn_persona_from_transaction_signals(transactions: list[dict]) -> dict:
             }
             for item in transactions
         ],
-        monthly_income=3200,
-        current_balance=340,
-        bnpl_commitments=sum(1 for item in transactions if item.get("bnpl")),
+        monthly_income=monthly_income,
+        current_balance=current_balance,
+        bnpl_commitments=bnpl_commitments or sum(1 for item in transactions if item.get("bnpl")),
         days_until_salary=7,
+        onboarding_data=onboarding_data,
+        savings_rate=savings_rate,
+        active_subscriptions=active_subscriptions,
     )["persona"]
     return {
         "type": payload.type,

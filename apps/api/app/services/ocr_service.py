@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 import time
 from typing import Any
 
 from openai import AsyncOpenAI
 
 from app.core.config import get_settings
+from app.core.auth import DEMO_USER_ID
 from app.core.database import get_supabase
 from app.schemas.ocr import (
     OCRInsertResult,
@@ -112,6 +114,10 @@ async def scan_receipt(request: OCRScanRequest, user_id: str = "demo") -> OCRSca
     if scan_result is None:
         return OCRScanResponse(status="error", error=f"All vision APIs failed: {last_error}")
 
+    # Ensure demo profile exists (FK from transactions → profiles needs it)
+    if resolved_user_id == DEMO_USER_ID:
+        await _ensure_demo_profile()
+
     # Bulk insert
     insert_results: list[OCRInsertResult] = []
     inserted = 0
@@ -138,8 +144,6 @@ async def scan_receipt(request: OCRScanRequest, user_id: str = "demo") -> OCRSca
     )
 
 
-DEMO_USER_ID = "00000000-0000-0000-0000-000000000001"
-
 
 async def _resolve_user_id(user_id: str) -> str:
     """If user_id is 'demo' use the hard-coded demo UUID.
@@ -147,6 +151,22 @@ async def _resolve_user_id(user_id: str) -> str:
     if user_id == "demo" or len(user_id) < 32:
         return DEMO_USER_ID
     return user_id
+
+
+async def _ensure_demo_profile():
+    """Upsert the demo profile so FK constraints on transactions don't fail."""
+    supabase = get_supabase()
+    if supabase is None:
+        return
+    try:
+        supabase.table("profiles").upsert({
+            "id": DEMO_USER_ID,
+            "email": "demo@bajetbuddy.local",
+            "full_name": "Demo User",
+            "monthly_income": 3200,
+        }).execute()
+    except Exception:
+        pass  # non-fatal — insert will still try and report the error
 
 
 async def _insert_transaction(user_id: str, txn: OCRTransaction) -> OCRInsertResult:
@@ -185,7 +205,23 @@ async def _insert_transaction(user_id: str, txn: OCRTransaction) -> OCRInsertRes
 
 
 def _parse_vision_response(raw_text: str) -> OCRScanResult:
-    data = json.loads(raw_text)
+    # Strip markdown fences — DeepSeek often wraps JSON in ```json ... ```
+    clean = raw_text.strip()
+    clean = re.sub(r"^```(?:json)?\s*\n?", "", clean)
+    clean = re.sub(r"\n?\s*```$", "", clean)
+    clean = clean.strip()
+
+    # Debug: log the cleaned text for diagnostics
+    import logging
+    logger = logging.getLogger("ocr_service")
+    logger.info(f"OCR raw response (first 300 chars): {raw_text[:300]}")
+    logger.info(f"OCR cleaned response (first 300 chars): {clean[:300]}")
+
+    try:
+        data = json.loads(clean)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse OCR response as JSON: {e}. Raw: {clean[:500]}")
+
     transactions: list[OCRTransaction] = []
     for t in data.get("transactions", []) or []:
         transactions.append(OCRTransaction(
@@ -202,7 +238,7 @@ def _parse_vision_response(raw_text: str) -> OCRScanResult:
         total_amount=float(data.get("total_amount", 0)),
         line_items=list(transactions),
         transactions=transactions,
-        raw_text=str(data.get("raw_text", raw_text[:500])),
+        raw_text=str(data.get("raw_text", clean[:500])),
     )
 
 
@@ -228,7 +264,10 @@ async def _call_deepseek_vision(image_data_url: str, settings: Any) -> OCRScanRe
         temperature=0.1,
     )
     raw_text = response.choices[0].message.content or ""
-    return _parse_vision_response(raw_text)
+    try:
+        return _parse_vision_response(raw_text)
+    except Exception as e:
+        raise RuntimeError(f"DeepSeek OCR parse failed: {e}") from e
 
 
 async def _call_openai_vision(image_data_url: str, settings: Any) -> OCRScanResult:
@@ -251,4 +290,7 @@ async def _call_openai_vision(image_data_url: str, settings: Any) -> OCRScanResu
         temperature=0.1,
     )
     raw_text = response.choices[0].message.content or ""
-    return _parse_vision_response(raw_text)
+    try:
+        return _parse_vision_response(raw_text)
+    except Exception as e:
+        raise RuntimeError(f"OpenAI OCR parse failed: {e}") from e

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Bell, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -92,10 +93,13 @@ const typeStyles: Record<Notification["type"], string> = {
 
 export function TopBar() {
   const pathname = usePathname();
+  const router = useRouter();
   const title = PAGE_TITLES[pathname] ?? "BajetBuddy";
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
   const [fomoRequest, setFomoRequest] = useState<FOMONegotiateRequest | null>(null);
+  const [easterEggCount, setEasterEggCount] = useState(0);
+  const easterEggTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -115,18 +119,46 @@ export function TopBar() {
     }
   }
 
+  // Hidden easter egg: triple-click logo → replay onboarding
+  function handleLogoClick() {
+    const next = easterEggCount + 1;
+    setEasterEggCount(next);
+    if (easterEggTimer.current) clearTimeout(easterEggTimer.current);
+    if (next >= 3) {
+      setEasterEggCount(0);
+      // Reset onboarding flag and navigate
+      try {
+        const guestData = localStorage.getItem("bb_guest_data");
+        if (guestData) {
+          const parsed = JSON.parse(guestData);
+          parsed.onboarding = parsed.onboarding || {};
+          parsed.onboarding.questions_answered = false;
+          localStorage.setItem("bb_guest_data", JSON.stringify(parsed));
+        }
+        localStorage.setItem("bb_guest_mode", "true");
+      } catch { /* ignore */ }
+      router.push("/onboarding");
+    } else {
+      easterEggTimer.current = setTimeout(() => setEasterEggCount(0), 1500);
+    }
+  }
+
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-white/70 bg-white/80 px-4 py-3 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl overflow-hidden bg-primary shadow-sm">
+            <div
+              className="flex h-11 w-11 items-center justify-center rounded-2xl overflow-hidden bg-primary shadow-sm cursor-pointer select-none"
+              onClick={handleLogoClick}
+              title="Triple-click to replay onboarding"
+            >
               <Image
                 src="/logo.ico"
                 alt="BajetBuddy logo"
                 width={44}
                 height={44}
-                className="w-11 h-11 object-cover"
+                className="w-11 h-11 object-cover pointer-events-none"
                 priority
               />
             </div>

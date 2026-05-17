@@ -187,8 +187,8 @@ export function CheckScreen({ isSarahDemo = false }: CheckScreenProps) {
 
           {/* Amount display */}
           <div className="text-center" data-testid="amount-display">
-            <p className="text-sm text-zinc-400 mb-1">How much are you spending?</p>
-            <div className="text-5xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">
+            <p className="font-sans text-sm font-bold text-muted mb-1">How much are you spending?</p>
+            <div className="font-headline text-5xl font-bold text-foreground tracking-tight">
               RM{amount || "0"}
             </div>
           </div>
@@ -200,7 +200,7 @@ export function CheckScreen({ isSarahDemo = false }: CheckScreenProps) {
             value={merchant}
             onChange={(e) => setMerchant(e.target.value)}
             data-testid="merchant-input"
-            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full rounded-xl border border-border bg-white px-4 py-3 font-sans text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
           />
 
           {/* Category picker */}

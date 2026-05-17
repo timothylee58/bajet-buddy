@@ -43,7 +43,7 @@ export function VoiceInput({ onParsed }: VoiceInputProps) {
 
   if (!supported) {
     return (
-      <p className="text-xs text-zinc-400 text-center">Voice not supported in this browser</p>
+      <p className="font-sans text-xs text-muted text-center">Voice not supported in this browser</p>
     );
   }
 
@@ -123,27 +123,27 @@ export function VoiceInput({ onParsed }: VoiceInputProps) {
           type="button"
           onClick={startListening}
           disabled={listening || parsing}
-          className="relative z-10 flex items-center justify-center w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 disabled:opacity-50 transition-colors"
+          className="relative z-10 flex items-center justify-center w-10 h-10 rounded-full bg-surface-muted hover:bg-neutral-light disabled:opacity-50 transition-colors"
           aria-label={listening ? "Listening…" : "Tap to speak"}
         >
           {listening ? (
             <Mic className="w-5 h-5 text-red-500" />
           ) : (
-            <MicOff className="w-5 h-5 text-zinc-500" />
+            <MicOff className="w-5 h-5 text-muted" />
           )}
         </button>
       </div>
 
       {transcript && (
-        <p className="text-xs text-zinc-500 text-center max-w-xs">{transcript}</p>
+        <p className="font-sans text-xs text-muted text-center max-w-xs">{transcript}</p>
       )}
 
       {parsing && (
-        <p className="text-xs text-zinc-400 text-center">Parsing…</p>
+        <p className="font-sans text-xs text-muted text-center">Parsing…</p>
       )}
 
       {error && (
-        <p className="text-xs text-red-500 text-center">{error}</p>
+        <p className="font-sans text-xs text-danger text-center">{error}</p>
       )}
     </div>
   );

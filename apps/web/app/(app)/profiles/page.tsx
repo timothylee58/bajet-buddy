@@ -205,9 +205,54 @@ function OverviewTab({
             <SectionLabel>Display settings</SectionLabel>
             <TextSizePicker />
           </div>
+
+          {/* ── Advanced ── */}
+          <div className="space-y-2">
+            <SectionLabel>Advanced</SectionLabel>
+            <ReplayOnboardingButton />
+          </div>
         </>
       )}
     </motion.div>
+  );
+}
+
+// ─── Replay Onboarding Button ──────────────────────────────────────────────────
+
+function ReplayOnboardingButton() {
+  const handleReplay = () => {
+    // Reset onboarding flag so root page shows onboarding flow
+    try {
+      const guestData = localStorage.getItem("bb_guest_data");
+      if (guestData) {
+        const parsed = JSON.parse(guestData);
+        parsed.onboarding = parsed.onboarding || {};
+        parsed.onboarding.questions_answered = false;
+        localStorage.setItem("bb_guest_data", JSON.stringify(parsed));
+      }
+      // Also ensure guest mode is on
+      localStorage.setItem("bb_guest_mode", "true");
+    } catch {
+      // ignore
+    }
+    window.location.href = "/onboarding";
+  };
+
+  return (
+    <button
+      onClick={handleReplay}
+      className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-left hover:border-amber-300 hover:bg-amber-50 transition-colors"
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-lg">🔄</span>
+        <div>
+          <p className="font-sans text-sm font-semibold text-zinc-700">Replay Onboarding</p>
+          <p className="font-sans text-[11px] text-zinc-400">
+            See the 5-question intro, persona roast, and bank statement flow again
+          </p>
+        </div>
+      </div>
+    </button>
   );
 }
 

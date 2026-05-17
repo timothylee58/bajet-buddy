@@ -4,8 +4,11 @@ import { useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { API_URL } from "@/lib/constants";
 import { scanReceipt } from "@/lib/api";
-import { Camera, SkipForward, Loader2, CheckCircle2, Database } from "lucide-react";
-import type { OCRScanResponse } from "@/types";
+import { Camera, SkipForward, Loader2 } from "lucide-react";
+import Image from "next/image";
+import type { OCRScanResponse, OCRTransaction, PetSpecies } from "@/types";
+import { TransactionReviewCard } from "@/components/features/check/TransactionReviewCard";
+import { PET_SPECIES } from "@/components/features/pet/petConfig";
 
 interface OnboardingRoast {
   persona_name: string;
@@ -61,9 +64,10 @@ export function ConversationalOnboarding() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [inputValue, setInputValue] = useState("");
-  const [phase, setPhase] = useState<"questions" | "scan" | "loading" | "result">("questions");
+  const [phase, setPhase] = useState<"questions" | "scan" | "pet" | "loading" | "result">("questions");
   const [result, setResult] = useState<OnboardingRoast | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPet, setSelectedPet] = useState<PetSpecies>("squirrel");
   // Scan state
   const [scanImage, setScanImage] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -142,12 +146,25 @@ export function ConversationalOnboarding() {
     }
   };
 
-  const handleScanDone = () => submitAnswers(answers);
-  const handleScanSkip = () => submitAnswers(answers);
+  const handleScanDone = (editedTransactions: OCRTransaction[]) => {
+    // Update scanResult with the edited transactions
+    setScanResult(prev => prev ? {
+      ...prev,
+      scan_result: prev.scan_result ? { ...prev.scan_result, transactions: editedTransactions } : null,
+    } : null);
+    setPhase("pet");
+  };
+  const handleScanCancel = () => setScanResult(null);
+  const handleScanSkip = () => setPhase("pet");
+
+  const handlePetPick = (species: PetSpecies) => {
+    setSelectedPet(species);
+    submitAnswers(answers);
+  };
 
   if (phase === "scan") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)] p-6 text-foreground">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-foreground">
         <div className="w-full max-w-md space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -186,7 +203,7 @@ export function ConversationalOnboarding() {
               </div>
               <button
                 onClick={handleUpload}
-                className="w-full rounded-xl bg-gradient-to-r from-primary to-secondary py-3 font-semibold text-white transition-colors hover:brightness-105 flex items-center justify-center gap-2"
+                className="w-full rounded-xl bg-primary py-3 font-semibold text-white transition-colors hover:brightness-105 flex items-center justify-center gap-2"
               >
                 <Camera size={18} />
                 Scan with Agent 4
@@ -206,30 +223,11 @@ export function ConversationalOnboarding() {
           )}
 
           {scanResult && (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-              className="space-y-4 rounded-2xl border border-white/80 bg-white/85 p-6 shadow-[0_24px_60px_-28px_rgba(124,92,255,0.35)]"
-            >
-              <CheckCircle2 className="mx-auto text-emerald-500" size={40} />
-              <p className="text-lg font-bold text-foreground text-center">
-                {scanResult.total_inserted} transactions extracted
-              </p>
-              {scanResult.scan_result?.transactions.slice(0, 3).map((txn: any, i: number) => (
-                <div key={i} className="flex justify-between rounded-lg bg-surface-muted px-3 py-2 text-sm text-foreground">
-                  <span className="truncate">{txn.merchant}</span>
-                  <span className="text-muted">RM{txn.amount.toFixed(2)}</span>
-                </div>
-              ))}
-              <div className="flex items-center justify-center gap-2 text-sm text-primary-dark">
-                <Database size={14} />
-                <span>+{scanResult.xp_earned} XP</span>
-              </div>
-              <button
-                onClick={handleScanDone}
-                className="w-full rounded-xl bg-gradient-to-r from-primary to-secondary py-3 font-semibold text-white transition-colors hover:brightness-105"
-              >
-                Continue to your Roast 🔥
-              </button>
-            </motion.div>
+            <TransactionReviewCard
+              scanResponse={scanResult}
+              onConfirm={handleScanDone}
+              onCancel={handleScanCancel}
+            />
           )}
 
           {/* Scan error */}
@@ -256,9 +254,75 @@ export function ConversationalOnboarding() {
     );
   }
 
+  if (phase === "pet") {
+    const SPECIES_ORDER: PetSpecies[] = ["squirrel", "fox", "raccoon", "rabbit"];
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-foreground">
+        <div className="w-full max-w-md space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center space-y-3"
+          >
+            <div className="mx-auto text-6xl">🐾</div>
+            <h2 className="text-2xl font-bold">Pick your companion</h2>
+            <p className="text-sm text-muted leading-relaxed">
+              Your buddy grows with you as you save. Pick one that feels like you!
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {SPECIES_ORDER.map((species) => {
+              const config = PET_SPECIES[species];
+              const stage = config.stages[0];
+              const isSelected = species === selectedPet;
+              return (
+                <motion.button
+                  key={species}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => handlePetPick(species)}
+                  className={[
+                    "flex flex-col items-center gap-3 rounded-2xl border-2 p-5 transition-all",
+                    isSelected
+                      ? "border-emerald-400 bg-emerald-50 ring-2 ring-emerald-200"
+                      : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50",
+                  ].join(" ")}
+                >
+                  <Image
+                    src={stage.image}
+                    alt={config.label}
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 object-contain"
+                  />
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-zinc-800">{config.label}</p>
+                    <p className="text-xs text-zinc-500">{config.emoji}</p>
+                    <p className="text-[11px] text-zinc-400 mt-1 leading-tight">{stage.tagline}</p>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {selectedPet && (
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              onClick={() => submitAnswers(answers)}
+              className="w-full rounded-xl bg-primary py-3 font-semibold text-white transition-colors hover:brightness-105"
+            >
+              Continue with {PET_SPECIES[selectedPet].label} →
+            </motion.button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (phase === "loading") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)] p-6 text-foreground">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 text-foreground">
         <motion.div
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
@@ -285,7 +349,7 @@ export function ConversationalOnboarding() {
 
   if (phase === "result" && result) {
     return (
-      <div className="flex min-h-screen flex-col items-center bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)] p-6 text-foreground">
+      <div className="flex min-h-screen flex-col items-center bg-background p-6 text-foreground">
         <div className="w-full max-w-md space-y-6 py-10">
           {/* Persona emoji */}
           <motion.div
@@ -365,7 +429,7 @@ export function ConversationalOnboarding() {
           >
             <a
               href="/dashboard"
-              className="block w-full rounded-2xl bg-gradient-to-r from-primary to-secondary py-4 text-center font-bold text-white transition-colors hover:brightness-105"
+              className="block w-full rounded-2xl bg-primary py-4 text-center font-bold text-white transition-colors hover:brightness-105"
             >
               Let&apos;s fix this together →
             </a>
@@ -376,7 +440,7 @@ export function ConversationalOnboarding() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)] p-6 text-foreground">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-foreground">
       <div className="w-full max-w-md space-y-8">
         {/* Progress dots */}
         <div className="flex justify-center gap-2">
@@ -418,7 +482,7 @@ export function ConversationalOnboarding() {
                 <button
                   onClick={handleNext}
                   disabled={!inputValue.trim()}
-                  className="w-full rounded-xl bg-gradient-to-r from-primary to-secondary py-3 font-semibold text-white transition-colors hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="w-full rounded-xl bg-primary py-3 font-semibold text-white transition-colors hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Next →
                 </button>

@@ -480,7 +480,11 @@ async def simulate_event(user_id: str, event_type: str) -> SimulateEventResponse
     category_impacts, total_impact_rm = _compute_impact(event_type, snapshots)
     intervention = _generate_intervention(event_type, total_impact_rm, risk_profile, catalog["severity"])
     quests = _generate_quests(event_type, snapshots, catalog["severity"])
-    state["quests"] = [q.model_dump() for q in quests]
+    # Merge: replace quests of same event_type, keep quests from other events
+    existing_quests = state.get("quests", [])
+    new_ids = {q.id for q in quests}
+    kept = [q for q in existing_quests if q["id"] not in new_ids]
+    state["quests"] = kept + [q.model_dump() for q in quests]
 
     if state["active_event"] not in state["event_history"]:
         state["event_history"].append(state["active_event"])

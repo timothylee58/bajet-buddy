@@ -208,6 +208,37 @@ def _build_chat_messages(
     verdict_emoji = {"boleh": "✅", "fikir_dulu": "🤔", "jangan_dulu": "❌"}
     emoji = verdict_emoji.get(result.verdict, "🤖")
 
+    # Persona context
+    persona_line = ""
+    if result.persona:
+        persona_line = f"🕵️ Your persona: **{result.persona.name}** {result.persona.emoji} — {result.persona.description}\n\n"
+
+    # Budget context with numbers
+    budget_line = ""
+    if result.projected_remaining_balance is not None:
+        daily = result.projected_daily_survival_amount or 0
+        remaining = result.projected_remaining_balance
+        budget_line = f"💳 After this: **RM{remaining:.2f}** left, ~RM{daily:.2f}/day\n"
+
+    # Risk factors as readable tags
+    risk_tags = ""
+    if result.reason_codes:
+        friendly_names = {
+            "LOW_DAILY_SURVIVAL": "daily runway too low",
+            "DAILY_SURVIVAL_BELOW_RM25": "below RM25/day",
+            "DAILY_SURVIVAL_TIGHT": "tight daily budget",
+            "HIGH_CATEGORY_USAGE": f"{parsed.category} budget nearly full",
+            "CATEGORY_BUDGET_ABOVE_85": f"{parsed.category} over 85% used",
+            "DISCRETIONARY_PURCHASE": "want vs need check",
+            "BNPL_DUE_THIS_MONTH": "BNPL payment due",
+            "BNPL_DUE_WITHIN_7_DAYS": "BNPL due this week",
+            "END_OF_MONTH_PRESSURE": "late in salary cycle",
+            "MIDNIGHT_SPENDING_PATTERN": "late-night impulse zone",
+            "LATE_NIGHT_PURCHASE": "late-night purchase",
+        }
+        tags = [friendly_names.get(c, c) for c in result.reason_codes[:4]]
+        risk_tags = "🔍 " + " · ".join(tags) + "\n"
+
     # Agent 2: Finance Planner — negotiation intro
     if result.verdict == "jangan_dulu":
         negotiation_intro = (
@@ -233,9 +264,12 @@ def _build_chat_messages(
 
     ai_content = (
         f"{emoji} **{result.verdict.upper().replace('_', ' ')}**\n\n"
+        f"{persona_line}"
         f"{nudge}\n\n"
-        f"📊 Risk score: {result.risk_score}/100 | Budget impact: {result.budget_impact_pct:.0f}%\n"
-        f"{'⚠️ Proactive alert triggered' if result.proactive_alert else ''}\n\n"
+        f"{budget_line}"
+        f"{risk_tags}"
+        f"📊 Risk: {result.risk_score}/100 | Budget impact: {result.budget_impact_pct:.0f}%\n"
+        f"{'⚠️ Proactive alert triggered!' if result.proactive_alert else ''}\n\n"
         f"{negotiation_intro}"
     )
 

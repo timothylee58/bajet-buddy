@@ -317,6 +317,7 @@ export function FOMONegotiatorModal({ open, request, onClose }: FOMONegotiatorMo
   }
 
   return (
+    <>
     <AnimatePresence onExitComplete={reset}>
       {open && (
         <>
@@ -569,8 +570,10 @@ export function FOMONegotiatorModal({ open, request, onClose }: FOMONegotiatorMo
         </>
       )}
 
-      {/* PWA Lockdown overlay */}
-      <PwaLockdownOverlay lockdown={lockdown} onDismiss={dismissLockdown} />
     </AnimatePresence>
+
+      {/* PWA Lockdown overlay — outside AnimatePresence since it self-manages animations */}
+      <PwaLockdownOverlay lockdown={lockdown} onDismiss={dismissLockdown} />
+    </>
   );
 }

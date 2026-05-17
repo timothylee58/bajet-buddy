@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka, Nunito_Sans } from "next/font/google";
+import { TextSizeProvider } from "@/components/ui/TextSizeProvider";
 import "./globals.css";
 
 const fredoka = Fredoka({
@@ -21,6 +22,10 @@ export const metadata: Metadata = {
   description:
     "Malaysia's AI-powered spending intervention engine. Stop bad decisions before they happen.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/logo.ico",
+    apple: "/logo.ico",
+  },
 };
 
 export const viewport: Viewport = {
@@ -38,7 +43,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`h-full antialiased ${fredoka.variable} ${nunitoSans.variable}`}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        {children}
+        <TextSizeProvider>
+          {children}
+        </TextSizeProvider>
       </body>
     </html>
   );

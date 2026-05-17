@@ -247,73 +247,218 @@ def _fallback_nudge(payload: NudgeRequestModel) -> NudgeResponseModel:
 
 async def _generate_with_ai(payload: NudgeRequestModel) -> NudgeResponseModel:
     settings = get_settings()
-    api_key = settings.ilmu_api_key or settings.anthropic_api_key
-    if not api_key or not api_key.startswith("sk-"):
-        raise RuntimeError("No supported AI API key configured")
 
+    # Try anthropic/ilmu first, then DeepSeek
+    anthropic_key = settings.ilmu_api_key or settings.anthropic_api_key
+    deepseek_key = settings.deepseek_api_key
+
+    if anthropic_key and anthropic_key.startswith("sk-"):
+        return await _generate_with_anthropic(payload, anthropic_key, settings)
+    if deepseek_key and deepseek_key.startswith("sk-"):
+        return await _generate_with_deepseek(payload, deepseek_key)
+    raise RuntimeError("No supported AI API key configured")
+
+
+async def _generate_with_anthropic(
+    payload: NudgeRequestModel, api_key: str, settings
+) -> NudgeResponseModel:
     import anthropic
 
     provider = "ilmu" if settings.ilmu_api_key else "anthropic"
-    base_url = (
-        settings.ilmu_anthropic_base_url
-        if settings.ilmu_api_key
-        else None
-    )
+    base_url = settings.ilmu_anthropic_base_url if settings.ilmu_api_key else None
     client = anthropic.AsyncAnthropic(api_key=api_key, base_url=base_url)
     verdict = _derive_verdict(payload.risk_score)
-    uses_bnpl = payload.transaction_intent.uses_bnpl
-    bnpl_context = ""
-    if uses_bnpl:
-        bnpl_context = f"""
-IMPORTANT: User wants to use BNPL for this purchase of RM{payload.transaction_intent.amount:.2f}.
-They already owe RM{payload.bnpl_context.due_this_month:.2f} in BNPL this month.
-- verdict MUST be JANGAN_DULU — BNPL is always risky
-- short_nudge must warn about invisible debt and stacking BNPL
-- explanation must mention the existing BNPL burden
-- tradeoff must contrast BNPL illusion vs real cost
-- alternative_action must suggest saving cash first
-- cta_buttons must include "Walk away — avoid BNPL"
-"""
-
-    prompt = f"""
-You are BajetBuddy, a Malaysian pre-purchase intervention engine.
-Return strict JSON only.
-
-Generate emotionally intelligent nudge copy for this payload:
-{json.dumps(payload, default=lambda obj: obj.__dict__, ensure_ascii=True)}
-{bnpl_context}
-
-Rules:
-- verdict must stay {verdict}{" (OVERRIDE: use JANGAN_DULU if BNPL)" if uses_bnpl else ""}
-- tone mode is {payload.tone_mode}
-- preferred language is {payload.language_preference}
-- keep short_nudge under 45 words
-- explanation under 40 words
-- tradeoff under 30 words
-- alternative_action under 20 words
-- cta_buttons must contain exactly 3 short button labels
-- examples must contain bm, en, manglish
-
-JSON shape:
-{{
-  "verdict": "BOLEH|FIKIR_DULU|JANGAN_DULU",
-  "short_nudge": "...",
-  "explanation": "...",
-  "tradeoff": "...",
-  "alternative_action": "...",
-  "cta_buttons": ["...", "...", "..."],
-  "language": "bm|en|manglish",
-  "tone_mode": "professional|friendly|manglish|strict|encouraging",
-  "examples": {{"bm": "...", "en": "...", "manglish": "..."}}
-}}
-"""
+    prompt = _build_nudge_prompt(payload, verdict)
 
     message = await client.messages.create(
         model=settings.ilmu_model if settings.ilmu_api_key else "claude-sonnet-4-5",
-        max_tokens=500,
+        max_tokens=600,
         messages=[{"role": "user", "content": prompt}],
     )
     text = message.content[0].text.strip()
+    return _parse_ai_response(text, provider)
+
+
+async def _generate_with_deepseek(
+    payload: NudgeRequestModel, api_key: str
+) -> NudgeResponseModel:
+    import httpx
+
+    verdict = _derive_verdict(payload.risk_score)
+    prompt = _build_nudge_prompt(payload, verdict)
+
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        resp = await client.post(
+            "https://api.deepseek.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": "deepseek-chat",
+                "messages": [
+                    {"role": "system", "content": "You are BajetBuddy, a Malaysian personal finance AI. You speak Manglish, BM, and English. Return strict JSON only."},
+                    {"role": "user", "content": prompt},
+                ],
+                "max_tokens": 600,
+                "temperature": 0.7,
+            },
+        )
+        data = resp.json()
+        text = data["choices"][0]["message"]["content"].strip()
+    return _parse_ai_response(text, "deepseek")
+
+
+def _build_nudge_prompt(payload: NudgeRequestModel, verdict: str) -> str:
+    """Build a rich, context-aware prompt for smarter nudge generation."""
+    p = payload
+    persona = p.user_persona
+    budget = p.budget_context
+    txn = p.transaction_intent
+
+    # Build spending habit context
+    habit_context = ""
+    if persona.code and persona.code != "unknown":
+        persona_descriptions = {
+            "midnight_shopee_queen": "late-night online shopping clusters, especially on Shopee/Lazada",
+            "gaji_habis_king": "spends most salary within the first week, then struggles",
+            "bubble_tea_bro": "frequent small discretionary spends on food/drinks",
+            "mamak_lepak_spender": "social spending at mamak stalls and hangout spots",
+            "bnpl_roller": "heavily reliant on Buy Now Pay Later, stacking multiple BNPL commitments",
+            "grabfood_spiral": "excessive food delivery orders, avoiding home cooking",
+            "bonus_burner": "splurges windfall/bonus money quickly without saving",
+            "future_homeowner": "disciplined saver working toward a big goal like a house",
+            "savings_starter": "beginner at saving, building good habits",
+        }
+        persona_hint = persona_descriptions.get(persona.code, persona.description or "")
+        habit_context = f"""
+SPENDING PERSONA: {persona.label} ({persona.code})
+Pattern: {persona_hint}
+This user's financial behavior profile: {persona.description or 'N/A'}
+"""
+
+    # Budget context with personalized advice hints
+    daily_after = budget.projected_daily_survival_amount
+    daily_before = budget.current_daily_survival_amount
+    balance_after = budget.projected_remaining_balance
+    days_left = budget.days_until_salary
+
+    budget_context = f"""
+BUDGET SNAPSHOT:
+- Current balance: RM{budget.current_balance:.2f}
+- Days until salary: {days_left}
+- Current daily runway: RM{daily_before:.2f}/day
+- After this RM{txn.amount:.2f} purchase:
+  → Remaining: RM{balance_after:.2f}
+  → Daily runway: RM{daily_after:.2f}/day
+- Category ({txn.category}) usage: {budget.category_budget_usage_pct:.0f}%
+- Total spent this month: RM{budget.total_monthly_spending or 0:.2f}
+"""
+
+    # BNPL context
+    bnpl_context = ""
+    if p.bnpl_context.due_this_month > 0:
+        bnpl_context = f"""
+BNPL / DEBT CONTEXT:
+- BNPL due this month: RM{p.bnpl_context.due_this_month:.2f}
+- BNPL due within 7 days: RM{p.bnpl_context.due_within_7_days:.2f}
+- Active BNPL commitments: {p.bnpl_context.active_commitments}
+"""
+    if txn.uses_bnpl:
+        bnpl_context += f"""
+⚠️  USER WANTS TO USE BNPL FOR THIS RM{txn.amount:.2f} PURCHASE!
+- verdict MUST be JANGAN_DULU — BNPL on top of existing debt is dangerous
+- Short_nudge must warn about invisible debt stacking
+- Explain the real cost: interest, late fees, credit score impact
+- Tradeoff must contrast the BNPL illusion ("pay later feels easy") vs real cost
+- CTA must include "Walk away — avoid BNPL"
+"""
+
+    # Reason codes with explanations
+    reason_hints = {
+        "LOW_DAILY_SURVIVAL": "daily runway is dangerously low after this purchase",
+        "DAILY_SURVIVAL_BELOW_RM25": "daily survival drops below RM25 — crisis zone",
+        "DAILY_SURVIVAL_TIGHT": "daily survival is tight, little room for error",
+        "HIGH_CATEGORY_USAGE": "this category is already near or over budget",
+        "CATEGORY_BUDGET_ABOVE_85": "category budget is over 85% used",
+        "DISCRETIONARY_PURCHASE": "this is a want, not a need",
+        "ESSENTIAL_PURCHASE_BUFFER": "this is essential — give benefit of the doubt",
+        "BNPL_DUE_THIS_MONTH": "there are BNPL payments due this month",
+        "BNPL_DUE_WITHIN_7_DAYS": "BNPL is due within a week — very risky to spend",
+        "BNPL_DUE_SOON_DISCRETIONARY": "discretionary spend while BNPL is due soon",
+        "END_OF_MONTH_PRESSURE": "it's late in the salary cycle, budget is tight",
+        "LONG_TIME_TO_SALARY": "salary is far away, need to stretch the budget",
+        "MIDNIGHT_SPENDING_PATTERN": "late-night shopping pattern detected — impulse risk",
+        "LATE_NIGHT_PURCHASE": "purchasing late at night — possible impulse buy",
+        "HISTORICAL_BEHAVIOUR_RISK": "past behavior suggests risky spending pattern",
+        "PAYDAY_NEAR": "salary is near, can wait a bit",
+    }
+    reasons_explained = "\n".join(
+        f"  - {code}: {reason_hints.get(code, 'risk factor detected')}"
+        for code in p.reason_codes
+    ) if p.reason_codes else "  - No specific risk factors"
+
+    verdict_guidance = {
+        "JANGAN_DULU": "Block this purchase. The user's financial health is at risk. Be firm but empathetic. Acknowledge the temptation, then clearly explain the consequences. Offer a concrete alternative.",
+        "FIKIR_DULU": "Caution the user. This purchase is borderline — possible but risky. Encourage a 24-hour pause. Help them weigh the pros and cons objectively.",
+        "BOLEH": "Approve but with mindfulness. The numbers look okay, but remind them that small repeated spends add up. Encourage tracking and awareness.",
+    }
+
+    return f"""You are BajetBuddy, a Malaysian AI financial coach that intervenes BEFORE impulse purchases.
+You speak Manglish (Malaysian English), BM, and English naturally.
+Your tone is like a caring but firm friend — not a bank teller.
+
+{habit_context}
+{budget_context}
+{bnpl_context}
+
+RISK ASSESSMENT:
+- Risk score: {p.risk_score}/100
+- Verdict: {verdict}
+- Reason codes:
+{reasons_explained}
+
+PURCHASE DETAILS:
+- Amount: RM{txn.amount:.2f}
+- Item: {txn.item_name or 'Unknown'}
+- Merchant: {txn.merchant}
+- Category: {txn.category} ({txn.merchant_type})
+
+USER PROFILE:
+- Name: {p.user_profile.name}
+- Monthly income: RM{p.user_profile.monthly_income or 0:.2f}
+
+GUIDANCE FOR THIS VERDICT:
+{verdict_guidance.get(verdict, '')}
+
+Return strict JSON only with this shape:
+{{
+  "verdict": "{verdict}",
+  "short_nudge": "<catchy first line in Manglish, BM or EN — max 50 words, call user by name>",
+  "explanation": "<why this verdict — reference their persona, spending pattern, or budget numbers. max 45 words>",
+  "tradeoff": "<what they gain vs what they lose. max 35 words>",
+  "alternative_action": "<one concrete thing they can do instead. max 25 words>",
+  "cta_buttons": ["<button1>", "<button2>", "<button3>"],
+  "language": "{p.language_preference}",
+  "tone_mode": "{p.tone_mode}",
+  "examples": {{
+    "bm": "<BM version of the nudge>",
+    "en": "<EN version of the nudge>",
+    "manglish": "<Manglish version of the nudge>"
+  }}
+}}
+
+IMPORTANT:
+- Reference the user's persona ({persona.label}) if relevant to their spending behavior
+- Use Malaysian context: RM, salary cycles, Shopee, Grab, mamak, lepak culture
+- Make the nudge feel personal — not a generic template
+- If they're a Midnight Shopee Queen, mention late-night shopping
+- If they eat out a lot, suggest cooking at home
+- Be firm on JANGAN_DULU, thoughtful on FIKIR_DULU, encouraging on BOLEH
+- The examples MUST be in natural colloquial language, not formal"""
+
+
+def _parse_ai_response(text: str, provider: str) -> NudgeResponseModel:
     start = text.find("{")
     end = text.rfind("}") + 1
     if start < 0 or end <= start:
