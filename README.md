@@ -8,16 +8,16 @@ Malaysia's AI-powered spending intervention engine. Stops bad financial decision
 
 - **Bajet Buddy** — pre-purchase AI check that evaluates spend against your salary cycle, BNPL load, and remaining runway before you tap pay
 - **Receipt Scanner** — snap a receipt image; Claude vision extracts store, item, amount, and category in seconds
-- **Voice Input** — say "I spent RM15 on lunch at Nasi Kandar" and the form fills itself
 - **Future You Simulator** — models 6-month cashflow scenarios for any planned purchase
 - **Persona Engine** — classifies spending behaviour (e.g. "Midnight Shopee Queen") and adapts nudge tone accordingly
 - **Gamification** — XP, streaks, loot boxes, and 5 unlockable AI advisor personalities
-- **Tinder-style Swipe Review** — confirm or dismiss detected recurring expenses in seconds
 - **Conversational Onboarding** — 5 questions → instant AI financial roast + persona, before any data is entered
+- (Coming Soon) **Voice Input** — say "I spent RM15 on lunch at Nasi Kandar" and the form fills itself
+- (Coming Soon) **Tinder-style Swipe Review** — confirm or dismiss detected recurring expenses in seconds
 
 ---
 
-The problem statement contains three hidden signals:
+The problem statement above contains three hidden signals:
 "People know what they should do but struggle to act" → Don’t build another budgeting dashboard. Build a behaviour change engine.
 "Spending impulsively, avoiding their bank balance" → The enemy is psychological: denial, shame, FOMO, and instant gratification.
 "In the moments that matter — not just track what already happened" → Real-time intervention. Pre-purchase, not post-mortem.
