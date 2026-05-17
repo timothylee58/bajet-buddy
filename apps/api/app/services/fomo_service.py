@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import logging
+
 from datetime import datetime, timedelta, timezone
 from typing import TypedDict
 
@@ -18,6 +20,8 @@ from app.schemas.fomo import (
     FOMOStateResponse,
     PersonaCode,
 )
+
+logger = logging.getLogger("fomo_service")
 
 _SAFE_DAILY_FLOOR = 20.0
 _BNPL_DANGER = 200.0
@@ -324,26 +328,40 @@ async def negotiate(request: FOMONegotiateRequest, user_id: str) -> FOMONegotiat
 
     interaction_history = state.get("interaction_history", [])
     hour_now = datetime.now(tz=timezone.utc).hour
-    claude_data = await _call_claude(
-        request.item_name, request.merchant, request.amount,
-        request.category, persona_code, request.emotional_state, state["heat_level"],
-        interaction_history=interaction_history,
-        hour_of_day=hour_now,
-        category_repeat_count=0,
-    )
+    try:
+        claude_data = await _call_claude(
+            request.item_name, request.merchant, request.amount,
+            request.category, persona_code, request.emotional_state, state["heat_level"],
+            interaction_history=interaction_history,
+            hour_of_day=hour_now,
+            category_repeat_count=0,
+        )
+    except Exception as e:
+        logger.warning("_call_claude failed (non-fatal): %s", e)
+        claude_data = {
+            "fomo_validation": "I understand the temptation lah.",
+            "trap_exposure": "But let's think about this carefully first.",
+            "persona_quip": "Wallet crying, heart wanting — classic Malaysian dilemma.",
+            "heat_adjustment": 0,
+            "heat_reasoning": "stable",
+        }
 
     heat_adj = int(claude_data.get("heat_adjustment", 0))
     state["heat_level"] = max(0.0, min(_HEAT_MAX, state["heat_level"] + heat_adj))
 
-    regret_probability = await _predict_regret(
-        amount=request.amount,
-        category=request.category,
-        current_balance=request.current_balance,
-        bnpl_load=request.bnpl_load,
-        days_until_salary=request.days_until_salary,
-        interaction_history=interaction_history,
-        user_id=user_id,
-    )
+    try:
+        regret_probability = await _predict_regret(
+            amount=request.amount,
+            category=request.category,
+            current_balance=request.current_balance,
+            bnpl_load=request.bnpl_load,
+            days_until_salary=request.days_until_salary,
+            interaction_history=interaction_history,
+            user_id=user_id,
+        )
+    except Exception as e:
+        logger.warning("_predict_regret failed (non-fatal): %s", e)
+        regret_probability = 50
 
     cash_opt = _build_cash_option(request.amount, request.current_balance, request.days_until_salary)
     bnpl_opt = _build_bnpl_option(request.amount, request.bnpl_load, request.current_balance)
