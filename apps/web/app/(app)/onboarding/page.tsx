@@ -1,7 +1,7 @@
 "use client";
 
-import { ProgressiveProfilingOnboarding } from "@/components/features/onboarding/ProgressiveProfilingOnboarding";
+import { ConversationalOnboarding } from "@/components/features/onboarding/ConversationalOnboarding";
 
 export default function OnboardingPage() {
-  return <ProgressiveProfilingOnboarding />;
+  return <ConversationalOnboarding />;
 }

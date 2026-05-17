@@ -1,0 +1,61 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e7]
+          - generic [ref=e9]:
+            - heading "Check Spend" [level=1] [ref=e10]
+            - paragraph [ref=e11]: Behavioural finance intervention engine
+        - button "Notifications" [ref=e12]:
+          - img [ref=e13]
+    - main [ref=e17]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - generic [ref=e21]: ❌
+          - heading "Jangan Dulu ❌" [level=2] [ref=e22]
+          - paragraph [ref=e23]: Not now
+        - generic [ref=e24]: RM189.00
+        - generic [ref=e25]:
+          - paragraph [ref=e26]: Jangan dulu, Sarah. Anda ada RM340 untuk 7 hari. Selepas dress RM189 ini, baki tinggal RM151 atau sekitar RM21 sehari.
+          - paragraph [ref=e27]: Hold it, Sarah. You have RM340 for 7 days. After this RM189 dress, only RM151 is left, around RM21 a day.
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - paragraph [ref=e30]: Risk Score
+            - paragraph [ref=e31]: "92"
+          - generic [ref=e32]:
+            - paragraph [ref=e33]: Budget Impact
+            - paragraph [ref=e34]: 56%
+        - generic [ref=e35]:
+          - button "💾 Save to Wishlist" [ref=e36]
+          - button "Check Another" [ref=e37]
+    - navigation "Main navigation" [ref=e38]:
+      - list [ref=e39]:
+        - listitem [ref=e40]:
+          - link "Home" [ref=e41] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e43]
+            - generic [ref=e46]: Home
+        - listitem [ref=e47]:
+          - link "Guard" [ref=e48] [cursor=pointer]:
+            - /url: /check
+            - img [ref=e50]
+            - generic [ref=e53]: Guard
+        - listitem [ref=e54]:
+          - link "Future" [ref=e55] [cursor=pointer]:
+            - /url: /simulator
+            - img [ref=e57]
+            - generic [ref=e60]: Future
+        - listitem [ref=e61]:
+          - link "Persona" [ref=e62] [cursor=pointer]:
+            - /url: /persona
+            - img [ref=e64]
+            - generic [ref=e76]: Persona
+        - listitem [ref=e77]:
+          - link "Circle" [ref=e78] [cursor=pointer]:
+            - /url: /buddies
+            - img [ref=e80]
+            - generic [ref=e85]: Circle
+  - button "Open Next.js Dev Tools" [ref=e91] [cursor=pointer]:
+    - img [ref=e92]
+  - alert [ref=e95]

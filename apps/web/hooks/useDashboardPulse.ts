@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getBudgetSummary } from "@/lib/api";
 import { useFreeze } from "./useFreeze";
 import { useGamification } from "./useGamification";
+import { useGuestMode } from "./useGuestMode";
 import type { BudgetSummary } from "@/types";
 
 const DEFAULT_BUDGET: BudgetSummary = {
@@ -19,6 +20,7 @@ export function useDashboardPulse() {
   const [loadingBudget, setLoadingBudget] = useState(true);
   const [budgetError, setBudgetError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const { isGuest, guestData } = useGuestMode();
   const freeze = useFreeze();
   const gamification = useGamification();
   const refreshFreeze = freeze.refresh;
@@ -28,6 +30,22 @@ export function useDashboardPulse() {
     let active = true;
 
     async function refreshBudget() {
+      if (isGuest && guestData.estimated_budget) {
+        const totalSpent = guestData.transactions.reduce((acc, t) => acc + t.amount, 0);
+        const estimatedTotal = guestData.estimated_budget.reduce((acc: number, item: any) => acc + item.amount, 0);
+        
+        setBudget({
+          total_income: estimatedTotal + 500,
+          total_spent: totalSpent,
+          remaining: estimatedTotal - totalSpent,
+          days_left: 30,
+          daily_safe_amount: (estimatedTotal - totalSpent) / 30,
+        });
+        setLoadingBudget(false);
+        setLastUpdated(new Date());
+        return;
+      }
+
       setLoadingBudget(true);
       setBudgetError(null);
       try {

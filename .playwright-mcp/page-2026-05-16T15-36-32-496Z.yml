@@ -1,0 +1,99 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e7]
+          - generic [ref=e9]:
+            - heading "Check Spend" [level=1] [ref=e10]
+            - paragraph [ref=e11]: Behavioural finance intervention engine
+        - button "Notifications" [ref=e12]:
+          - img [ref=e13]
+    - main [ref=e17]:
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - paragraph [ref=e20]: Sarah demo
+          - paragraph [ref=e21]: Day 18 of salary cycle. RM340 left for 7 days. Try the Shopee dress check.
+          - button "Load Sarah demo" [ref=e22]
+        - generic [ref=e23]:
+          - paragraph [ref=e24]: How much are you spending?
+          - generic [ref=e25]: RM189
+        - textbox "Where? (e.g. Shopee, McDonald's)" [ref=e26]: Shopee Malaysia
+        - generic [ref=e27]:
+          - paragraph [ref=e28]: Category
+          - generic [ref=e29]:
+            - button "🍜 Food" [ref=e30]:
+              - generic [ref=e31]: 🍜
+              - generic [ref=e32]: Food
+            - button "🚗 Transport" [ref=e33]:
+              - generic [ref=e34]: 🚗
+              - generic [ref=e35]: Transport
+            - button "🛍️ Shopping" [ref=e36]:
+              - generic [ref=e37]: 🛍️
+              - generic [ref=e38]: Shopping
+            - button "🎮 Entertainment" [ref=e39]:
+              - generic [ref=e40]: 🎮
+              - generic [ref=e41]: Entertainment
+            - button "💊 Health" [ref=e42]:
+              - generic [ref=e43]: 💊
+              - generic [ref=e44]: Health
+            - button "💡 Utilities" [ref=e45]:
+              - generic [ref=e46]: 💡
+              - generic [ref=e47]: Utilities
+            - button "📚 Education" [ref=e48]:
+              - generic [ref=e49]: 📚
+              - generic [ref=e50]: Education
+            - button "📦 Other" [ref=e51]:
+              - generic [ref=e52]: 📦
+              - generic [ref=e53]: Other
+        - generic [ref=e54]:
+          - generic [ref=e55]:
+            - generic [ref=e56]: Budget impact
+            - generic [ref=e57]: RM340.00 → RM151.00
+          - paragraph [ref=e60]:
+            - text: This spend uses
+            - strong [ref=e61]: 56%
+            - text: of your remaining budget.
+        - generic [ref=e62]:
+          - button "1" [ref=e63]
+          - button "2" [ref=e64]
+          - button "3" [ref=e65]
+          - button "4" [ref=e66]
+          - button "5" [ref=e67]
+          - button "6" [ref=e68]
+          - button "7" [ref=e69]
+          - button "8" [ref=e70]
+          - button "9" [ref=e71]
+          - button "." [ref=e72]
+          - button "0" [ref=e73]
+          - button "Backspace" [ref=e74]: ⌫
+        - button "Check Spend ✅" [ref=e75]
+    - navigation "Main navigation" [ref=e76]:
+      - list [ref=e77]:
+        - listitem [ref=e78]:
+          - link "Home" [ref=e79] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e81]
+            - generic [ref=e84]: Home
+        - listitem [ref=e85]:
+          - link "Guard" [ref=e86] [cursor=pointer]:
+            - /url: /check
+            - img [ref=e88]
+            - generic [ref=e91]: Guard
+        - listitem [ref=e92]:
+          - link "Future" [ref=e93] [cursor=pointer]:
+            - /url: /simulator
+            - img [ref=e95]
+            - generic [ref=e98]: Future
+        - listitem [ref=e99]:
+          - link "Persona" [ref=e100] [cursor=pointer]:
+            - /url: /persona
+            - img [ref=e102]
+            - generic [ref=e114]: Persona
+        - listitem [ref=e115]:
+          - link "Circle" [ref=e116] [cursor=pointer]:
+            - /url: /buddies
+            - img [ref=e118]
+            - generic [ref=e123]: Circle
+  - button "Open Next.js Dev Tools" [ref=e129] [cursor=pointer]:
+    - img [ref=e130]

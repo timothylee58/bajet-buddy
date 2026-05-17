@@ -19,7 +19,7 @@ const DEFAULT_SUMMARY: ProgressiveProfilingSummary = {
       id: "layer_0",
       title: "Layer 0 - Instant Gratification",
       status: "complete",
-      description: "Belanja Guard gives a verdict before asking for profile depth.",
+      description: "Bajet Buddy gives a verdict before asking for profile depth.",
       value_unlocked: "Instant spend check, nudge, and projected daily runway.",
       signals: ["Quick verdict already available."],
       cta: "Run a spend check",
@@ -31,7 +31,7 @@ const DEFAULT_SUMMARY: ProgressiveProfilingSummary = {
       description: "Transactions, merchants, and timing are captured from product usage.",
       value_unlocked: "Budget heartbeat and passive merchant memory.",
       signals: ["Behaviour is already being captured passively."],
-      cta: "Keep using Belanja Guard",
+      cta: "Keep using Bajet Buddy",
     },
     {
       id: "layer_2",

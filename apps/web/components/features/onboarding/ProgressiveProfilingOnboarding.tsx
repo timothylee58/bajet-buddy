@@ -241,7 +241,7 @@ export function ProgressiveProfilingOnboarding() {
                 Onboarding that earns data through value, not forms.
               </h1>
               <p className="max-w-2xl text-sm leading-7 text-zinc-300">
-                Belanja Guard starts with an instant verdict, captures behaviour passively, waits for real pattern confidence,
+                Bajet Buddy starts with an instant verdict, captures behaviour passively, waits for real pattern confidence,
                 and only asks for high-commitment goal data when the user is ready.
               </p>
             </div>
