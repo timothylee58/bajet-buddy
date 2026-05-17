@@ -57,3 +57,24 @@ cross join (
     ('AEON', 'Split', 'Casio G-Shock Watch', 348.00::numeric, 116.00::numeric, 116.00::numeric, 3, 1, '30 days', 'late')
 ) as v(merchant, provider, item_name, total_amount, outstanding_amount, monthly_payment, installments_total, installments_remaining, due_offset, status)
 where p.id = (select id from public.profiles order by created_at asc limit 1);
+
+-- Multi-month category_budgets: 50 random rows across the past 5 months for all profiles.
+WITH ids AS (
+  SELECT gen_random_uuid() AS id,
+         (SELECT "id" FROM public.profiles ORDER BY random() LIMIT 1) AS user_id,
+         (ARRAY['groceries','rent','transport','shopping','bills'])[1 + floor(random()*5)::int]::text AS category_id,
+         (date_trunc('month', now() - floor(random()*5)::int * interval '1 month'))::date AS month
+  FROM generate_series(1,50)
+)
+INSERT INTO public.category_budgets (id, user_id, category_id, allocated, spent, month)
+SELECT id,
+       user_id,
+       category_id,
+       (random()*500)::numeric(12,2),
+       (random()*500)::numeric(12,2),
+       month
+FROM ids
+ON CONFLICT (user_id, category_id, month)
+DO UPDATE SET
+  allocated = EXCLUDED.allocated,
+  spent     = EXCLUDED.spent;
