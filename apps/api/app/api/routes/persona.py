@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from datetime import datetime, timezone, timedelta
-from app.core.auth import AuthenticatedUser, get_current_user
+from app.core.auth import AuthenticatedUser, get_optional_user
 from app.schemas.persona import PersonaAnalyzeRequest, PersonaAnalyzeResponse
 from app.services.persona_analyzer import analyze_persona
 
@@ -18,7 +18,7 @@ MOCK_TRANSACTIONS = [
 
 
 @router.get("")
-async def get_persona(current_user: AuthenticatedUser = Depends(get_current_user)):
+async def get_persona(current_user: AuthenticatedUser | None = Depends(get_optional_user)):
     response = analyze_persona(
         transactions=MOCK_TRANSACTIONS,
         monthly_income=3200,
@@ -34,7 +34,7 @@ async def get_persona(current_user: AuthenticatedUser = Depends(get_current_user
 @router.post("/analyze", response_model=PersonaAnalyzeResponse)
 async def analyze_persona_route(
     payload: PersonaAnalyzeRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
+    current_user: AuthenticatedUser | None = Depends(get_optional_user),
 ):
     return analyze_persona(
         transactions=[item.model_dump() for item in payload.transactions],

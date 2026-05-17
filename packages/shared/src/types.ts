@@ -81,6 +81,36 @@ export interface CheckResponse {
   pipeline_trace?: string[];
 }
 
+// ─── Chat Check ───────────────────────────────────────────────────────────────
+export interface ChatCheckRequest {
+  message: string;
+  language_preference?: "bm" | "en" | "manglish";
+  tone_mode?: "professional" | "friendly" | "manglish" | "strict" | "encouraging";
+  purchase_at?: string;
+}
+
+export interface ParsedSpendIntent {
+  amount: number;
+  category: string;
+  merchant: string;
+  item_name?: string | null;
+  merchant_type: "essential" | "discretionary" | "mixed";
+  essential: boolean;
+  confidence: number;
+  paraphrased: string;
+}
+
+export interface ChatMessage {
+  role: "user" | "bajetbuddy";
+  content: string;
+}
+
+export interface ChatCheckResponse {
+  messages: ChatMessage[];
+  result: CheckResponse;
+  parsed_intent: ParsedSpendIntent;
+}
+
 // ─── BNPL ─────────────────────────────────────────────────────────────────────
 export interface BNPLItem {
   id: string;

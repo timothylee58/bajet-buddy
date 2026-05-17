@@ -3,6 +3,9 @@ import { createClient } from "./supabase/client";
 import type {
   AwardXPRequest,
   AwardXPResponse,
+  BudgetSummary,
+  ChatCheckRequest,
+  ChatCheckResponse,
   CheckRequest,
   CheckResponse,
   FOMONegotiateRequest,
@@ -60,9 +63,17 @@ export async function checkSpend(payload: CheckRequest): Promise<CheckResponse> 
   });
 }
 
-/** GET /api/budget/summary */
-export async function getBudgetSummary() {
-  return apiFetch("/api/budget/summary");
+/** POST /api/check/chat — natural language pre-purchase check */
+export async function chatCheckSpend(payload: ChatCheckRequest): Promise<ChatCheckResponse> {
+  return apiFetch<ChatCheckResponse>("/api/check/chat", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** GET /api/transactions/summary */
+export async function getBudgetSummary(): Promise<BudgetSummary> {
+  return apiFetch<BudgetSummary>("/api/transactions/summary");
 }
 
 /** GET /api/transactions */
@@ -165,6 +176,42 @@ export async function fomoResolve(payload: FOMOResolveRequest): Promise<FOMOReso
 /** GET /api/fomo/state */
 export async function getFOMOState(): Promise<FOMOState> {
   return apiFetch<FOMOState>("/api/fomo/state");
+}
+
+// ─── FOMO PWA Monitor ──────────────────────────────────────────────────────
+
+export interface PwaMonitorState {
+  active: boolean;
+  amount_rm: number;
+  category: string;
+  lockdown_triggered: boolean;
+  lockdown_message: string;
+}
+
+export interface PwaReportResponse {
+  lockdown: boolean;
+  message: string;
+  locked_until?: string;
+}
+
+/** GET /api/fomo/pwa-monitor */
+export async function getPwaMonitorState(): Promise<PwaMonitorState> {
+  return apiFetch<PwaMonitorState>("/api/fomo/pwa-monitor");
+}
+
+/** POST /api/fomo/pwa-monitor/report */
+export async function reportPwaAppOpened(domain: string): Promise<PwaReportResponse> {
+  return apiFetch<PwaReportResponse>("/api/fomo/pwa-monitor/report", {
+    method: "POST",
+    body: JSON.stringify({ domain }),
+  });
+}
+
+/** POST /api/fomo/pwa-monitor/clear */
+export async function clearPwaLockdown(): Promise<{ lockdown: boolean; message: string }> {
+  return apiFetch<{ lockdown: boolean; message: string }>("/api/fomo/pwa-monitor/clear", {
+    method: "POST",
+  });
 }
 
 /** GET /api/sentinel/dashboard */

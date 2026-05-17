@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
+from pydantic import BaseModel
+from fastapi import APIRouter, Query
 
 from app.schemas.fomo import (
     FOMONegotiateRequest,
@@ -14,6 +15,13 @@ from app.schemas.fomo import (
     PersonaRecommendResponse,
 )
 from app.services import fomo_service
+from app.services.fomo_actions import (
+    get_bnpl_monitor_state,
+    get_fomo_journal,
+    get_user_journal,
+    report_app_opened,
+    clear_lockdown,
+)
 from app.services.pattern_detection_service import TransactionSummary, detect_patterns
 
 router = APIRouter()
@@ -35,6 +43,55 @@ async def resolve(payload: FOMOResolveRequest) -> FOMOResolveResponse:
 async def state() -> FOMOStateResponse:
     return await fomo_service.get_fomo_state(user_id=_DEMO_USER)
 
+
+# ─── PWA Monitor ──────────────────────────────────────────────────────────────
+
+class PwaMonitorStateOut(BaseModel):
+    active: bool
+    amount_rm: float
+    category: str
+    lockdown_triggered: bool
+    lockdown_message: str
+
+
+@router.get("/pwa-monitor", response_model=PwaMonitorStateOut)
+async def pwa_monitor_state(user_id: str = Query(default=_DEMO_USER)) -> PwaMonitorStateOut:
+    """Check if a BNPL monitor session is active for this user."""
+    return get_bnpl_monitor_state(user_id)
+
+
+class PwaReportRequest(BaseModel):
+    user_id: str = _DEMO_USER
+    domain: str
+
+
+class PwaReportResponse(BaseModel):
+    lockdown: bool
+    message: str
+    locked_until: str | None = None
+
+
+@router.post("/pwa-monitor/report", response_model=PwaReportResponse)
+async def pwa_report_app_opened(payload: PwaReportRequest) -> PwaReportResponse:
+    """Called by the PWA frontend when the user opens another app/site."""
+    return report_app_opened(payload.user_id, payload.domain)
+
+
+@router.post("/pwa-monitor/clear")
+async def pwa_clear_lockdown(user_id: str = Query(default=_DEMO_USER)) -> dict:
+    """Clear the lockdown after the user acknowledges it."""
+    return clear_lockdown(user_id)
+
+
+# ─── Cross-agent data endpoints ────────────────────────────────────────────────
+
+@router.get("/journal")
+async def fomo_journal(user_id: str = Query(default=_DEMO_USER)) -> list[dict]:
+    """Return FOMO decision history (for persona/sentinel analysis)."""
+    return get_user_journal(user_id) if user_id != "all" else get_fomo_journal()
+
+
+# ─── Pattern Scan ──────────────────────────────────────────────────────────────
 
 @router.post("/scan-patterns", response_model=PatternScanResponse)
 async def scan_patterns(payload: PatternScanRequest) -> PatternScanResponse:

@@ -244,8 +244,8 @@ export function FutureYouSimulator() {
         })}
       </div>
 
-      <div className="mt-6 rounded-lg border border-brand/25 bg-[#1C140C] p-5 text-white">
-        <p className="text-xs uppercase tracking-[0.18em] text-brand-on-hero">Final AI verdict</p>
+      <div className="mt-6 rounded-lg border border-white/80 bg-white p-5 text-foreground shadow-sm">
+        <p className="text-xs uppercase tracking-[0.18em] text-primary-dark">Final AI verdict</p>
         <p className="mt-2 text-lg font-semibold">{data.verdict}</p>
       </div>
     </div>

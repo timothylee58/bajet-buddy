@@ -91,7 +91,7 @@ export function OnboardingChat({ onComplete }: OnboardingChatProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-zinc-950 text-white selection:bg-brand/30 relative overflow-hidden">
+    <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),radial-gradient(circle_at_bottom_right,_rgba(79,195,247,0.14),_transparent_24rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)] text-foreground selection:bg-primary/25">
       {/* Background Ambience */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute top-[20%] left-[-20%] w-[70%] h-[70%] rounded-full bg-brand/10 blur-[150px]" />
@@ -99,19 +99,19 @@ export function OnboardingChat({ onComplete }: OnboardingChatProps) {
       </div>
 
       {/* Header */}
-      <div className="bg-zinc-950/80 backdrop-blur-xl p-4 pt-10 border-b border-zinc-800/50 flex items-center gap-4 sticky top-0 z-20">
+      <div className="sticky top-0 z-20 flex items-center gap-4 border-b border-white/70 bg-white/80 p-4 pt-10 backdrop-blur-xl">
         <div className="relative">
           <div className="absolute inset-0 bg-brand blur-md rounded-full opacity-50 animate-pulse" />
-          <div className="relative bg-gradient-to-br from-zinc-800 to-zinc-900 p-2.5 rounded-xl text-brand border border-zinc-700/50 text-2xl">
+          <div className="relative rounded-xl border border-white/80 bg-white p-2.5 text-2xl text-primary shadow-lg">
             🕵️
           </div>
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-white tracking-wide">Agent 1 · Profile Scanner</h3>
-          <p className="text-xs text-brand-light font-medium flex items-center gap-1.5">
+          <h3 className="font-bold tracking-wide text-foreground">Agent 1 · Profile Scanner</h3>
+          <p className="text-xs font-medium text-primary-dark flex items-center gap-1.5">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-brand"></span>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
             </span>
             Reading your financial aura...
           </p>
@@ -122,7 +122,7 @@ export function OnboardingChat({ onComplete }: OnboardingChatProps) {
               setIsFinishing(true);
               setTimeout(() => onComplete(answers), 800);
             }}
-            className="text-xs text-zinc-500 hover:text-zinc-300 px-2 py-1"
+            className="px-2 py-1 text-xs text-muted hover:text-primary-dark"
           >
             Skip
           </button>
@@ -142,12 +142,12 @@ export function OnboardingChat({ onComplete }: OnboardingChatProps) {
                 className="space-y-8"
               >
                 <div className="space-y-3">
-                  <div className="inline-block px-3 py-1 rounded-full bg-brand/10 border border-brand/20">
-                    <span className="text-xs font-bold uppercase tracking-widest text-brand-light">
+                    <div className="inline-block rounded-full border border-primary/20 bg-primary-light px-3 py-1">
+                    <span className="text-xs font-bold uppercase tracking-widest text-primary-dark">
                       Question {currentStep + 1} of 5
                     </span>
                   </div>
-                  <h2 className="text-3xl font-semibold text-white leading-tight">
+                  <h2 className="text-3xl font-semibold leading-tight text-foreground">
                     {currentQuestion.text}
                   </h2>
                 </div>
@@ -162,14 +162,14 @@ export function OnboardingChat({ onComplete }: OnboardingChatProps) {
                     >
                       <Button
                         variant="outline"
-                        className="w-full justify-start h-auto py-5 px-6 text-left bg-zinc-900/50 border-zinc-800 hover:border-brand/50 hover:bg-zinc-800 rounded-2xl transition-all group shadow-lg overflow-hidden relative"
+                        className="relative h-auto w-full justify-start overflow-hidden rounded-2xl border-white/80 bg-white/85 px-6 py-5 text-left shadow-lg transition-all group"
                         onClick={() => handleAnswer(option.value)}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-brand/0 via-brand/5 to-brand/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
-                        <span className="flex-1 text-lg font-medium text-zinc-300 group-hover:text-white transition-colors relative z-10">
+                        <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-primary/0 via-primary/10 to-secondary/10 transition-transform duration-700 ease-in-out group-hover:translate-x-[100%]" />
+                        <span className="relative z-10 flex-1 text-lg font-medium text-foreground transition-colors group-hover:text-primary-dark">
                           {option.label}
                         </span>
-                        <ArrowRight size={20} className="text-zinc-600 group-hover:text-brand transition-colors relative z-10" />
+                        <ArrowRight size={20} className="relative z-10 text-muted transition-colors group-hover:text-primary" />
                       </Button>
                     </motion.div>
                   ))}
@@ -192,7 +192,7 @@ export function OnboardingChat({ onComplete }: OnboardingChatProps) {
                     initial={{ scale: 0, rotate: -30 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                    className="relative h-28 w-28 bg-gradient-to-br from-brand to-emerald-500 rounded-full flex items-center justify-center text-white shadow-2xl border-4 border-zinc-950 text-5xl"
+                    className="relative flex h-28 w-28 items-center justify-center rounded-full border-4 border-white text-5xl text-white shadow-2xl bg-gradient-to-br from-primary via-secondary to-tertiary"
                   >
                     🎉
                   </motion.div>
@@ -203,17 +203,17 @@ export function OnboardingChat({ onComplete }: OnboardingChatProps) {
                   transition={{ delay: 0.4 }}
                   className="space-y-2"
                 >
-                  <h2 className="text-3xl font-bold text-white">Answers collected!</h2>
-                  <p className="text-zinc-400">Now let's see your real spending data...</p>
+                  <h2 className="text-3xl font-bold text-foreground">Answers collected!</h2>
+                  <p className="text-muted">Now let's see your real spending data...</p>
                 </motion.div>
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.6 }}
-                  className="flex gap-2 text-xs text-zinc-500"
+                  className="flex gap-2 text-xs text-muted"
                 >
-                  <span className="px-2 py-1 rounded-full bg-zinc-800">+60 XP</span>
-                  <span className="px-2 py-1 rounded-full bg-zinc-800">Step 1/2 complete</span>
+                  <span className="rounded-full bg-primary-light px-2 py-1 text-primary-dark">+60 XP</span>
+                  <span className="rounded-full bg-secondary-light px-2 py-1 text-secondary-dark">Step 1/2 complete</span>
                 </motion.div>
               </motion.div>
             )}
@@ -221,25 +221,25 @@ export function OnboardingChat({ onComplete }: OnboardingChatProps) {
         </div>
 
         <div className="space-y-4 pb-10 mt-auto pt-8">
-          <div className="flex justify-between items-center text-xs text-zinc-500 font-bold tracking-widest">
+          <div className="flex items-center justify-between text-xs font-bold tracking-widest text-muted">
             <span>PROGRESS</span>
-            <span className="text-brand-light">{Math.round(((currentStep + 1) / QUESTIONS.length) * 100)}%</span>
+            <span className="text-primary-dark">{Math.round(((currentStep + 1) / QUESTIONS.length) * 100)}%</span>
           </div>
-          <div className="h-3 w-full bg-zinc-900 rounded-full overflow-hidden border border-zinc-800 shadow-inner">
+          <div className="h-3 w-full overflow-hidden rounded-full border border-white/80 bg-white/80 shadow-inner">
             <motion.div 
-              className="h-full bg-gradient-to-r from-brand via-emerald-400 to-brand bg-[length:200%_100%] animate-[gradient_2s_linear_infinite]"
+              className="h-full bg-gradient-to-r from-primary via-secondary to-tertiary bg-[length:200%_100%] animate-[gradient_2s_linear_infinite]"
               initial={{ width: 0 }}
               animate={{ width: `${((currentStep + 1) / QUESTIONS.length) * 100}%` }}
               transition={{ duration: 0.5, ease: "easeOut" }}
             />
           </div>
           <div className="flex justify-center">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900/80 border border-zinc-800">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-white/85 px-3 py-1">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-yellow-500"></span>
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-amber-500"></span>
               </span>
-              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted">
                 +12 XP earned per answer
               </span>
             </div>

@@ -30,6 +30,7 @@ class TransactionIntentPayload:
     merchant_type: str
     item_name: str | None
     essential: bool
+    uses_bnpl: bool = False
 
 
 @dataclass(slots=True)

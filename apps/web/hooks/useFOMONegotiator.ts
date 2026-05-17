@@ -73,11 +73,23 @@ export function useFOMONegotiator(): UseFOMONegotiatorReturn {
       const result = await fomoResolve({ choice, amount, category, emotional_state: emotionalState });
       setResolution(result);
       setPhase("resolved");
-      // Fire-and-forget pet XP + mood nudge after FOMO decision
+
+      // ── Cross-agent actions based on choice ──────────────────────────
       const event = choice === "walk_away" ? "walk_away" : choice === "bnpl" ? "impulse_blocked" : "budget_under";
       const context = choice === "walk_away" ? "savings_goal_met" : "impulse_spend";
+
+      // Pet Companion: mood response to every decision
       awardPetXP({ event, amount_rm: amount }).catch(() => {});
       getPetNudge({ context, amount_rm: amount, category }).catch(() => {});
+
+      // BNPL: trigger PWA monitor check (backend already activated it via fomo_actions)
+      // The PwaLockdownOverlay polls independently — this just ensures it picks up fast
+      if (choice === "bnpl") {
+        // Import dynamically to avoid circular dependency concerns
+        import("@/lib/api").then(({ getPwaMonitorState }) => {
+          getPwaMonitorState().catch(() => {});
+        });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setPhase("error");

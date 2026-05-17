@@ -67,20 +67,20 @@ export function ReceiptCapture({ onClose, onComplete }: ReceiptCaptureProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white/70 p-4 backdrop-blur-md">
       <motion.div 
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <Card className="overflow-hidden border-none bg-zinc-900 text-white shadow-2xl">
+        <Card className="overflow-hidden border-none bg-white text-foreground shadow-2xl">
           {/* Header */}
-          <div className="p-4 border-b border-white/10 flex justify-between items-center">
+          <div className="flex items-center justify-between border-b border-white/70 p-4">
             <h3 className="font-bold flex items-center gap-2">
-              <Camera size={20} className="text-brand" />
+              <Camera size={20} className="text-primary" />
               {image ? "Preview Receipt" : "Scan Receipt / Statement"}
             </h3>
-            <button onClick={onClose} className="text-zinc-400 hover:text-white">
+            <button onClick={onClose} className="text-muted hover:text-foreground">
               <X size={24} />
             </button>
           </div>
@@ -89,30 +89,30 @@ export function ReceiptCapture({ onClose, onComplete }: ReceiptCaptureProps) {
             {/* Image area */}
             <div className="relative">
               {image ? (
-                <div className="relative rounded-2xl overflow-hidden border-2 border-white/20">
-                  <img src={image} className="w-full max-h-[300px] object-contain bg-black/40" alt="Receipt preview" />
+                <div className="relative overflow-hidden rounded-2xl border-2 border-white/70">
+                  <img src={image} className="w-full max-h-[300px] object-contain bg-white/70" alt="Receipt preview" />
                   
                   {isScanning && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="absolute inset-0 bg-black/60 flex items-center justify-center"
+                      className="absolute inset-0 flex items-center justify-center bg-white/80"
                     >
                       <div className="text-center space-y-4">
                         {/* Animated scanning rings */}
                         <div className="relative mx-auto w-24 h-24">
                           <motion.div
-                            className="absolute inset-0 rounded-full border-2 border-brand/60"
+                            className="absolute inset-0 rounded-full border-2 border-primary/60"
                             animate={{ scale: [1, 1.5], opacity: [0.6, 0] }}
                             transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
                           />
                           <motion.div
-                            className="absolute inset-0 rounded-full border-2 border-brand/40"
+                            className="absolute inset-0 rounded-full border-2 border-secondary/40"
                             animate={{ scale: [1, 1.5], opacity: [0.6, 0] }}
                             transition={{ duration: 1.5, repeat: Infinity, delay: 0.5, ease: "easeOut" }}
                           />
                           <motion.div
-                            className="absolute inset-0 rounded-full border-2 border-brand/20"
+                            className="absolute inset-0 rounded-full border-2 border-tertiary/20"
                             animate={{ scale: [1, 1.5], opacity: [0.6, 0] }}
                             transition={{ duration: 1.5, repeat: Infinity, delay: 1, ease: "easeOut" }}
                           />
@@ -124,12 +124,12 @@ export function ReceiptCapture({ onClose, onComplete }: ReceiptCaptureProps) {
                             animate={{ rotate: [0, 360] }}
                             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                           />
-                          <div className="absolute inset-[10px] rounded-full bg-zinc-900 flex items-center justify-center">
-                            <Camera size={20} className="text-brand" />
+                          <div className="absolute inset-[10px] flex items-center justify-center rounded-full bg-white">
+                            <Camera size={20} className="text-primary" />
                           </div>
                         </div>
-                        <p className="text-sm text-white/80 font-medium">Agent 4 scanning your receipt...</p>
-                        <p className="text-xs text-zinc-400">Reading amounts, merchant, and categories</p>
+                        <p className="text-sm font-medium text-foreground">Agent 4 scanning your receipt...</p>
+                        <p className="text-xs text-muted">Reading amounts, merchant, and categories</p>
                       </div>
                     </motion.div>
                   )}
@@ -139,7 +139,7 @@ export function ReceiptCapture({ onClose, onComplete }: ReceiptCaptureProps) {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-white/30 text-white bg-black/50 hover:bg-black/70"
+                        className="border-white/80 bg-white/90 text-foreground hover:bg-white"
                         onClick={(e) => { e.stopPropagation(); pickImage(); }}
                       >
                         Change
@@ -147,7 +147,7 @@ export function ReceiptCapture({ onClose, onComplete }: ReceiptCaptureProps) {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-red-400/30 text-red-300 bg-black/50 hover:bg-black/70"
+                        className="border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
                         onClick={(e) => { e.stopPropagation(); setImage(null); }}
                       >
                         Remove
@@ -158,14 +158,14 @@ export function ReceiptCapture({ onClose, onComplete }: ReceiptCaptureProps) {
               ) : (
                 <button
                   onClick={pickImage}
-                  className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-white/20 bg-white/5 flex flex-col items-center justify-center gap-4 hover:border-brand/50 hover:bg-white/10 transition-colors cursor-pointer"
+                  className="flex aspect-[4/3] w-full cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-primary/25 bg-white/75 transition-colors hover:border-primary/45 hover:bg-white"
                 >
-                  <div className="h-16 w-16 rounded-full bg-brand/20 flex items-center justify-center text-brand">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 text-primary">
                     <ImagePlus size={32} />
                   </div>
                   <div className="text-center space-y-1">
-                    <p className="font-medium text-white">Tap to take photo or upload</p>
-                    <p className="text-xs text-zinc-400">Receipt · Bank statement · Screenshot</p>
+                    <p className="font-medium text-foreground">Tap to take photo or upload</p>
+                    <p className="text-xs text-muted">Receipt · Bank statement · Screenshot</p>
                   </div>
                 </button>
               )}

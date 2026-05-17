@@ -47,16 +47,16 @@ export function BankStatementUpload({ onComplete, onSkip }: BankStatementUploadP
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-zinc-950 text-white overflow-hidden">
+    <div className="flex min-h-[100dvh] flex-col overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.18),_transparent_28rem),radial-gradient(circle_at_bottom_right,_rgba(79,195,247,0.16),_transparent_24rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)] text-foreground">
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-6 max-w-md mx-auto w-full">
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
-          <div className="mx-auto h-20 w-20 rounded-3xl bg-brand/20 flex items-center justify-center text-brand">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-white/80 text-primary shadow-xl backdrop-blur">
             <FileUp size={40} />
           </div>
           <h2 className="text-2xl font-bold">Let's see your spending 🔍</h2>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-muted">
             Snap a photo or upload your bank statement — even a screenshot works.
             The more data you share, the smarter your AI gets.
           </p>
@@ -69,24 +69,24 @@ export function BankStatementUpload({ onComplete, onSkip }: BankStatementUploadP
           {!image && !result && (
             <button
               onClick={pickFile}
-              className="w-full aspect-[3/2] rounded-2xl border-2 border-dashed border-white/20 bg-white/5 flex flex-col items-center justify-center gap-3 hover:border-brand/50 hover:bg-white/10 transition-colors cursor-pointer"
+              className="flex aspect-[3/2] w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-[1.75rem] border-2 border-dashed border-primary/25 bg-white/75 transition-colors hover:border-primary/45 hover:bg-white"
             >
-              <ImagePlus size={36} className="text-zinc-400" />
-              <span className="text-sm text-zinc-400">Tap to upload your statement 📄</span>
-              <span className="text-xs text-zinc-600">Even a screenshot works — the more, the better ✨</span>
+              <ImagePlus size={36} className="text-primary" />
+              <span className="text-sm text-muted">Tap to upload your statement 📄</span>
+              <span className="text-xs text-neutral">Even a screenshot works — the more, the better ✨</span>
             </button>
           )}
 
           {image && !result && !isScanning && (
             <div className="space-y-3">
-              <div className="relative rounded-2xl overflow-hidden border-2 border-white/20">
-                <img src={image} className="w-full max-h-[200px] object-contain bg-black/40" alt="Statement preview" />
+              <div className="relative overflow-hidden rounded-2xl border-2 border-white/70">
+                <img src={image} className="w-full max-h-[200px] object-contain bg-white/60" alt="Statement preview" />
               </div>
-              <Button onClick={handleUpload} className="w-full py-6 text-lg bg-brand hover:bg-brand-dark">
+              <Button onClick={handleUpload} className="w-full py-6 text-lg text-white">
                 <Upload className="mr-2" size={20} />
                 Scan Statement
               </Button>
-              <button onClick={() => setImage(null)} className="w-full text-xs text-zinc-500 hover:text-zinc-300">
+              <button onClick={() => setImage(null)} className="w-full text-xs text-muted hover:text-primary-dark">
                 Choose different file
               </button>
             </div>
@@ -124,9 +124,9 @@ export function BankStatementUpload({ onComplete, onSkip }: BankStatementUploadP
                 </div>
               </div>
               <div className="text-center space-y-1">
-                <p className="text-sm text-zinc-300 font-medium">Agent 4 is analyzing your statement...</p>
+                <p className="text-sm font-medium text-foreground">Agent 4 is analyzing your statement...</p>
                 <motion.p
-                  className="text-xs text-zinc-500"
+                  className="text-xs text-muted"
                   animate={{ opacity: [1, 0.4, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
@@ -138,31 +138,31 @@ export function BankStatementUpload({ onComplete, onSkip }: BankStatementUploadP
 
           {result && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-              className="space-y-4 p-6 rounded-2xl bg-zinc-900 border border-zinc-800"
+              className="space-y-4 rounded-2xl border border-white/80 bg-white/85 p-6 shadow-[0_24px_60px_-28px_rgba(124,92,255,0.35)]"
             >
-              <CheckCircle2 className="mx-auto text-emerald-400" size={40} />
+              <CheckCircle2 className="mx-auto text-emerald-500" size={40} />
               <div>
-                <p className="text-lg font-bold text-white">
+                <p className="text-lg font-bold text-foreground">
                   {result.total_inserted} transactions extracted
                 </p>
-                <p className="text-sm text-zinc-400">
+                <p className="text-sm text-muted">
                   {result.total_inserted} saved to DB · {result.total_failed} failed
                 </p>
               </div>
 
               {result.scan_result?.transactions.slice(0, 3).map((txn: any, i: number) => (
-                <div key={i} className="flex justify-between text-sm text-zinc-300 bg-zinc-800/50 rounded-lg px-3 py-2">
+                <div key={i} className="flex justify-between rounded-lg bg-surface-muted px-3 py-2 text-sm text-foreground">
                   <span className="truncate">{txn.merchant}</span>
-                  <span className="text-zinc-400">RM{txn.amount.toFixed(2)}</span>
+                  <span className="text-muted">RM{txn.amount.toFixed(2)}</span>
                 </div>
               ))}
 
-              <div className="flex items-center justify-center gap-2 text-sm text-brand">
+              <div className="flex items-center justify-center gap-2 text-sm text-primary-dark">
                 <Database size={14} />
                 <span>+{result.xp_earned} XP</span>
               </div>
 
-              <Button onClick={() => onComplete(result)} className="w-full py-6 text-lg bg-brand hover:bg-brand-dark">
+              <Button onClick={() => onComplete(result)} className="w-full py-6 text-lg text-white">
                 Continue to Dashboard
               </Button>
             </motion.div>
@@ -171,7 +171,7 @@ export function BankStatementUpload({ onComplete, onSkip }: BankStatementUploadP
 
         {/* Error */}
         {error && (
-          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 text-sm w-full">
+          <div className="w-full rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
             {error}
           </div>
         )}
@@ -188,7 +188,7 @@ export function BankStatementUpload({ onComplete, onSkip }: BankStatementUploadP
         {/* Skip */}
         {!result && !isScanning && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-            <button onClick={onSkip} className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors">
+            <button onClick={onSkip} className="flex items-center gap-2 text-sm text-muted transition-colors hover:text-primary-dark">
               <SkipForward size={16} />
 I'll do this later — take me to the app
             </button>

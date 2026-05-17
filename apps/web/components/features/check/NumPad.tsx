@@ -42,8 +42,8 @@ export function NumPad({ value, onChange }: NumPadProps) {
           className={cn(
             "rounded-2xl py-4 text-xl font-semibold transition-colors active:scale-95",
             key === "⌫"
-              ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+              ? "bg-surface-muted text-muted hover:bg-neutral-light"
+              : "bg-surface-muted text-foreground hover:bg-neutral-light"
           )}
         >
           {key}

@@ -10,8 +10,7 @@ import type { FOMONegotiateRequest } from "@/types";
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Bajet Buddy",
   "/check": "Check Spend",
-  "/persona": "My Persona",
-  "/buddies": "Buddies",
+  "/profiles": "My Profile",
   "/freeze": "Account Freeze",
   "/onboarding": "Progressive Profiling",
 };
@@ -79,10 +78,10 @@ const MOCK_NOTIFICATIONS: Notification[] = [
 ];
 
 const typeStyles: Record<Notification["type"], string> = {
-  warning: "bg-tertiary-light border-tertiary text-tertiary",
+  warning: "bg-tertiary-light border-tertiary/40 text-tertiary-dark",
   success: "bg-emerald-50 border-emerald-200 text-emerald-700",
-  info:    "bg-neutral-light border-border text-neutral",
-  fomo:    "bg-primary-light border-primary text-primary",
+  info:    "bg-surface-muted border-border text-neutral-dark",
+  fomo:    "bg-primary-light border-primary/40 text-primary-dark",
 };
 
 export function TopBar() {
@@ -111,10 +110,10 @@ export function TopBar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface/95 px-4 py-3 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-white/70 bg-white/80 px-4 py-3 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
+          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary text-white shadow-sm">
             <Wallet className="h-4 w-4" />
           </div>
           <div>
@@ -129,12 +128,12 @@ export function TopBar() {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-surface text-neutral transition-colors hover:border-primary hover:text-primary"
+            className="relative flex h-9 w-9 items-center justify-center rounded-2xl border border-white/80 bg-white text-neutral transition-colors hover:border-primary/30 hover:text-primary shadow-sm"
             aria-label="Notifications"
           >
             <Bell className="h-4 w-4" />
             {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[10px] font-bold text-white">
+              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-tertiary text-[10px] font-bold text-white shadow-sm">
                 {unreadCount}
               </span>
             )}
@@ -149,12 +148,12 @@ export function TopBar() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.96 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-11 z-50 w-80 rounded-2xl border border-border bg-surface shadow-lg"
+                  className="absolute right-0 top-11 z-50 w-80 rounded-[1.75rem] border border-border bg-white shadow-lg"
                 >
                   <div className="flex items-center justify-between border-b border-border px-4 py-3">
                     <span className="text-sm font-semibold text-foreground">Notifications</span>
                     {unreadCount > 0 && (
-                      <button type="button" onClick={markAllRead} className="text-xs text-primary hover:text-primary-dark font-medium">
+                      <button type="button" onClick={markAllRead} className="text-xs font-semibold text-primary hover:text-primary-dark">
                         Mark all read
                       </button>
                     )}
@@ -167,7 +166,7 @@ export function TopBar() {
                         <div
                           key={n.id}
                           onClick={() => handleNotificationClick(n)}
-                          className={`relative flex gap-3 px-4 py-3 ${!n.read ? "bg-primary-light/30" : ""} ${n.type === "fomo" ? "cursor-pointer hover:bg-primary-light/40" : ""}`}
+                          className={`relative flex gap-3 px-4 py-3 ${!n.read ? "bg-primary-light/20" : ""} ${n.type === "fomo" ? "cursor-pointer hover:bg-primary-light/35" : ""}`}
                         >
                           <div className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${!n.read ? "bg-primary" : "bg-transparent"}`} />
                           <div className="min-w-0 flex-1">
@@ -175,11 +174,11 @@ export function TopBar() {
                               {n.type === "fomo" ? "FOMO alert" : n.type}
                             </div>
                             <p className="text-sm font-medium text-foreground">{n.title}</p>
-                            <p className="mt-0.5 text-xs leading-5 text-muted">{n.body}</p>
+                            <p className="mt-0.5 text-xs leading-5 text-neutral-dark">{n.body}</p>
                             {n.type === "fomo" && (
-                              <p className="mt-1 text-[11px] font-semibold text-primary">Tap to open Negotiator →</p>
+                              <p className="mt-1 text-[11px] font-semibold text-primary-dark">Tap to open Negotiator →</p>
                             )}
-                            <p className="mt-1 text-[10px] text-neutral">{n.time}</p>
+                            <p className="mt-1 text-[10px] text-muted">{n.time}</p>
                           </div>
                           <button
                             type="button"

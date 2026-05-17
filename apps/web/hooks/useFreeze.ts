@@ -62,6 +62,10 @@ export function useFreeze() {
 
   async function freeze(type: "soft" | "hard") {
     setError(null);
+    if (isGuest) {
+      setError("Sign in to activate spending freeze");
+      return;
+    }
     try {
       const updated = await activateFreeze(type);
       setStatus(updated as FreezeStatus);
@@ -72,6 +76,10 @@ export function useFreeze() {
 
   async function override() {
     setError(null);
+    if (isGuest) {
+      setError("Sign in to override spending freeze");
+      return false;
+    }
     try {
       const updated = await overrideFreeze();
       setStatus(updated as FreezeStatus);

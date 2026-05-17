@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.core.auth import AuthenticatedUser, get_current_user
+from app.core.auth import AuthenticatedUser, get_optional_user
 from app.services.budget_service import get_budget_summary, get_category_budgets
 
 router = APIRouter()
@@ -13,15 +13,15 @@ MOCK_TRANSACTIONS = [
 
 
 @router.get("")
-async def list_transactions(current_user: AuthenticatedUser = Depends(get_current_user)):
+async def list_transactions(current_user: AuthenticatedUser | None = Depends(get_optional_user)):
     return MOCK_TRANSACTIONS
 
 
 @router.get("/summary")
-async def budget_summary(current_user: AuthenticatedUser = Depends(get_current_user)):
-    return get_budget_summary(current_user.user_id)
+async def budget_summary(current_user: AuthenticatedUser | None = Depends(get_optional_user)):
+    return get_budget_summary(current_user.user_id if current_user else "demo")
 
 
 @router.get("/categories")
-async def category_budgets(current_user: AuthenticatedUser = Depends(get_current_user)):
-    return get_category_budgets(current_user.user_id)
+async def category_budgets(current_user: AuthenticatedUser | None = Depends(get_optional_user)):
+    return get_category_budgets(current_user.user_id if current_user else "demo")

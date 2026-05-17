@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from datetime import date, datetime, timezone
 from typing import TypedDict
+import logging
+from app.core.database import get_supabase
+
+logger = logging.getLogger(__name__)
 
 XP_TABLE = {
     "boleh": 10,
@@ -48,6 +52,21 @@ def level_for_xp(xp: int) -> tuple[int, str, int, int]:
 
 
 def _get_state(user_id: str) -> GamificationState:
+    # Try to fetch from Supabase first if it's not the "demo" user
+    if user_id != "demo":
+        supabase = get_supabase()
+        if supabase:
+            try:
+                res = supabase.table("user_gamification").select("*").eq("user_id", user_id).maybe_single().execute()
+                if res.data:
+                    return {
+                        "xp": res.data.get("xp", 0),
+                        "streak": res.data.get("streak_days", 0),
+                        "last_active_date": date.fromisoformat(res.data["updated_at"][:10]) if res.data.get("updated_at") else None
+                    }
+            except Exception as e:
+                logger.error(f"Failed to fetch gamification from Supabase: {e}")
+
     if user_id not in _gamification_store:
         _gamification_store[user_id] = DEFAULT_GAMIFICATION.copy()
     return _gamification_store[user_id]
@@ -77,7 +96,7 @@ def get_gamification_status(user_id: str = "demo") -> dict:
         "level_min_xp": min_xp,
         "xp_to_next": max_xp,
         "progress_pct": round(((state["xp"] - min_xp) / max(max_xp - min_xp, 1)) * 100, 1),
-        "last_active_date": state["last_active_date"].isoformat() if state["last_active_date"] else None,
+        "last_active_date": state["last_active_date"].isoformat() if state["last_active_date"] else (state["last_active_date"] if isinstance(state["last_active_date"], str) else None),
     }
 
 

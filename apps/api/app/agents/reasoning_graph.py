@@ -119,6 +119,7 @@ async def _evaluate_risk_node(state: GraphState) -> GraphState:
             category_budget_spent=category["spent"],
             bnpl_due_this_month=0.0 if state.payload.essential else bnpl_due_this_month,
             bnpl_due_within_7_days=0.0 if state.payload.essential else bnpl_due_within_7_days,
+            uses_bnpl=getattr(state.payload, "bnpl", False),
             has_midnight_spending_pattern=state.persona["type"] == "midnight_shopee_queen",
             historical_behaviour_score=max(
                 10,
@@ -144,6 +145,7 @@ async def _generate_nudge_node(state: GraphState) -> GraphState:
                 merchant_type="essential" if state.payload.essential else state.payload.merchant_type,
                 item_name=state.payload.item_name,
                 essential=state.payload.essential,
+                uses_bnpl=getattr(state.payload, "bnpl", False),
             ),
             risk_score=risk.risk_score,
             budget_context=BudgetContextPayload(

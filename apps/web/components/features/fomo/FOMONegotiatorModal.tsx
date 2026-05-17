@@ -5,7 +5,9 @@ import { X, Clock, Loader2, CheckCircle2, Flame } from "lucide-react";
 import { cn, formatRM } from "@/lib/utils";
 import { FOMOHeatGauge } from "./FOMOHeatGauge";
 import { ImpulseBountyJar } from "./ImpulseBountyJar";
+import { PwaLockdownOverlay } from "./PwaLockdownOverlay";
 import { useFOMONegotiator } from "@/hooks/useFOMONegotiator";
+import { usePwaMonitor } from "@/hooks/usePwaMonitor";
 import type {
   EmotionalState,
   FOMOChoice,
@@ -118,6 +120,13 @@ function OptionCard({
 
   const xpColor = option.xp_delta > 0 ? "text-emerald-600" : option.xp_delta < 0 ? "text-red-500" : "text-zinc-400";
 
+  // Action descriptors for each choice
+  const actionDescriptions: Record<FOMOChoice, string> = {
+    cash: "📊 Budget auto-updated · 🧠 Persona engine synced · 🐱 Pet companion notified",
+    bnpl: "🛡️ 24h PWA monitor ACTIVE · 🚨 Shopee/Lazada = lockdown · 🔍 Sentinel alerted · 😿 Pet disappointed",
+    walk_away: "🫙 Bounty Jar deposit · 🔥 Streak bonus · 🎉 Pet celebrates · 🧊 12h cooldown · 🏆 Unlock Hype Man",
+  };
+
   return (
     <motion.button
       whileHover={{ scale: 1.01 }}
@@ -149,6 +158,15 @@ function OptionCard({
               12-hour cooldown — breathe, then reconsider
             </div>
           )}
+          {/* Action consequences */}
+          <p className={cn(
+            "text-[10px] mt-1.5 leading-4 border-t pt-1.5",
+            choiceKey === "walk_away" ? "text-emerald-500 border-emerald-100" :
+            choiceKey === "bnpl" ? "text-amber-500 border-amber-200" :
+            "text-zinc-400 border-zinc-100"
+          )}>
+            {actionDescriptions[choiceKey]}
+          </p>
         </div>
         <div className={cn("shrink-0 text-sm font-bold", xpColor)}>
           {option.xp_delta > 0 ? `+${option.xp_delta}` : option.xp_delta !== 0 ? String(option.xp_delta) : "±0"} XP
@@ -168,7 +186,15 @@ function ResolutionView({
   onClose: () => void;
 }) {
   const isWalkAway = resolution.cooldown_until !== null;
-  const bigEmoji = isWalkAway ? "🧘" : resolution.loot_box_unlocked ? "🎁" : resolution.xp_delta < 0 ? "😬" : "✅";
+  const isBnpl = resolution.heat_delta > 0 && !isWalkAway;
+  const bigEmoji = isWalkAway ? "🧘" : resolution.loot_box_unlocked ? "🎁" : isBnpl ? "⚠️" : resolution.xp_delta < 0 ? "😬" : "✅";
+
+  // Agent sync indicators
+  const syncedAgents = isWalkAway
+    ? ["🧠 Persona", "🔍 Sentinel", "🐱 Pet", "🏆 Gamification", "📊 Budget"]
+    : isBnpl
+    ? ["🧠 Persona", "🔍 Sentinel", "😿 Pet", "🛡️ PWA Monitor", "⚠️ Risk alert"]
+    : ["🧠 Persona", "📊 Budget", "🐱 Pet"];
 
   return (
     <motion.div
@@ -186,9 +212,26 @@ function ResolutionView({
           {bigEmoji}
         </motion.div>
         <p className="font-bold text-zinc-900">
-          {isWalkAway ? "Walked away — respect!" : resolution.loot_box_unlocked ? "Bounty Jar maxed!" : "Decision logged."}
+          {isWalkAway ? "Walked away — respect!" : resolution.loot_box_unlocked ? "Bounty Jar maxed!" : isBnpl ? "BNPL committed — monitor active" : "Decision logged."}
         </p>
         <p className="text-sm text-zinc-500 leading-6 max-w-[280px] mx-auto">{resolution.message}</p>
+      </div>
+
+      {/* Agent sync indicators */}
+      <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-2.5">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 mb-1.5">
+          AI Agents Synced
+        </p>
+        <div className="flex flex-wrap gap-1">
+          {syncedAgents.map((agent) => (
+            <span
+              key={agent}
+              className="inline-flex items-center rounded-full bg-white border border-zinc-200 px-2 py-0.5 text-[10px] text-zinc-600"
+            >
+              {agent}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Persona reaction */}
@@ -254,6 +297,7 @@ export function FOMONegotiatorModal({ open, request, onClose }: FOMONegotiatorMo
     phase, negotiation, resolution, emotionalState, personaPreference,
     error, open: startFlow, setEmotion, setPersona, confirmEmotion, choose, reset,
   } = useFOMONegotiator();
+  const { lockdown, dismissLockdown } = usePwaMonitor();
 
   function handleOpen() {
     if (request) startFlow(request);
@@ -480,6 +524,9 @@ export function FOMONegotiatorModal({ open, request, onClose }: FOMONegotiatorMo
           </motion.div>
         </>
       )}
+
+      {/* PWA Lockdown overlay — shown on top of everything when BNPL monitor triggers */}
+      <PwaLockdownOverlay lockdown={lockdown} onDismiss={dismissLockdown} />
     </AnimatePresence>
   );
 }

@@ -23,6 +23,7 @@ class RiskEvaluationInput:
     category_budget_spent: float
     bnpl_due_this_month: float = 0.0
     bnpl_due_within_7_days: float = 0.0
+    uses_bnpl: bool = False
     has_midnight_spending_pattern: bool = False
     historical_behaviour_score: int = 50
 
@@ -89,12 +90,30 @@ def evaluate_risk(payload: RiskEvaluationInput) -> RiskEvaluationResult:
     )
     purchase_vs_balance_ratio = payload.amount / max(payload.current_balance, 1)
 
+    # Amount-tier scaling: small purchases shouldn't trigger the same alarms
+    # < RM20  → micro (lenient: 0.2× risk weight)
+    # < RM80  → small (moderate: 0.5×)
+    # < RM200 → medium (standard: 0.8×)
+    # ≥ RM200 → large  (full: 1.0×)
+    if payload.amount < 20:
+        amount_tier = 0.2
+        amount_tier_label = "micro"
+    elif payload.amount < 80:
+        amount_tier = 0.5
+        amount_tier_label = "small"
+    elif payload.amount < 200:
+        amount_tier = 0.8
+        amount_tier_label = "medium"
+    else:
+        amount_tier = 1.0
+        amount_tier_label = "large"
+
     factors: list[RiskFactorDetail] = []
     reason_codes: list[str] = []
     score = 0.0
     forced_verdict: Verdict | None = None
 
-    category_score = int(_clamp(category_usage_after * 35, 0, 35))
+    category_score = int(_clamp(category_usage_after * 35, 0, 35) * amount_tier)
     factors.append(
         RiskFactorDetail(
             factor="category_budget_usage",
@@ -119,15 +138,16 @@ def evaluate_risk(payload: RiskEvaluationInput) -> RiskEvaluationResult:
         reason_codes.append("LONG_TIME_TO_SALARY")
 
     if projected_daily_survival_amount < 25:
-        daily_score = 30
-        forced_verdict = "JANGAN_DULU"
+        daily_score = int(30 * amount_tier)
+        if amount_tier >= 0.8:  # Only force block for medium+ purchases
+            forced_verdict = "JANGAN_DULU"
         reason_codes.append("DAILY_SURVIVAL_BELOW_RM25")
     elif projected_daily_survival_amount < 40:
-        daily_score = 18
+        daily_score = int(18 * amount_tier)
         reason_codes.append("DAILY_SURVIVAL_TIGHT")
     else:
         daily_score = int(
-            _clamp((60 - projected_daily_survival_amount) / 2, 0, 12)
+            _clamp((60 - projected_daily_survival_amount) / 2, 0, 12) * amount_tier
         )
     factors.append(
         RiskFactorDetail(
@@ -142,15 +162,15 @@ def evaluate_risk(payload: RiskEvaluationInput) -> RiskEvaluationResult:
 
     if payload.bnpl_due_within_7_days > 0:
         bnpl_score = int(
-            _clamp((payload.bnpl_due_within_7_days / max(payload.current_balance, 1)) * 25, 8, 25)
+            _clamp((payload.bnpl_due_within_7_days / max(payload.current_balance, 1)) * 25, 8, 25) * amount_tier
         )
         reason_codes.append("BNPL_DUE_WITHIN_7_DAYS")
-        if payload.merchant_type == "discretionary":
+        if payload.merchant_type == "discretionary" and amount_tier >= 0.8:
             forced_verdict = "JANGAN_DULU"
             reason_codes.append("BNPL_DUE_SOON_DISCRETIONARY")
     else:
         bnpl_score = int(
-            _clamp((payload.bnpl_due_this_month / max(payload.current_balance, 1)) * 10, 0, 10)
+            _clamp((payload.bnpl_due_this_month / max(payload.current_balance, 1)) * 10, 0, 10) * amount_tier
         )
         if payload.bnpl_due_this_month > 0:
             reason_codes.append("BNPL_DUE_THIS_MONTH")
@@ -163,14 +183,36 @@ def evaluate_risk(payload: RiskEvaluationInput) -> RiskEvaluationResult:
     )
     score += bnpl_score
 
+    # New risk factor: user intends to use BNPL for THIS purchase
+    if payload.uses_bnpl:
+        bnpl_choice_score = int(20 * amount_tier)
+        reason_codes.append("USING_BNPL_FOR_PURCHASE")
+        if payload.merchant_type == "discretionary" and payload.amount >= 200:
+            bnpl_choice_score += 15
+            reason_codes.append("BNPL_LARGE_DISCRETIONARY")
+            if projected_daily_survival_amount < 40:
+                forced_verdict = "JANGAN_DULU"
+                reason_codes.append("BNPL_DANGER_ZONE")
+        elif payload.amount >= 500:
+            bnpl_choice_score += 10
+            reason_codes.append("BNPL_HIGH_AMOUNT")
+        factors.append(
+            RiskFactorDetail(
+                factor="uses_bnpl_this_purchase",
+                score=bnpl_choice_score,
+                signal=f"User intends to use BNPL for this RM{payload.amount:.2f} purchase — future debt risk.",
+            )
+        )
+        score += bnpl_choice_score
+
     midnight_purchase = _is_midnight_purchase(payload.purchase_at)
     if midnight_purchase and payload.has_midnight_spending_pattern:
-        time_score = 18 if projected_daily_survival_amount < 40 else 12
+        time_score = int((18 if projected_daily_survival_amount < 40 else 12) * amount_tier)
         reason_codes.append("MIDNIGHT_SPENDING_PATTERN")
-        if projected_daily_survival_amount < 40:
+        if projected_daily_survival_amount < 40 and amount_tier >= 0.8:
             forced_verdict = "JANGAN_DULU"
     elif midnight_purchase:
-        time_score = 6
+        time_score = int(6 * amount_tier)
         reason_codes.append("LATE_NIGHT_PURCHASE")
     else:
         time_score = 1
@@ -187,10 +229,10 @@ def evaluate_risk(payload: RiskEvaluationInput) -> RiskEvaluationResult:
         merchant_score = -10
         reason_codes.append("ESSENTIAL_PURCHASE_BUFFER")
     elif payload.merchant_type == "discretionary":
-        merchant_score = 10
+        merchant_score = int(10 * amount_tier)
         reason_codes.append("DISCRETIONARY_PURCHASE")
     else:
-        merchant_score = 4
+        merchant_score = int(4 * amount_tier)
     factors.append(
         RiskFactorDetail(
             factor="merchant_type",
@@ -218,7 +260,7 @@ def evaluate_risk(payload: RiskEvaluationInput) -> RiskEvaluationResult:
     elif payload.days_until_salary <= 5:
         payday_score = -2
     else:
-        payday_score = 6
+        payday_score = int(6 * amount_tier)
     factors.append(
         RiskFactorDetail(
             factor="payday_proximity",
@@ -230,10 +272,10 @@ def evaluate_risk(payload: RiskEvaluationInput) -> RiskEvaluationResult:
 
     end_of_month_score = 0
     if payload.days_until_salary <= 7 and projected_remaining_balance < 300:
-        end_of_month_score = 14
+        end_of_month_score = int(14 * amount_tier)
         reason_codes.append("END_OF_MONTH_PRESSURE")
     elif payload.days_until_salary <= 10 and projected_remaining_balance < 500:
-        end_of_month_score = 8
+        end_of_month_score = int(8 * amount_tier)
     factors.append(
         RiskFactorDetail(
             factor="end_of_month_pressure",
@@ -257,11 +299,17 @@ def evaluate_risk(payload: RiskEvaluationInput) -> RiskEvaluationResult:
 
     final_score = int(_clamp(round(score), 0, 100))
 
+    # Marginal category bump: a micro purchase pushing category from 84%→85% shouldn't force FIKIR_DULU
+    category_marginal_increase = category_usage_after - category_usage_before
+    category_overspent_forcing = (
+        category_usage_after >= 0.85 and category_marginal_increase > 0.03
+    )
+
     if forced_verdict is not None:
         verdict = forced_verdict
     elif final_score >= 70:
         verdict = "JANGAN_DULU"
-    elif final_score >= 45 or category_usage_after >= 0.85:
+    elif final_score >= 45 or category_overspent_forcing:
         verdict = "FIKIR_DULU"
     else:
         verdict = "BOLEH"

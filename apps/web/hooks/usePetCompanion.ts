@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { getPetStatus, selectPetSpecies, awardPetXP } from "@/lib/api";
+import { useGuestMode } from "@/hooks/useGuestMode";
 import type {
   PetProfile,
   PetNudge,
@@ -40,6 +41,7 @@ export function usePetCompanion(): UsePetCompanionReturn {
   const [levelUpPending, setLevelUpPending] = useState(false);
   const [newAccessory, setNewAccessory] = useState<PetAccessory | null>(null);
   const mountedRef = useRef(true);
+  const { isGuest } = useGuestMode();
 
   useEffect(() => {
     mountedRef.current = true;
@@ -47,6 +49,14 @@ export function usePetCompanion(): UsePetCompanionReturn {
   }, []);
 
   const refresh = useCallback(async (context = "dashboard_open", amount_rm?: number, category?: string) => {
+    if (isGuest) {
+      setProfile(null);
+      setNudge(null);
+      setAvailableAccessories([]);
+      setXpToNext(0);
+      setProgressPct(0);
+      return;
+    }
     setLoading(true);
     try {
       const status = await getPetStatus(context, amount_rm, category);
@@ -61,23 +71,17 @@ export function usePetCompanion(): UsePetCompanionReturn {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, []);
+  }, [isGuest]);
 
   useEffect(() => {
-    getPetStatus("dashboard_open")
-      .then((status) => {
-        if (!mountedRef.current) return;
-        setProfile(status.profile);
-        setNudge(status.nudge);
-        setAvailableAccessories(status.available_accessories);
-        setXpToNext(status.xp_to_next_level);
-        setProgressPct(status.progress_pct);
-      })
-      .catch(() => {})
-      .finally(() => { if (mountedRef.current) setLoading(false); });
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      void refresh();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [refresh]);
 
   const changePet = useCallback(async (species: PetSpecies) => {
+    if (isGuest) return;
     try {
       const updated = await selectPetSpecies(species);
       if (!mountedRef.current) return;
@@ -85,9 +89,10 @@ export function usePetCompanion(): UsePetCompanionReturn {
     } catch {
       // ignore
     }
-  }, []);
+  }, [isGuest]);
 
   const award = useCallback(async (payload: AwardXPRequest): Promise<AwardXPResponse | null> => {
+    if (isGuest) return null;
     try {
       const result = await awardPetXP(payload);
       if (!mountedRef.current) return result;
@@ -98,7 +103,7 @@ export function usePetCompanion(): UsePetCompanionReturn {
     } catch {
       return null;
     }
-  }, []);
+  }, [isGuest]);
 
   const dismissLevelUp = useCallback(() => setLevelUpPending(false), []);
   const dismissAccessory = useCallback(() => setNewAccessory(null), []);
