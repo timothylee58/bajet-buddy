@@ -3,6 +3,7 @@
 import { PersonaCard } from "@/components/features/persona/PersonaCard";
 import { XPProgressBar } from "@/components/features/persona/XPProgressBar";
 import { AchievementGrid } from "@/components/features/persona/AchievementGrid";
+import { VirtualPet } from "@/components/features/gamification/VirtualPet";
 import { usePersona } from "@/hooks/usePersona";
 
 export default function PersonaPage() {
@@ -39,6 +40,10 @@ export default function PersonaPage() {
           </div>
         </div>
       ) : null}
+      <div className="rounded-2xl border border-zinc-200 bg-white dark:bg-zinc-900 dark:border-zinc-700 p-6 flex flex-col items-center">
+        <h2 className="text-sm font-semibold text-zinc-500 mb-4 self-start">Your BajetBuddy</h2>
+        <VirtualPet xp={persona.xp} streak={persona.streak ?? 0} />
+      </div>
       <XPProgressBar current={persona.xp} max={persona.xp_to_next} level={persona.level} />
       <AchievementGrid />
     </div>
