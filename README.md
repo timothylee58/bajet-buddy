@@ -1,4 +1,6 @@
-# BajetBuddy
+
+## BajetBuddy
+"A buddy that reminds your impulse spending"
 
 Malaysia's AI-powered spending intervention engine. Stops bad financial decisions before they happen — using behavioural finance, multimodal AI, and gamification designed for young Malaysians living paycheque to paycheque.
 
@@ -14,6 +16,21 @@ Malaysia's AI-powered spending intervention engine. Stops bad financial decision
 - **Conversational Onboarding** — 5 questions → instant AI financial roast + persona, before any data is entered
 
 ---
+
+The problem statement contains three hidden signals:
+"People know what they should do but struggle to act" → Don’t build another budgeting dashboard. Build a behaviour change engine.
+"Spending impulsively, avoiding their bank balance" → The enemy is psychological: denial, shame, FOMO, and instant gratification.
+"In the moments that matter — not just track what already happened" → Real-time intervention. Pre-purchase, not post-mortem.
+
+## Malaysian Financial Reality 
+#Problem Statement
+- 73% of Malaysians can't raise RM1,000 in an emergency (BNM Financial Stability Report)
+- 47% of EPF withdrawals under i-Sinar/i-Lestari went to daily expenses, not COVID survival
+- Average Malaysian carries RM8,000–12,000 in credit card debt
+- BNPL (Buy Now Pay Later) — Grab PayLater, Atome, Split — exploded 400% post-2021 among 18–35 year olds
+- Touch 'n Go eWallet has 18M+ users — most Malaysians have a digital spending trail they've never analysed
+- "Lepak" culture + "makan" culture = social spending pressure is a real Malaysian behaviour trigger
+
 
 ## Monorepo layout
 
