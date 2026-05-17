@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: bajet-buddy-web
+    runtime: node
+    rootDir: .
+    buildCommand: npm install && npm run build -w @bajetbuddy/web
+    startCommand: npm run start -w @bajetbuddy/web
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.2
+      - key: CI
+        value: "false"
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
