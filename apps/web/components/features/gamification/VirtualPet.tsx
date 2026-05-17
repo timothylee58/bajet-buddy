@@ -4,9 +4,12 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
+export type PetType = "squirrel" | "fox";
+
 interface VirtualPetProps {
   xp: number;
   streak: number;
+  petType?: PetType;
 }
 
 interface PetStage {
@@ -17,7 +20,7 @@ interface PetStage {
   minXp: number;
 }
 
-const PET_STAGES: PetStage[] = [
+const SQUIRREL_STAGES: PetStage[] = [
   {
     image: "/pets/pet-1.png",
     name: "Acorn Baby",
@@ -55,23 +58,67 @@ const PET_STAGES: PetStage[] = [
   },
 ];
 
-function getStage(xp: number): PetStage {
-  for (let i = PET_STAGES.length - 1; i >= 0; i--) {
-    if (xp >= PET_STAGES[i].minXp) return PET_STAGES[i];
+const FOX_STAGES: PetStage[] = [
+  {
+    image: "/pets/fox-1.png",
+    name: "Curious Cub",
+    tagline: "A tiny curious fox. Loves to explore and play.",
+    speechBubble: "Eh, what's this? Log something lah!",
+    minXp: 0,
+  },
+  {
+    image: "/pets/fox-2.png",
+    name: "Loyal Scout",
+    tagline: "Reliable and loyal. A trusted friend and protector.",
+    speechBubble: "Steady! Keep at it, I got your back.",
+    minXp: 100,
+  },
+  {
+    image: "/pets/fox-3.png",
+    name: "Resourceful Fox",
+    tagline: "Smart and resourceful. Solves problems with ease.",
+    speechBubble: "Wah clever lah you! Budget game strong.",
+    minXp: 300,
+  },
+  {
+    image: "/pets/fox-4.png",
+    name: "Wise Strategist",
+    tagline: "Wise and strategic. Leads others to victory.",
+    speechBubble: "Power! Financial freedom within reach bro.",
+    minXp: 600,
+  },
+  {
+    image: "/pets/fox-5.png",
+    name: "Legendary Fox",
+    tagline: "Brings light, courage and hope.",
+    speechBubble: "You made it. Duit sihat, hidup bahagia!",
+    minXp: 1000,
+  },
+];
+
+const PET_STAGES: Record<PetType, PetStage[]> = {
+  squirrel: SQUIRREL_STAGES,
+  fox: FOX_STAGES,
+};
+
+function getStage(stages: PetStage[], xp: number): PetStage {
+  for (let i = stages.length - 1; i >= 0; i--) {
+    if (xp >= stages[i].minXp) return stages[i];
   }
-  return PET_STAGES[0];
+  return stages[0];
 }
 
-function getNextStage(xp: number): PetStage | null {
-  for (let i = 0; i < PET_STAGES.length; i++) {
-    if (xp < PET_STAGES[i].minXp) return PET_STAGES[i];
+function getNextStage(stages: PetStage[], xp: number): PetStage | null {
+  for (let i = 0; i < stages.length; i++) {
+    if (xp < stages[i].minXp) return stages[i];
   }
   return null;
 }
 
-export function VirtualPet({ xp, streak }: VirtualPetProps) {
-  const stage = getStage(xp);
-  const next = getNextStage(xp);
+export function VirtualPet({ xp, streak, petType = "squirrel" }: VirtualPetProps) {
+  const stages = PET_STAGES[petType];
+  const stage = getStage(stages, xp);
+  const next = getNextStage(stages, xp);
   const progressPct = next
     ? Math.round(((xp - stage.minXp) / (next.minXp - stage.minXp)) * 100)
     : 100;
@@ -115,13 +162,11 @@ export function VirtualPet({ xp, streak }: VirtualPetProps) {
         <p className="text-xs text-zinc-500 italic">{stage.tagline}</p>
       </div>
 
-      {/* Speech bubble */}
       <div className="relative bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl px-4 py-2 text-sm text-zinc-800 dark:text-zinc-100 text-center max-w-[220px] shadow-sm">
         <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-zinc-200 dark:text-zinc-700 text-xs">▲</span>
         {stage.speechBubble}
       </div>
 
-      {/* XP progress bar */}
       <div className="w-full max-w-[200px]">
         <div className="flex justify-between text-xs text-zinc-500 mb-1">
           <span>{xp} XP</span>
