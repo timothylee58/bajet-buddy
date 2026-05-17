@@ -1,5 +1,5 @@
 [build]
-  command = "cd ../.. && npm install && npm run build -w @bajetbuddy/web"
+  command = "npm install && npm run build -w @bajetbuddy/web"
   publish = "apps/web/.next"
 
 [build.environment]
