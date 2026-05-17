@@ -26,6 +26,7 @@ export default function PersonaPage() {
     <div className="px-4 py-6 space-y-6">
       <h1 className="text-xl font-bold">Your Persona 🧠</h1>
       <PersonaCard
+        type={persona.type}
         name={persona.name}
         emoji={persona.emoji}
         description={persona.description}
