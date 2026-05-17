@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka, Nunito_Sans } from "next/font/google";
+import { Toaster } from "sonner";
 import { TextSizeProvider } from "@/components/ui/TextSizeProvider";
 import "./globals.css";
 
@@ -45,6 +46,17 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <TextSizeProvider>
           {children}
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              style: {
+                borderRadius: "16px",
+                padding: "14px 18px",
+                fontSize: "14px",
+                fontFamily: "var(--font-nunito), sans-serif",
+              },
+            }}
+          />
         </TextSizeProvider>
       </body>
     </html>

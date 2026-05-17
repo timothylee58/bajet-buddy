@@ -7,6 +7,7 @@ import { VerdictOverlay } from "./VerdictOverlay";
 import { BudgetImpactBar } from "./BudgetImpactBar";
 import { VoiceInput } from "./VoiceInput";
 import { checkSpend } from "@/lib/api";
+import { useToast } from "@/components/ui/ToastProvider";
 import type { CheckResponse, Verdict } from "@/types";
 import { CATEGORIES } from "@/lib/constants";
 import type { CategoryId } from "@/lib/constants";
@@ -110,6 +111,7 @@ export function CheckScreen({ isSarahDemo = false }: CheckScreenProps) {
   const [result, setResult] = useState<CheckResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { success: toastSuccess, error: toastError } = useToast();
 
   function onVoiceParsed(parsed: { amount: string; merchant: string; category: string }) {
     if (parsed.amount) setAmount(parsed.amount);
@@ -143,9 +145,12 @@ export function CheckScreen({ isSarahDemo = false }: CheckScreenProps) {
       });
       setResult(res);
       setStep("result");
+      const vLabel = res.verdict === "boleh" ? "Boleh!" : res.verdict === "fikir_dulu" ? "Fikir Dulu" : "Jangan Dulu";
+      toastSuccess(`${vLabel} · Risk: ${res.risk_score}/100 · Impact: ${res.budget_impact_pct.toFixed(0)}%`);
     } catch {
       setResult(buildDemoResult(parseFloat(amount), category, merchant || "Unknown"));
       setStep("result");
+      toastError(`API unavailable — showing demo result`, "API_OFFLINE");
     } finally {
       setLoading(false);
     }

@@ -325,9 +325,21 @@ export interface OCRInsertResult {
   db_error: string | null;
 }
 
+/** AI spending summary produced by DeepSeek after OCR extraction */
+export interface OCRSpendingSummary {
+  headline: string;
+  insight: string;
+  top_category: string;
+  total_debits: number;
+  total_credits: number;
+  savings_tip: string;
+}
+
 export interface OCRScanResponse {
   status: "ok" | "error";
   scan_result: OCRScanResult | null;
+  /** Manglish AI summary from DeepSeek — present when DEEPSEEK_API_KEY is set */
+  spending_summary: OCRSpendingSummary | null;
   insert_results: OCRInsertResult[];
   total_inserted: number;
   total_failed: number;

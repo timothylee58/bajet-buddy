@@ -40,11 +40,11 @@ export function MacroAlertModal({ impact, open, onClose }: Props) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl"
+            className="bg-white rounded-3xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="relative bg-gradient-to-r from-indigo-600 via-blue-600 to-violet-600 px-5 pt-5 pb-4">
+            <div className="relative bg-[#BA6200] px-5 pt-5 pb-4">
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 transition-colors"
@@ -75,7 +75,7 @@ export function MacroAlertModal({ impact, open, onClose }: Props) {
             {/* Scrollable body */}
             <div className="px-5 py-4 space-y-4 max-h-[50vh] overflow-y-auto">
               {/* Body text */}
-              <div className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              <div className="text-sm text-zinc-600 leading-relaxed">
                 {impact.impact.ai_intervention_body}
               </div>
 
@@ -89,9 +89,9 @@ export function MacroAlertModal({ impact, open, onClose }: Props) {
                   {impact.impact.category_impacts.map((ci) => (
                     <div
                       key={ci.category}
-                      className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-3"
+                      className="bg-zinc-50 border border-zinc-200 rounded-xl p-3"
                     >
-                      <div className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 truncate">
+                      <div className="text-xs font-semibold text-zinc-700 truncate">
                         {CATEGORY_LABELS[ci.category] ?? ci.category}
                       </div>
                       <div className="flex items-baseline gap-1 mt-1">
@@ -114,11 +114,11 @@ export function MacroAlertModal({ impact, open, onClose }: Props) {
               </div>
 
               {/* Total impact */}
-              <div className="bg-gradient-to-r from-red-50 to-amber-50 dark:from-red-950/30 dark:to-amber-950/30 border border-red-200 dark:border-red-800/30 rounded-2xl p-4">
+              <div className="bg-gradient-to-r from-red-50 to-amber-50 border border-red-200 rounded-2xl p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs font-medium text-red-600 dark:text-red-400">Monthly Impact</div>
-                    <div className="text-2xl font-extrabold text-red-700 dark:text-red-400">
+                    <div className="text-xs font-medium text-red-600">Monthly Impact</div>
+                    <div className="text-2xl font-extrabold text-red-700">
                       +{formatRM(impact.impact.total_monthly_impact_rm)}
                     </div>
                   </div>
@@ -144,14 +144,14 @@ export function MacroAlertModal({ impact, open, onClose }: Props) {
                     {impact.quests_generated.map((q) => (
                       <div
                         key={q.id}
-                        className="flex items-center gap-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-800/30 rounded-xl px-3 py-2.5"
+                        className="flex items-center gap-3 bg-[#BA6200]/5 border border-[#BA6200]/10 rounded-xl px-3 py-2.5"
                       >
                         <span className="text-2xl">{q.badge_emoji}</span>
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-semibold text-indigo-800 dark:text-indigo-200 truncate">{q.title}</div>
-                          <div className="text-xs text-indigo-500 dark:text-indigo-400">{q.title_bm}</div>
+                          <div className="text-sm font-semibold text-zinc-800 truncate">{q.title}</div>
+                          <div className="text-xs text-[#BA6200]">{q.title_bm}</div>
                         </div>
-                        <span className="shrink-0 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-2 py-1 rounded-full">
+                        <span className="shrink-0 bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-full">
                           <Gift className="w-3 h-3 inline mr-0.5" />+{q.xp_reward}
                         </span>
                       </div>
@@ -162,10 +162,10 @@ export function MacroAlertModal({ impact, open, onClose }: Props) {
             </div>
 
             {/* Sticky footer */}
-            <div className="sticky bottom-0 bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800 px-5 py-3">
+            <div className="sticky bottom-0 bg-white border-t border-zinc-100 px-5 py-3">
               <button
                 onClick={onClose}
-                className="w-full py-3 rounded-2xl font-bold text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-2xl font-bold text-white bg-[#BA6200] hover:bg-[#A05500] transition-colors flex items-center justify-center gap-2"
               >
                 I understand, let&apos;s fight this!
                 <ArrowRight className="w-4 h-4" />

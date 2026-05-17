@@ -5,10 +5,11 @@ import { motion } from "framer-motion";
 import { formatRM, formatSignedRM, cn } from "@/lib/utils";
 import { CATEGORIES, VERDICT_CONFIG } from "@/lib/constants";
 import { getTransactions } from "@/lib/api";
-import { RefreshCw, AlertCircle, ArrowLeft, Filter } from "lucide-react";
+import { RefreshCw, AlertCircle, ArrowLeft, Filter, Plus } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { Transaction } from "@/types";
+import { AddTransactionModal } from "@/components/features/transactions/AddTransactionModal";
 
 // ─── Inner component that uses useSearchParams ────────────────────────────────
 
@@ -22,6 +23,7 @@ function TransactionsList() {
   const [activeFilter, setActiveFilter] = useState<string | null>(
     categoryFilter
   );
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -262,6 +264,23 @@ function TransactionsList() {
           })}
         </div>
       )}
+
+      {/* Floating add button */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setShowAddModal(true)}
+        className="fixed bottom-28 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/40 ring-4 ring-white"
+      >
+        <Plus size={28} />
+      </motion.button>
+
+      {/* Add Transaction Modal */}
+      <AddTransactionModal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSaved={load}
+      />
     </div>
   );
 }

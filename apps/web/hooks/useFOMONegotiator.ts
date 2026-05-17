@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { fomoNegotiate, fomoResolve, awardPetXP, getPetNudge } from "@/lib/api";
+import { useToast } from "@/components/ui/ToastProvider";
 import type {
   EmotionalState,
   FOMOChoice,
@@ -35,6 +36,7 @@ export function useFOMONegotiator(): UseFOMONegotiatorReturn {
   const [emotionalState, setEmotionalState] = useState<EmotionalState>("happy");
   const [personaPreference, setPersonaPreference] = useState<PersonaCode>("pak_cik_audit");
   const [error, setError] = useState<string | null>(null);
+  const { success: toastSuccess, error: toastError } = useToast();
 
   const open = useCallback((_req: FOMONegotiateRequest) => {
     setError(null);
@@ -90,11 +92,22 @@ export function useFOMONegotiator(): UseFOMONegotiatorReturn {
           getPwaMonitorState().catch(() => {});
         });
       }
+
+      // Toast feedback
+      if (choice === "walk_away") {
+        toastSuccess(`Walked away! +20 XP · Streak: ${result.walk_away_streak}`);
+      } else if (choice === "bnpl") {
+        toastError("BNPL committed. PWA monitor activated — opening Shopee/Lazada triggers lockdown.", "BNPL_MONITOR_ACTIVE");
+      } else {
+        toastSuccess("Cash purchase logged. Budget updated.");
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      setError(msg);
       setPhase("error");
+      toastError(msg, "FOMO_FAILED");
     }
-  }, [emotionalState]);
+  }, [emotionalState, toastSuccess, toastError]);
 
   const reset = useCallback(() => {
     setPhase("idle");

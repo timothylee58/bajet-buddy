@@ -36,3 +36,9 @@ async def complete_quest(quest_id: str) -> dict:
     if not result["success"]:
         raise HTTPException(status_code=400, detail=result["message"])
     return result
+
+
+@router.post("/scan")
+async def scan_commodities() -> dict:
+    """Agent 5: Scan user transactions → correlate with market news → predict price impact."""
+    return await sentinel_service.scan_commodities(_DEMO_USER)

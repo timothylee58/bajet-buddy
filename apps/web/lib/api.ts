@@ -171,13 +171,41 @@ export async function activateProfilingGoal(
   return response.summary;
 }
 
-/** POST /api/ocr/scan — Agent 4: Receipt Scanner */
+/** POST /api/ocr/scan — Agent 4: Receipt Scanner (base64 JSON path) */
 export async function scanReceipt(imageBase64: string): Promise<OCRScanResponse> {
   return apiFetch<OCRScanResponse>("/api/ocr/scan", {
     method: "POST",
     body: JSON.stringify({ image_base64: imageBase64 }),
   });
 }
+
+/**
+ * POST /api/receipts/scan — multipart file upload path.
+ *
+ * Preferred over scanReceipt() because:
+ *  - Sends the raw File (no base64 encoding, 33% smaller)
+ *  - Correct MIME type preserved automatically
+ *  - Supports PDF (backend renders first page → PNG)
+ *  - Avoids Next.js proxy body-size limits on large files
+ */
+export async function scanReceiptFile(file: File): Promise<OCRScanResponse> {
+  const authHeaders = await getAuthHeaders();
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await fetch(`${API_URL}/api/receipts/scan`, {
+    method: "POST",
+    headers: authHeaders, // no Content-Type — browser sets multipart boundary automatically
+    body: form,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API ${res.status}: ${text}`);
+  }
+  return res.json() as Promise<OCRScanResponse>;
+}
+
 /** POST /api/fomo/negotiate */
 export async function fomoNegotiate(payload: FOMONegotiateRequest): Promise<FOMONegotiateResponse> {
   return apiFetch<FOMONegotiateResponse>("/api/fomo/negotiate", {

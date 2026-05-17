@@ -525,3 +525,130 @@ async def complete_quest(user_id: str, quest_id: str) -> dict:
             gamification_service.award_xp(user_id, xp)
             return {"success": True, "message": f"Quest '{q['title']}' completed!", "xp_awarded": xp}
     return {"success": False, "message": "Quest not found", "xp_awarded": 0}
+
+
+# ── Agent 5: Commodity Scanner ──────────────────────────────────────────
+
+COMMODITY_CATALOG = [
+    {
+        "id": "eggs", "name": "Eggs (10pcs)", "symbol": "$EGGS", "emoji": "🥚", "category": "groceries",
+        "currentPrice": "RM6.80–RM7.50", "trend": "up", "changePct": 18.5,
+        "newsHeadline": "Malaysia egg prices surge as feed costs rise 22% due to global grain shortage",
+        "newsSource": "The Edge Markets",
+        "predictedImpactRm": 12.50,
+        "lastUpdated": "3 hours ago",
+        "sparkline": [10, 12, 11, 15, 14, 18, 20],
+    },
+    {
+        "id": "rice", "name": "Rice (10kg)", "symbol": "$RICE", "emoji": "🍚", "category": "groceries",
+        "currentPrice": "RM28–RM35", "trend": "up", "changePct": 8.2,
+        "newsHeadline": "India rice export ban continues to pressure ASEAN markets; local prices up 8%",
+        "newsSource": "Bernama",
+        "predictedImpactRm": 15.00,
+        "lastUpdated": "6 hours ago",
+        "sparkline": [20, 21, 20, 22, 23, 22, 24],
+    },
+    {
+        "id": "cooking_oil", "name": "Cooking Oil (5kg)", "symbol": "$CPO", "emoji": "🫒", "category": "groceries",
+        "currentPrice": "RM27.50–RM32", "trend": "up", "changePct": 12.0,
+        "newsHeadline": "Palm oil futures hit 3-month high on biodiesel demand and lower output",
+        "newsSource": "Reuters",
+        "predictedImpactRm": 8.20,
+        "lastUpdated": "5 hours ago",
+        "sparkline": [15, 14, 16, 17, 19, 18, 20],
+    },
+    {
+        "id": "chicken", "name": "Chicken (per kg)", "symbol": "$CHKN", "emoji": "🍗", "category": "groceries",
+        "currentPrice": "RM9.50–RM10.80", "trend": "flat", "changePct": 1.2,
+        "newsHeadline": "Chicken prices stable after government extends price control scheme to December",
+        "newsSource": "Malay Mail",
+        "predictedImpactRm": 2.00,
+        "lastUpdated": "1 day ago",
+        "sparkline": [10, 10, 11, 10, 10, 11, 11],
+    },
+    {
+        "id": "ron95", "name": "RON95 Petrol", "symbol": "$RON95", "emoji": "⛽", "category": "fuel",
+        "currentPrice": "RM2.05/L", "trend": "down", "changePct": -5.0,
+        "newsHeadline": "Global crude oil dips below $75/barrel; Malaysia may see further pump price reduction",
+        "newsSource": "Free Malaysia Today",
+        "predictedImpactRm": -8.50,
+        "lastUpdated": "2 hours ago",
+        "sparkline": [30, 28, 29, 27, 26, 25, 24],
+    },
+    {
+        "id": "diesel", "name": "Diesel", "symbol": "$DSL", "emoji": "🚛", "category": "fuel",
+        "currentPrice": "RM2.15/L", "trend": "down", "changePct": -3.5,
+        "newsHeadline": "BUDI95 subsidy restructuring lowers diesel burden for commercial users",
+        "newsSource": "The Star",
+        "predictedImpactRm": -5.00,
+        "lastUpdated": "4 hours ago",
+        "sparkline": [25, 24, 25, 23, 22, 22, 21],
+    },
+]
+
+
+async def scan_commodities(user_id: str) -> dict:
+    """Agent 5 steps:
+    1. Check user's recent transactions for affected categories
+    2. Correlate with current market news/price data
+    3. Return commodity cards with personalized predictions
+    """
+    state = _get_state(user_id)
+
+    # Step 1: Analyze user's transaction categories
+    user_categories: set[str] = set()
+    category_merchants: dict[str, list[str]] = {}
+    for tx in MOCK_TRANSACTIONS:
+        cat = tx["category"]
+        user_categories.add(cat)
+        if cat not in category_merchants:
+            category_merchants[cat] = []
+        category_merchants[cat].append(f"RM{tx['amount']:.2f} at {tx['merchant']}")
+
+    # Step 2: Filter commodities relevant to user + mark as "vulnerable" if heavy spending
+    category_totals: dict[str, float] = {}
+    for tx in MOCK_TRANSACTIONS:
+        cat = tx["category"]
+        category_totals[cat] = category_totals.get(cat, 0) + tx["amount"]
+
+    commodities = []
+    total_impact = 0.0
+    affected_count = 0
+
+    for c in COMMODITY_CATALOG:
+        if c["category"] not in user_categories:
+            continue
+        # Scale the predicted impact based on user's actual spending in that category
+        user_spend = category_totals.get(c["category"], 100)
+        scale = min(user_spend / 200, 2.5)
+        personalized_impact = round(c["predictedImpactRm"] * scale, 2)
+        total_impact += personalized_impact
+        if c["trend"] == "up":
+            affected_count += 1
+            
+        # Get matched transactions for this commodity's category
+        matches = category_merchants.get(c["category"], [])[:2]
+        
+        commodities.append({
+            **c, 
+            "predictedImpactRm": personalized_impact,
+            "matchedTransactions": matches
+        })
+
+    # Step 3: Summary
+    summary = (
+        f"Based on your recent spending across {len(user_categories)} categories, "
+        f"{affected_count} items are trending up. "
+        f"Your estimated monthly impact is +RM{total_impact:.2f}."
+    ) if affected_count > 0 else (
+        "Your essential items are stable this month. No major price shocks detected."
+    )
+
+    return {
+        "commodities": commodities,
+        "totalMonthlyImpact": round(total_impact, 2),
+        "affectedCount": affected_count,
+        "categoriesTracked": len(commodities),
+        "summary": summary,
+        "scannedAt": datetime.now(timezone.utc).isoformat(),
+    }

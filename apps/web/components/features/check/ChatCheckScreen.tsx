@@ -7,6 +7,7 @@ import { chatCheckSpend, checkSpend, getBudgetSummary } from "@/lib/api";
 import { VERDICT_CONFIG, CATEGORIES } from "@/lib/constants";
 import type { CategoryId } from "@/lib/constants";
 import { formatRM, cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/ToastProvider";
 import type { BudgetSummary, ChatMessage, ChatCheckResponse, CheckResponse } from "@/types";
 import { NumPad } from "./NumPad";
 import { CategoryPicker } from "./CategoryPicker";
@@ -219,6 +220,7 @@ export function ChatCheckScreen() {
   const [manualError, setManualError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { success: toastSuccess, error: toastError } = useToast();
 
   // Fetch real budget summary on mount
   useEffect(() => {
@@ -278,9 +280,12 @@ export function ChatCheckScreen() {
         setMessages((prev) => [...prev, ...replyMsgs]);
       }
       setLastResult(res.result);
+      const v = res.result.verdict;
+      toastSuccess(v === "boleh" ? "Boleh! Spend looks okay." : v === "fikir_dulu" ? "Fikir Dulu — think first." : "Jangan Dulu — hold off.");
     } catch (err) {
       console.error("Check failed:", err);
       setError("Could not connect to the AI. Please make sure the API server is running and try again.");
+      toastError("AI check failed — API may be offline", "AI_OFFLINE");
     } finally {
       setLoading(false);
     }
@@ -318,9 +323,12 @@ export function ChatCheckScreen() {
       });
       setManualResult(res);
       setLastResult(res);
+      const vLabel = res.verdict === "boleh" ? "Boleh!" : res.verdict === "fikir_dulu" ? "Fikir Dulu" : "Jangan Dulu";
+      toastSuccess(`${vLabel} · Risk: ${res.risk_score}/100`);
     } catch (err) {
       console.error("Manual check failed:", err);
       setManualError("Could not reach the API. Make sure the backend is running.");
+      toastError("API unreachable — check if backend is running", "API_OFFLINE");
     } finally {
       setManualLoading(false);
     }
@@ -343,17 +351,18 @@ export function ChatCheckScreen() {
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {/* Empty state */}
         {messages.length === 0 && !loading && !error && (
-          <div className="flex flex-col items-center justify-center h-full text-center px-6">
+          <div className="flex flex-col items-center justify-center h-full text-center px-6 w-full">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
+              className="flex flex-col items-center"
             >
               <p className="text-4xl mb-4">🤖</p>
               <p className="text-lg font-semibold text-foreground mb-2">
                 Your Finance Planner is ready
               </p>
-              <p className="text-sm text-muted leading-relaxed max-w-xs">
+              <p className="text-sm text-muted leading-relaxed max-w-xs text-center">
                 Type or speak what you&apos;re thinking of buying.
                 The AI will check your budget and spending habits to help you decide.
               </p>
