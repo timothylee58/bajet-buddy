@@ -53,8 +53,9 @@ def _demo_transaction_signals(now: datetime, category: str) -> list[dict[str, An
     ]
 
 
-def _get_category_budget(category: str) -> dict[str, Any]:
-    for item in get_category_budgets():
+async def _get_category_budget(category: str, user_id: str) -> dict[str, Any]:
+    cats = await get_category_budgets(user_id)
+    for item in cats:
         if item["id"] == category:
             return item
     return {"id": category, "name": category.title(), "allocated": 300.0, "spent": 120.0, "emoji": "📦", "color": "#64748b"}
@@ -94,8 +95,8 @@ async def _observe_transaction_intent(state: GraphState) -> GraphState:
 
 async def _load_context(state: GraphState) -> GraphState:
     state.trace.append("load_context")
-    state.budget_summary = get_budget_summary(state.user_id)
-    state.category_budget = _get_category_budget(state.payload.category)
+    state.budget_summary = await get_budget_summary(state.user_id)
+    state.category_budget = await _get_category_budget(state.payload.category, state.user_id)
     profile = state.user_profile
     persona = learn_persona_from_transaction_signals(
         _demo_transaction_signals(state.now, state.payload.category),

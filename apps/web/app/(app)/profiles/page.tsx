@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProfileHeader } from "@/components/features/profile/ProfileHeader";
 import { DailyLogin } from "@/components/features/profile/DailyLogin";
@@ -47,9 +47,28 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProfilesPage() {
-  const { persona, loading: personaLoading } = usePersona();
+  const {
+    persona,
+    loading: personaLoading,
+    rerolling,
+    nextRerollAt,
+    cooldownDays,
+    rerunPersona,
+  } = usePersona();
   const [petType, setPetType] = useState<PetType>("squirrel");
   const [tab, setTab] = useState<TabId>("overview");
+  const [petHidden, setPetHidden] = useState(false);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("bb_pet_hidden");
+    setPetHidden(stored === "1");
+  }, []);
+
+  const togglePet = () => {
+    const next = !petHidden;
+    setPetHidden(next);
+    window.localStorage.setItem("bb_pet_hidden", next ? "1" : "0");
+  };
 
   return (
     <div className="max-w-md mx-auto px-4 pt-4 pb-28">
@@ -83,8 +102,14 @@ export default function ProfilesPage() {
             key="overview"
             persona={persona}
             personaLoading={personaLoading}
+            rerolling={rerolling}
+            nextRerollAt={nextRerollAt}
+            cooldownDays={cooldownDays}
+            onRerollPersona={rerunPersona}
             petType={petType}
             setPetType={setPetType}
+            petHidden={petHidden}
+            onTogglePet={togglePet}
           />
         )}
         {tab === "achievements" && <AchievementsTab key="achievements" />}
@@ -99,14 +124,36 @@ export default function ProfilesPage() {
 function OverviewTab({
   persona,
   personaLoading,
+  rerolling,
+  nextRerollAt,
+  cooldownDays,
+  onRerollPersona,
   petType,
   setPetType,
+  petHidden,
+  onTogglePet,
 }: {
   persona: ReturnType<typeof usePersona>["persona"];
   personaLoading: boolean;
+  rerolling: boolean;
+  nextRerollAt: string | null;
+  cooldownDays: number | null;
+  onRerollPersona: () => Promise<unknown>;
   petType: PetType;
   setPetType: (t: PetType) => void;
+  petHidden: boolean;
+  onTogglePet: () => void;
 }) {
+  const now = Date.now();
+  const nextRerollTs = nextRerollAt ? new Date(nextRerollAt).getTime() : null;
+  const isOnCooldown = nextRerollTs !== null && nextRerollTs > now;
+  const daysLeft = isOnCooldown ? Math.ceil((nextRerollTs - now) / (24 * 60 * 60 * 1000)) : 0;
+  const rerollHint = isOnCooldown
+    ? `Reroll in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`
+    : cooldownDays
+      ? `Cooldown: ${cooldownDays} days`
+      : "Reroll available";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -142,6 +189,25 @@ function OverviewTab({
               explanation={persona.explanation}
               suggestedInterventionRule={persona.suggested_intervention_rule}
             />
+            <div className="flex items-center justify-between rounded-2xl border border-border bg-white px-4 py-3 chunky-shadow">
+              <div className="space-y-0.5">
+                <p className="font-sans text-xs font-bold uppercase tracking-widest text-muted">Persona reroll</p>
+                <p className="font-sans text-[11px] text-muted">{rerollHint}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void onRerollPersona()}
+                disabled={rerolling || isOnCooldown}
+                className={cn(
+                  "rounded-full px-3 py-1.5 text-[11px] font-bold transition-all",
+                  rerolling || isOnCooldown
+                    ? "bg-zinc-100 text-zinc-500"
+                    : "bg-primary text-white hover:brightness-105"
+                )}
+              >
+                {rerolling ? "Rerolling…" : "Re-run"}
+              </button>
+            </div>
           </div>
 
           {/* Behaviour signals */}
@@ -177,6 +243,21 @@ function OverviewTab({
           <div className="space-y-2">
             <SectionLabel>Companion</SectionLabel>
             <div className="rounded-2xl border-b-4 border-primary/20 bg-white chunky-shadow p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="font-sans text-xs font-bold text-muted uppercase">Floating pet</p>
+                <button
+                  type="button"
+                  onClick={onTogglePet}
+                  className={cn(
+                    "rounded-full px-3 py-1 text-[11px] font-bold transition-colors",
+                    petHidden
+                      ? "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                      : "bg-primary text-white hover:brightness-105"
+                  )}
+                >
+                  {petHidden ? "Show" : "Hide"}
+                </button>
+              </div>
               {/* Species picker */}
               <div className="flex gap-1.5 mb-4 overflow-x-auto no-scrollbar">
                 {PET_OPTIONS.map((opt) => (

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, RefreshCw } from "lucide-react";
+import { Zap, RefreshCw, X } from "lucide-react";
 import type { PetSpecies } from "@/types";
 import { usePet } from "./PetCompanionProvider";
 import { PetSpeechBubble } from "./PetSpeechBubble";
@@ -18,9 +18,15 @@ export function FloatingPet() {
     refresh, changePet, dismissLevelUp, dismissAccessory,
   } = usePet();
 
+  const [hidden, setHidden] = useState(false);
   const [bubbleVisible, setBubbleVisible] = useState(true);
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem("bb_pet_hidden");
+    if (stored === "1") setHidden(true);
+  }, []);
 
   const handlePetClick = useCallback(() => {
     if (!bubbleVisible) {
@@ -31,11 +37,16 @@ export function FloatingPet() {
     }
   }, [bubbleVisible, refresh]);
 
+  const handleDismiss = useCallback(() => {
+    setHidden(true);
+    window.localStorage.setItem("bb_pet_hidden", "1");
+  }, []);
+
   const handleSpeciesSelect = useCallback(async (species: PetSpecies) => {
     await changePet(species);
   }, [changePet]);
 
-  if (loading || !profile) return null;
+  if (loading || !profile || hidden) return null;
 
   const stage = getStageForXp(profile.species, profile.xp);
   const anim = MOOD_ANIMATIONS[profile.mood];
@@ -60,6 +71,14 @@ export function FloatingPet() {
         role="complementary"
         aria-label="Pet companion"
       >
+        <button
+          onClick={handleDismiss}
+          className="mr-1 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[10px] font-bold text-zinc-500 shadow-sm hover:text-zinc-800"
+          aria-label="Hide pet companion"
+        >
+          <X className="h-3 w-3" />
+          Hide
+        </button>
         {/* Speech bubble — wider on desktop */}
         <PetSpeechBubble
           nudge={nudge}

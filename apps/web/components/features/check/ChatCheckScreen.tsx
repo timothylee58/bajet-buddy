@@ -2,12 +2,15 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Send, Calculator, Loader2, RefreshCw, AlertCircle } from "lucide-react";
-import { chatCheckSpend, getBudgetSummary } from "@/lib/api";
-import { VERDICT_CONFIG } from "@/lib/constants";
-import { formatRM } from "@/lib/utils";
+import { Mic, Send, Calculator, Loader2, RefreshCw, AlertCircle, MessageCircle } from "lucide-react";
+import { chatCheckSpend, checkSpend, getBudgetSummary } from "@/lib/api";
+import { VERDICT_CONFIG, CATEGORIES } from "@/lib/constants";
+import type { CategoryId } from "@/lib/constants";
+import { formatRM, cn } from "@/lib/utils";
 import type { BudgetSummary, ChatMessage, ChatCheckResponse, CheckResponse } from "@/types";
-import { QuickCalculator } from "./QuickCalculator";
+import { NumPad } from "./NumPad";
+import { CategoryPicker } from "./CategoryPicker";
+import { BudgetImpactBar } from "./BudgetImpactBar";
 import { VoiceInput } from "./VoiceInput";
 
 // ─── Chat Bubble ─────────────────────────────────────────────────────────────
@@ -31,12 +34,27 @@ function ChatBubble({ msg, result }: { msg: ChatMessage; result?: CheckResponse 
           <VerdictChatCard msg={msg} result={result!} />
         ) : (
           <div className="rounded-2xl rounded-bl-md bg-surface-muted px-4 py-3 text-sm text-foreground shadow-sm">
-            {msg.content}
+            {renderMarkdownLite(msg.content)}
           </div>
         )}
       </div>
     </motion.div>
   );
+}
+
+function renderMarkdownLite(text: string) {
+  const lines = text.split("\n");
+  return lines.map((line, lineIndex) => {
+    const parts = line.split("**");
+    return (
+      <span key={`line-${lineIndex}`}>
+        {parts.map((part, partIndex) =>
+          partIndex % 2 === 1 ? <strong key={`b-${partIndex}`}>{part}</strong> : part
+        )}
+        {lineIndex < lines.length - 1 ? <br /> : null}
+      </span>
+    );
+  });
 }
 
 // ─── Verdict Card inside chat ────────────────────────────────────────────────
@@ -180,7 +198,10 @@ function BudgetMiniCard({ budget, loading }: { budget: BudgetSummary | null; loa
 }
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
+type Mode = "chat" | "manual";
+
 export function ChatCheckScreen() {
+  const [mode, setMode] = useState<Mode>("chat");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -188,8 +209,14 @@ export function ChatCheckScreen() {
   const [budgetLoading, setBudgetLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<CheckResponse | null>(null);
-  const [showCalculator, setShowCalculator] = useState(false);
   const [voiceActive, setVoiceActive] = useState(false);
+  // Manual entry state
+  const [manualAmount, setManualAmount] = useState("");
+  const [manualCategory, setManualCategory] = useState<CategoryId>("shopping");
+  const [manualMerchant, setManualMerchant] = useState("");
+  const [manualLoading, setManualLoading] = useState(false);
+  const [manualResult, setManualResult] = useState<CheckResponse | null>(null);
+  const [manualError, setManualError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -271,7 +298,32 @@ export function ChatCheckScreen() {
     setLastResult(null);
     setInput("");
     setError(null);
+    setManualAmount("");
+    setManualMerchant("");
+    setManualResult(null);
+    setManualError(null);
     inputRef.current?.focus();
+  }
+
+  async function handleManualCheck() {
+    if (!manualAmount || parseFloat(manualAmount) <= 0) return;
+    setManualLoading(true);
+    setManualError(null);
+    setManualResult(null);
+    try {
+      const res = await checkSpend({
+        amount: parseFloat(manualAmount),
+        category: manualCategory,
+        merchant: manualMerchant || "Unknown",
+      });
+      setManualResult(res);
+      setLastResult(res);
+    } catch (err) {
+      console.error("Manual check failed:", err);
+      setManualError("Could not reach the API. Make sure the backend is running.");
+    } finally {
+      setManualLoading(false);
+    }
   }
 
   // Determine which message has the verdict (the last one with "Risk score:")
@@ -373,43 +425,87 @@ export function ChatCheckScreen() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick calculator — receives real budget */}
-      <AnimatePresence>
-        {showCalculator && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-border"
+      {/* ── Manual Entry Mode ──────────────────────────────────────────── */}
+      {mode === "manual" && (
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+          {/* Amount display */}
+          <div className="text-center">
+            <p className="text-xs text-muted mb-1">How much are you spending?</p>
+            <div className="text-5xl font-bold text-foreground tracking-tight">
+              RM{manualAmount || "0"}
+            </div>
+          </div>
+
+          {/* Merchant input */}
+          <input
+            type="text"
+            placeholder="Where? (e.g. Shopee, McDonald's)"
+            value={manualMerchant}
+            onChange={(e) => setManualMerchant(e.target.value)}
+            className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted"
+          />
+
+          {/* Category picker */}
+          <CategoryPicker selected={manualCategory} onChange={setManualCategory} />
+
+          {/* Budget impact preview */}
+          {manualAmount && parseFloat(manualAmount) > 0 && budget && (
+            <BudgetImpactBar amount={parseFloat(manualAmount)} remaining={budget.remaining} />
+          )}
+
+          {/* Numpad */}
+          <NumPad value={manualAmount} onChange={setManualAmount} />
+
+          {/* Check button */}
+          <button
+            onClick={handleManualCheck}
+            disabled={manualLoading || !manualAmount || parseFloat(manualAmount) <= 0}
+            className="w-full rounded-2xl bg-primary hover:bg-primary-dark disabled:opacity-50 text-white font-bold py-4 text-lg transition-colors flex items-center justify-center gap-2"
           >
-            <QuickCalculator
-              budget={budget}
-              onResult={(checkResult) => {
-                setLastResult(checkResult);
-                setError(null);
-                const cfg = VERDICT_CONFIG[checkResult.verdict];
-                const aiMsg: ChatMessage = {
+            {manualLoading ? (
+              <><Loader2 className="w-5 h-5 animate-spin" /> Checking…</>
+            ) : (
+              "Check Spend ✅"
+            )}
+          </button>
+
+          {/* Manual error */}
+          {manualError && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              <p>{manualError}</p>
+            </div>
+          )}
+
+          {/* Manual result */}
+          {manualResult && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <VerdictChatCard
+                msg={{
                   role: "bajetbuddy",
                   content: [
-                    `${cfg.emoji} **${checkResult.verdict.toUpperCase().replace("_", " ")}**`,
+                    `${VERDICT_CONFIG[manualResult.verdict].emoji} **${manualResult.verdict.toUpperCase().replace("_", " ")}**`,
                     "",
-                    checkResult.nudge_en || checkResult.explanation,
+                    manualResult.nudge_en || manualResult.explanation,
                     "",
-                    `📊 Risk score: ${checkResult.risk_score}/100 | Budget impact: ${checkResult.budget_impact_pct.toFixed(0)}%`,
+                    `📊 Risk score: ${manualResult.risk_score}/100 | Budget impact: ${manualResult.budget_impact_pct.toFixed(0)}%`,
                     "",
-                    checkResult.verdict === "jangan_dulu"
+                    manualResult.verdict === "jangan_dulu"
                       ? "I ada 3 options for you:\n💰 Option A — Buy with cash\n📉 Option B — Use BNPL\n🧘 Option C — Walk away (48h, +200 XP)\n\nMana satu you nak pilih?"
-                      : checkResult.verdict === "fikir_dulu"
+                      : manualResult.verdict === "fikir_dulu"
                         ? "You boleh proceed, tapi fikir dulu. Maybe pause before you tap?"
                         : "Your budget looks healthy. Proceed mindfully! 💪",
                   ].join("\n"),
-                };
-                setMessages((prev) => [...prev, aiMsg]);
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+                }}
+                result={manualResult}
+              />
+            </motion.div>
+          )}
+        </div>
+      )}
 
       {/* Voice input overlay */}
       {voiceActive && (
@@ -422,81 +518,88 @@ export function ChatCheckScreen() {
         </div>
       )}
 
-      {/* Input bar */}
+      {/* ── Bottom bar ─────────────────────────────────────────────────── */}
       <div className="border-t border-border px-4 py-3">
-        <div className="flex items-center gap-2">
-          {/* Voice button */}
-          <button
-            type="button"
-            onClick={() => setVoiceActive(!voiceActive)}
-            className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-              voiceActive
-                ? "bg-red-500 text-white"
-                : "bg-surface-muted text-muted hover:bg-neutral-light"
-            }`}
-            aria-label="Voice input"
-          >
-            <Mic className="w-5 h-5" />
-          </button>
-
-          {/* Text input */}
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="E.g. Should I buy a RM189 dress from Shopee?"
-            className="flex-1 rounded-2xl border border-border bg-white px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted"
-            disabled={loading}
-          />
-
-          {/* Send button */}
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={loading || !input.trim()}
-            className="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center disabled:opacity-40 hover:bg-primary-dark transition-colors"
-            aria-label="Send"
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-          </button>
-
-          {/* Calculator toggle */}
-          <button
-            type="button"
-            onClick={() => setShowCalculator(!showCalculator)}
-            className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-              showCalculator
-                ? "bg-primary-light text-primary"
-                : "bg-surface-muted text-muted hover:bg-neutral-light"
-            }`}
-            aria-label="Toggle calculator"
-          >
-            <Calculator className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Action links — only when there are messages */}
-        {messages.length > 0 && (
-          <div className="mt-2 flex items-center justify-center gap-4">
+        {/* Chat input (only in chat mode) */}
+        {mode === "chat" && (
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={reset}
-              className="text-xs text-muted hover:text-foreground transition-colors flex items-center gap-1"
+              onClick={() => setVoiceActive(!voiceActive)}
+              className={cn(
+                "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                voiceActive ? "bg-red-500 text-white" : "bg-surface-muted text-muted hover:bg-neutral-light"
+              )}
+              aria-label="Voice input"
             >
-              <RefreshCw className="w-3 h-3" />
-              New check
+              <Mic className="w-5 h-5" />
             </button>
+
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="E.g. Should I buy a RM189 dress from Shopee?"
+              className="flex-1 rounded-2xl border border-border bg-white px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted"
+              disabled={loading}
+            />
+
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={loading || !input.trim()}
+              className="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center disabled:opacity-40 hover:bg-primary-dark transition-colors"
+              aria-label="Send"
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+            </button>
+          </div>
+        )}
+
+        {/* Mode toggle + action links */}
+        <div className={cn("flex items-center justify-between", mode === "chat" ? "mt-2" : "")}>
+          <div className="flex items-center gap-2">
+            {/* Mode toggle */}
+            <button
+              type="button"
+              onClick={() => setMode(mode === "chat" ? "manual" : "chat")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                mode === "manual"
+                  ? "bg-primary-light text-primary"
+                  : "bg-surface-muted text-muted hover:text-foreground"
+              )}
+            >
+              {mode === "chat" ? (
+                <><Calculator className="w-3.5 h-3.5" /> Manual Entry</>
+              ) : (
+                <><MessageCircle className="w-3.5 h-3.5" /> AI Chat</>
+              )}
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {(messages.length > 0 || manualResult) && (
+              <button
+                type="button"
+                onClick={reset}
+                className="text-xs text-muted hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                <RefreshCw className="w-3 h-3" />
+                New
+              </button>
+            )}
             <a
               href="/transactions"
               className="text-xs text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1"
             >
               <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-              Transactions
+              History
             </a>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

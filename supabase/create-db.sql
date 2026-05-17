@@ -141,6 +141,7 @@ CREATE TABLE public.profiles (
   full_name text NOT NULL DEFAULT ''::text,
   monthly_income numeric NOT NULL DEFAULT 0,
   avatar_emoji text DEFAULT '😊'::text,
+  persona_last_reroll_at timestamp with time zone,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT profiles_pkey PRIMARY KEY (id),

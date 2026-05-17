@@ -46,9 +46,6 @@ export function ReceiptCapture({ onClose, onComplete }: ReceiptCaptureProps) {
       if (response.status === "ok" && response.scan_result) {
         setIsScanning(false);
         setIsDone(true);
-
-        alert(`[OCR DEBUG] Response received:\n\n${JSON.stringify(response, null, 2)}`);
-
         setTimeout(() => {
           onComplete(response);
         }, 800);

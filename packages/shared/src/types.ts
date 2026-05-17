@@ -153,6 +153,18 @@ export interface PersonaAnalysis extends Persona {
   suggested_intervention_rule: string;
   confidence: number;
   top_signals: string[];
+  last_reroll_at?: string | null;
+  next_reroll_at?: string | null;
+  cooldown_days?: number | null;
+}
+
+export interface PersonaRerollResponse {
+  status: "ok" | "cooldown" | "error";
+  persona?: PersonaAnalysis | null;
+  last_reroll_at?: string | null;
+  next_reroll_at?: string | null;
+  cooldown_days?: number | null;
+  error?: string | null;
 }
 
 export interface FutureTimelinePoint {

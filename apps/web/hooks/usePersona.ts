@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getPersona } from "@/lib/api";
+import { getPersona, rerollPersona } from "@/lib/api";
 import { useGuestMode } from "@/hooks/useGuestMode";
-import type { PersonaAnalysis } from "@/types";
+import type { PersonaAnalysis, PersonaRerollResponse } from "@/types";
 
 const MOCK_PERSONA: PersonaAnalysis = {
   type: "midnight_shopee_queen",
@@ -30,11 +30,22 @@ const MOCK_PERSONA: PersonaAnalysis = {
 export function usePersona() {
   const [persona, setPersona] = useState<PersonaAnalysis | null>(null);
   const [loading, setLoading] = useState(true);
+  const [rerolling, setRerolling] = useState(false);
+  const [lastRerollAt, setLastRerollAt] = useState<string | null>(null);
+  const [nextRerollAt, setNextRerollAt] = useState<string | null>(null);
+  const [cooldownDays, setCooldownDays] = useState<number | null>(null);
   const { isGuest, guestData } = useGuestMode();
+
+  const applyPersona = (data: PersonaAnalysis) => {
+    setPersona(data);
+    setLastRerollAt(data.last_reroll_at ?? null);
+    setNextRerollAt(data.next_reroll_at ?? null);
+    setCooldownDays(data.cooldown_days ?? null);
+  };
 
   useEffect(() => {
     if (isGuest && guestData.persona) {
-      setPersona({
+      applyPersona({
         ...MOCK_PERSONA, // base types
         ...guestData.persona,
         xp: guestData.xp,
@@ -46,15 +57,51 @@ export function usePersona() {
 
     if (isGuest && !guestData.persona) {
       setPersona(null);
+      setLastRerollAt(null);
+      setNextRerollAt(null);
+      setCooldownDays(null);
       setLoading(false);
       return;
     }
 
     getPersona()
-      .then((data) => setPersona(data as PersonaAnalysis))
-      .catch(() => setPersona(MOCK_PERSONA))
+      .then((data) => applyPersona(data as PersonaAnalysis))
+      .catch(() => applyPersona(MOCK_PERSONA))
       .finally(() => setLoading(false));
   }, [isGuest, guestData]);
 
-  return { persona, loading };
+  const rerunPersona = async () => {
+    if (isGuest) {
+      return { status: "error", error: "Guest mode" } as PersonaRerollResponse;
+    }
+    setRerolling(true);
+    try {
+      const response = (await rerollPersona()) as PersonaRerollResponse;
+      if (response.status === "ok" && response.persona) {
+        applyPersona(response.persona);
+      }
+      if (response.last_reroll_at !== undefined) {
+        setLastRerollAt(response.last_reroll_at ?? null);
+      }
+      if (response.next_reroll_at !== undefined) {
+        setNextRerollAt(response.next_reroll_at ?? null);
+      }
+      if (response.cooldown_days !== undefined) {
+        setCooldownDays(response.cooldown_days ?? null);
+      }
+      return response;
+    } finally {
+      setRerolling(false);
+    }
+  };
+
+  return {
+    persona,
+    loading,
+    rerolling,
+    lastRerollAt,
+    nextRerollAt,
+    cooldownDays,
+    rerunPersona,
+  };
 }

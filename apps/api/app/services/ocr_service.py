@@ -90,26 +90,24 @@ async def scan_receipt(request: OCRScanRequest, user_id: str = "00000000-0000-00
     # Resolve demo user to a real UUID from the profiles table
     resolved_user_id = await _resolve_user_id(user_id)
 
-    # Try DeepSeek first, fall back to OpenAI
-    if not settings.deepseek_api_key and not settings.openai_api_key:
-        return OCRScanResponse(status="error", error="No API key configured (DEEPSEEK_API_KEY or OPENAI_API_KEY)")
+    # Try vision APIs. DeepSeek deepseek-chat does NOT support image_url content type.
+    # Use OpenAI for vision; DeepSeek only for text-based OCR fallback (not implemented yet).
+    if not settings.openai_api_key and not settings.deepseek_api_key:
+        return OCRScanResponse(status="error", error="No API key configured (OPENAI_API_KEY or DEEPSEEK_API_KEY)")
 
     scan_result = None
     last_error = None
 
-    # --- Attempt 1: DeepSeek (cheaper) ---
-    if settings.deepseek_api_key:
-        try:
-            scan_result = await _call_deepseek_vision(image_data_url, settings)
-        except Exception as e:
-            last_error = e
-
-    # --- Attempt 2: OpenAI (fallback) ---
-    if scan_result is None and settings.openai_api_key:
+    # --- Attempt 1: OpenAI Vision (GPT-4o-mini) ---
+    if settings.openai_api_key:
         try:
             scan_result = await _call_openai_vision(image_data_url, settings)
         except Exception as e:
-            last_error = last_error or e
+            last_error = e
+
+    # --- Attempt 2: DeepSeek — NOT SUPPORTED for vision ---
+    # deepseek-chat is text-only. Skip rather than making a guaranteed-to-fail call.
+    # OpenAI is required for OCR/image scanning.
 
     if scan_result is None:
         return OCRScanResponse(status="error", error=f"All vision APIs failed: {last_error}")

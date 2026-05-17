@@ -81,6 +81,20 @@ export async function getTransactions() {
   return apiFetch("/api/transactions");
 }
 
+/** POST /api/transactions — manual transaction entry */
+export async function createTransaction(payload: {
+  merchant: string;
+  amount: number;
+  category: string;
+  note?: string;
+  verdict?: string;
+}): Promise<{ status: string; transaction: any }> {
+  return apiFetch("/api/transactions", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 /** GET /api/persona */
 export async function getPersona() {
   return apiFetch("/api/persona");
@@ -91,6 +105,13 @@ export async function analyzePersona(payload: unknown) {
   return apiFetch("/api/persona/analyze", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+/** POST /api/persona/reroll */
+export async function rerollPersona() {
+  return apiFetch("/api/persona/reroll", {
+    method: "POST",
   });
 }
 
