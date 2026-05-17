@@ -278,7 +278,7 @@ async def analyze_onboarding_answers(
     # Call DeepSeek
     try:
         analysis = await _call_deepseek_analysis_onboarding(full_prompt, settings)
-    except Exception as e:
+    except Exception:
         try:
             analysis = await _call_openai_analysis_onboarding(full_prompt, settings)
         except Exception as e2:
