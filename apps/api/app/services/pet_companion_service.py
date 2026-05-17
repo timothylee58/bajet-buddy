@@ -62,6 +62,7 @@ SPECIES_NAMES: dict[str, str] = {
     "raccoon": "Rakun",
     "fox": "Foxy",
     "squirrel": "Cikgu",
+    "rabbit": "Bun Bun",
     "finance_squirrel": "Prof Tupai",
 }
 

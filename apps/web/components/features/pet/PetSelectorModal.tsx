@@ -5,7 +5,7 @@ import Image from "next/image";
 import type { PetSpecies } from "@/types";
 import { PET_SPECIES } from "./petConfig";
 
-const SPECIES_ORDER: PetSpecies[] = ["squirrel", "fox", "raccoon", "finance_squirrel"];
+const SPECIES_ORDER: PetSpecies[] = ["squirrel", "fox", "raccoon", "rabbit", "finance_squirrel"];
 
 interface PetSelectorModalProps {
   open: boolean;
@@ -37,7 +37,7 @@ export function PetSelectorModal({ open, currentSpecies, onSelect, onClose }: Pe
             <h2 className="text-lg font-extrabold text-zinc-900 mb-1">Choose Your Companion</h2>
             <p className="text-xs text-zinc-500 mb-5">Your buddy grows with you. Pick wisely~</p>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {SPECIES_ORDER.map((species) => {
                 const config = PET_SPECIES[species];
                 const stage = config.stages[0];

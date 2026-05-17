@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-PetSpecies = Literal["raccoon", "fox", "squirrel", "finance_squirrel"]
+PetSpecies = Literal["raccoon", "fox", "squirrel", "rabbit", "finance_squirrel"]
 PetMood = Literal["happy", "worried", "celebrating", "sleepy", "warning", "neutral"]
 AccessorySlot = Literal["hat", "badge", "trail", "aura"]
 

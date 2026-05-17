@@ -11,6 +11,7 @@ const PET_OPTIONS: { type: PetType; label: string; emoji: string }[] = [
   { type: "squirrel", label: "Squirrel", emoji: "🐿️" },
   { type: "fox", label: "Fox", emoji: "🦊" },
   { type: "raccoon", label: "Raccoon", emoji: "🦝" },
+  { type: "rabbit", label: "Rabbit", emoji: "🐰" },
 ];
 
 export default function PersonaPage() {

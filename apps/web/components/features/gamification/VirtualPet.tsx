@@ -4,7 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
-export type PetType = "squirrel" | "fox" | "raccoon";
+export type PetType = "squirrel" | "fox" | "raccoon" | "rabbit";
 
 interface VirtualPetProps {
   xp: number;
@@ -134,10 +134,49 @@ const RACCOON_STAGES: PetStage[] = [
   },
 ];
 
+const RABBIT_STAGES: PetStage[] = [
+  {
+    image: "/pets/rabbit-1.png",
+    name: "Carrot Baby",
+    tagline: "A little bundle of joy. Loves snacks.",
+    speechBubble: "Eh, feed me duit info lah!",
+    minXp: 0,
+  },
+  {
+    image: "/pets/rabbit-2.png",
+    name: "Curious Explorer",
+    tagline: "Curious and lively. Always exploring!",
+    speechBubble: "Wah, banyak guna! Keep tracking tau!",
+    minXp: 100,
+  },
+  {
+    image: "/pets/rabbit-3.png",
+    name: "Book Bunny",
+    tagline: "Loves learning new things. Brilliant mind!",
+    speechBubble: "Ilmu kewangan loaded! You doing great.",
+    minXp: 300,
+  },
+  {
+    image: "/pets/rabbit-4.png",
+    name: "Strategic Hare",
+    tagline: "Strategic and insightful. Plans for success.",
+    speechBubble: "Steady lah. Financial plan on point!",
+    minXp: 600,
+  },
+  {
+    image: "/pets/rabbit-5.png",
+    name: "Legendary Ruler",
+    tagline: "A legendary leader. Inspires everyone.",
+    speechBubble: "Duit sihat, jiwa tenang. Legend confirmed!",
+    minXp: 1000,
+  },
+];
+
 const PET_STAGES: Record<PetType, PetStage[]> = {
   squirrel: SQUIRREL_STAGES,
   fox: FOX_STAGES,
   raccoon: RACCOON_STAGES,
+  rabbit: RABBIT_STAGES,
 };
 
 function getStage(stages: PetStage[], xp: number): PetStage {

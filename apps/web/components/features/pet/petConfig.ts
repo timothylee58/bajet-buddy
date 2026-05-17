@@ -52,6 +52,18 @@ export const PET_SPECIES: Record<PetSpecies, PetSpeciesConfig> = {
       { image: "/pets/raccoon-5.png", name: "Legendary Ringgit", tagline: "A legendary leader.", minXp: 2000 },
     ],
   },
+  rabbit: {
+    label: "Bun Bun",
+    emoji: "🐰",
+    locked: false,
+    stages: [
+      { image: "/pets/rabbit-1.png", name: "Carrot Baby", tagline: "A little bundle of joy. Loves snacks.", minXp: 0 },
+      { image: "/pets/rabbit-2.png", name: "Curious Explorer", tagline: "Curious and lively. Always exploring!", minXp: 200 },
+      { image: "/pets/rabbit-3.png", name: "Book Bunny", tagline: "Loves learning new things. Brilliant mind!", minXp: 500 },
+      { image: "/pets/rabbit-4.png", name: "Strategic Hare", tagline: "Strategic and insightful. Plans for success.", minXp: 1000 },
+      { image: "/pets/rabbit-5.png", name: "Legendary Ruler", tagline: "A legendary leader. Inspires everyone.", minXp: 2000 },
+    ],
+  },
   finance_squirrel: {
     label: "Prof Tupai",
     emoji: "🎓",

@@ -434,7 +434,7 @@ export interface SimulateEventResponse {
 }
 
 // ─── Pet Companion ────────────────────────────────────────────────────────────
-export type PetSpecies = "raccoon" | "fox" | "squirrel" | "finance_squirrel";
+export type PetSpecies = "raccoon" | "fox" | "squirrel" | "rabbit" | "finance_squirrel";
 export type PetMood = "happy" | "worried" | "celebrating" | "sleepy" | "warning" | "neutral";
 export type AccessorySlot = "hat" | "badge" | "trail" | "aura";
 
