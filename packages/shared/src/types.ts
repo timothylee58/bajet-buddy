@@ -265,6 +265,18 @@ export interface ProgressiveProfilingSummary {
 }
 
 // ─── FOMO Negotiator ──────────────────────────────────────────────────────────
+export type PersonaCode = "pak_cik_audit" | "kak_therapist" | "meme_goblin" | "ice_cfo" | "hype_man";
+export type EmotionalState = "stressed" | "bored" | "happy" | "yolo" | "lapar";
+
+export interface FOMOPersona {
+  code: PersonaCode;
+  name: string;
+  emoji: string;
+  tagline: string;
+  unlocked: boolean;
+  unlock_condition: string;
+}
+
 export interface FOMONegotiateRequest {
   amount: number;
   item_name: string;
@@ -273,6 +285,8 @@ export interface FOMONegotiateRequest {
   current_balance?: number;
   days_until_salary?: number;
   bnpl_load?: number;
+  emotional_state?: EmotionalState;
+  persona_preference?: PersonaCode;
 }
 
 export interface FOMOOption {
@@ -281,18 +295,21 @@ export interface FOMOOption {
   impact_summary: string;
   warning: string;
   xp_delta: number;
+  bounty_rm: number;
   recommended: boolean;
 }
 
 export interface FOMONegotiateResponse {
+  persona: FOMOPersona;
   fomo_validation: string;
   trap_exposure: string;
+  persona_quip: string;
   option_cash: FOMOOption;
   option_bnpl: FOMOOption;
   option_walk_away: FOMOOption;
-  overspent_cards_used: number;
-  tax_mode_active: boolean;
-  tax_rate_pct: number;
+  heat_level: number;
+  walk_away_streak: number;
+  bounty_jar_rm: number;
 }
 
 export type FOMOChoice = "cash" | "bnpl" | "walk_away";
@@ -301,21 +318,27 @@ export interface FOMOResolveRequest {
   choice: FOMOChoice;
   amount: number;
   category: string;
+  emotional_state?: EmotionalState;
 }
 
 export interface FOMOResolveResponse {
-  overspent_cards_used: number;
-  tax_mode_active: boolean;
-  tax_mode_triggered_now: boolean;
+  heat_level: number;
+  heat_delta: number;
+  walk_away_streak: number;
+  bounty_jar_rm: number;
+  bounty_earned_rm: number;
   xp_delta: number;
+  loot_box_unlocked: boolean;
   message: string;
+  persona_reaction: string;
   cooldown_until: string | null;
-  tax_amount: number | null;
 }
 
 export interface FOMOState {
-  overspent_cards_used: number;
-  tax_mode_active: boolean;
-  tax_rate_pct: number;
+  heat_level: number;
+  walk_away_streak: number;
+  bounty_jar_rm: number;
+  bounty_threshold_rm: number;
+  unlocked_personas: PersonaCode[];
   cooldown_until: string | null;
 }

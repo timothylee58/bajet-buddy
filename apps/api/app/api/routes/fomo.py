@@ -7,6 +7,7 @@ from app.schemas.fomo import (
     FOMONegotiateResponse,
     FOMOResolveRequest,
     FOMOResolveResponse,
+    FOMOStateResponse,
 )
 from app.services import fomo_service
 
@@ -25,6 +26,6 @@ async def resolve(payload: FOMOResolveRequest) -> FOMOResolveResponse:
     return await fomo_service.resolve(payload, user_id=_DEMO_USER)
 
 
-@router.get("/state")
-async def state() -> dict:
+@router.get("/state", response_model=FOMOStateResponse)
+async def state() -> FOMOStateResponse:
     return await fomo_service.get_fomo_state(user_id=_DEMO_USER)
