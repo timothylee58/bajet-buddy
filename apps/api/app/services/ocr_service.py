@@ -103,23 +103,26 @@ async def scan_receipt(
     except Exception as e:
         return OCRScanResponse(status="error", error=f"Invalid base64 image: {e}")
 
-    if not (settings.ilmu_api_key or settings.anthropic_api_key):
+    if not (settings.openai_api_key or settings.ilmu_api_key or settings.anthropic_api_key):
         return OCRScanResponse(
             status="error",
-            error="No AI API key configured — set ILMU_API_KEY or ANTHROPIC_API_KEY",
+            error="No AI API key configured — set OPENAI_API_KEY, ILMU_API_KEY, or ANTHROPIC_API_KEY",
         )
 
-    # ── Step 1: OCR via Claude Vision ─────────────────────────────────────
+    # ── Step 1: OCR — GPT-4o preferred, Claude fallback ───────────────────
     scan_result: OCRScanResult | None = None
     try:
-        scan_result = await _call_claude_vision(image_data_url, settings)
+        if settings.openai_api_key:
+            scan_result = await _call_openai_vision(image_data_url, settings)
+        else:
+            scan_result = await _call_claude_vision(image_data_url, settings)
         logger.info(
             "OCR success: %s txns extracted, doc_type=%s",
             len(scan_result.transactions),
             scan_result.document_type,
         )
     except Exception as e:
-        logger.exception("ChatGPT OCR failed")
+        logger.exception("OCR failed")
         return OCRScanResponse(status="error", error=f"OCR failed: {e}")
 
     # ── Step 2: AI Spending Summary via DeepSeek ───────────────────────────
@@ -164,7 +167,44 @@ async def scan_receipt(
     )
 
 
-# ── OCR: Claude Vision ────────────────────────────────────────────────────────
+# ── OCR: GPT-4o Vision (primary) ─────────────────────────────────────────────
+
+async def _call_openai_vision(image_data_url: str, settings: Any) -> OCRScanResult:
+    """Use GPT-4o for receipt/statement OCR — preferred for structured extraction."""
+    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    response = await client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": RECEIPT_SYSTEM_PROMPT},
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": (
+                            "Extract all transactions from this image as JSON. "
+                            "Identify debit vs credit for each row."
+                        ),
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": image_data_url, "detail": "high"},
+                    },
+                ],
+            },
+        ],
+        response_format={"type": "json_object"},
+        max_tokens=4096,
+        temperature=0.1,
+    )
+    raw_text = response.choices[0].message.content or ""
+    try:
+        return _parse_vision_response(raw_text)
+    except Exception as e:
+        raise RuntimeError(f"OpenAI OCR parse failed: {e}") from e
+
+
+# ── OCR: Claude Vision (fallback) ────────────────────────────────────────────
 
 async def _call_claude_vision(image_data_url: str, settings: Any) -> OCRScanResult:
     """Use Claude vision for receipt/statement OCR."""
