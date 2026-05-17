@@ -2,8 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import json
-from app.api.routes import check, transactions, persona, buddies, freeze, gamification, risk, nudges, simulations, profiling, ocr, agent1
-from app.api.routes import check, transactions, persona, buddies, freeze, gamification, risk, nudges, simulations, profiling, receipts, voice, onboarding_roast, fomo, sentinel, pet_companion
+from app.api.routes import check, transactions, persona, buddies, freeze, gamification, risk, nudges, simulations, profiling, ocr, agent1, receipts, voice, onboarding_roast, fomo, sentinel, pet_companion
 from app.core.config import get_settings
 from app.core.database import init_db
 from app.core.logging_config import setup_logging
