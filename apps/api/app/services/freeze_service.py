@@ -63,13 +63,14 @@ def get_freeze_status(user_id: str = "00000000-0000-0000-0000-000000000001") -> 
 def activate_freeze(
     user_id: str = "00000000-0000-0000-0000-000000000001",
     freeze_type: Literal["soft", "hard"] = "soft",
+    trigger_source: Literal["manual", "auto", "buddy"] = "manual",
 ) -> dict:
     """Activate a freeze — inserts into freeze_events table."""
     now = datetime.now(timezone.utc).isoformat()
     state = {
         "active": True,
         "type": freeze_type,
-        "reason": "manual",
+        "reason": trigger_source,
         "message": (
             "Soft freeze active — you can override in an emergency."
             if freeze_type == "soft"
@@ -86,7 +87,7 @@ def activate_freeze(
             supabase.table("freeze_events").insert({
                 "user_id": user_id,
                 "freeze_type": freeze_type,
-                "trigger_source": "manual",
+                "trigger_source": trigger_source,
                 "note": state["message"],
                 "started_at": now,
             }).execute()
@@ -128,6 +129,6 @@ def maybe_trigger_auto_freeze(
 ) -> dict:
     """Autonomously freeze when runway turns critical."""
     if projected_daily_survival_amount < 25 or risk_score >= 90:
-        ft: Literal["soft", "hard"] = "soft" if days_until_salary <= 7 else "hard"
-        return activate_freeze(user_id, ft)
+        ft: Literal["soft", "hard"] = "hard" if days_until_salary <= 7 else "soft"
+        return activate_freeze(user_id, ft, trigger_source="auto")
     return get_freeze_status(user_id)

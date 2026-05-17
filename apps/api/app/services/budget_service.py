@@ -58,7 +58,7 @@ async def get_budget_summary(user_id: str | None = None) -> dict:
     transactions = await get_user_transactions(user_id)
 
     # Income from profile or transactions
-    total_income = sum(t["amount"] for t in transactions if t.get("category") == "income" or t.get("amount", 0) > 0)
+    total_income = sum(t["amount"] for t in transactions if t.get("category") == "income")
     if total_income == 0:
         total_income = await _fetch_monthly_income(user_id)
 

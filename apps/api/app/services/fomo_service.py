@@ -133,11 +133,14 @@ def _resolve_persona(
 
 
 def _strip_fences(text: str) -> str:
+    import re
     text = text.strip()
-    if text.startswith("```"):
-        text = text.split("\n", 1)[-1]
-    if text.endswith("```"):
-        text = text.rsplit("```", 1)[0]
+    text = re.sub(r"^```(?:json)?\s*\n?", "", text)
+    text = re.sub(r"\n?\s*```$", "", text)
+    start = text.find("{")
+    end = text.rfind("}") + 1
+    if start >= 0 and end > start:
+        text = text[start:end]
     return text.strip()
 
 
@@ -153,7 +156,7 @@ async def _predict_regret(
     settings = get_settings()
     client = anthropic.AsyncAnthropic(
         api_key=settings.ilmu_api_key or settings.anthropic_api_key,
-        base_url=settings.ilmu_anthropic_base_url,
+        base_url=settings.ilmu_anthropic_base_url if settings.ilmu_api_key else None,
     )
     model = settings.ilmu_model or "claude-opus-4-5"
 
@@ -195,7 +198,7 @@ async def _call_claude(
     settings = get_settings()
     client = anthropic.AsyncAnthropic(
         api_key=settings.ilmu_api_key or settings.anthropic_api_key,
-        base_url=settings.ilmu_anthropic_base_url,
+        base_url=settings.ilmu_anthropic_base_url if settings.ilmu_api_key else None,
     )
     model = settings.ilmu_model or "claude-opus-4-5"
 
@@ -477,7 +480,7 @@ async def recommend_persona(user_id: str, recent_choices: list[str], spending_su
     settings = get_settings()
     client = anthropic.AsyncAnthropic(
         api_key=settings.ilmu_api_key or settings.anthropic_api_key,
-        base_url=settings.ilmu_anthropic_base_url,
+        base_url=settings.ilmu_anthropic_base_url if settings.ilmu_api_key else None,
     )
     model = settings.ilmu_model or "claude-opus-4-5"
 
