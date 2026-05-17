@@ -1,3 +1,5 @@
+"use client";
+
 import { PersonaCard } from "@/components/features/persona/PersonaCard";
 import { XPProgressBar } from "@/components/features/persona/XPProgressBar";
 import { AchievementGrid } from "@/components/features/persona/AchievementGrid";
