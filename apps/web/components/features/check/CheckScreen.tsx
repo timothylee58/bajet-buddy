@@ -5,8 +5,10 @@ import { NumPad } from "./NumPad";
 import { CategoryPicker } from "./CategoryPicker";
 import { VerdictOverlay } from "./VerdictOverlay";
 import { BudgetImpactBar } from "./BudgetImpactBar";
+import { VoiceInput } from "./VoiceInput";
 import { checkSpend } from "@/lib/api";
 import type { CheckResponse, Verdict } from "@/types";
+import { CATEGORIES } from "@/lib/constants";
 import type { CategoryId } from "@/lib/constants";
 
 type Step = "amount" | "category" | "result";
@@ -109,6 +111,13 @@ export function CheckScreen({ isSarahDemo = false }: CheckScreenProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  function onVoiceParsed(parsed: { amount: string; merchant: string; category: string }) {
+    if (parsed.amount) setAmount(parsed.amount);
+    if (parsed.merchant) setMerchant(parsed.merchant);
+    const validCategory = CATEGORIES.find((c) => c.id === parsed.category);
+    if (validCategory) setCategory(validCategory.id as CategoryId);
+  }
+
   function loadSarahDemo() {
     setAmount(SARAH_DEMO.amount);
     setCategory(SARAH_DEMO.category);
@@ -201,6 +210,9 @@ export function CheckScreen({ isSarahDemo = false }: CheckScreenProps) {
           {amount && parseFloat(amount) > 0 && (
             <BudgetImpactBar amount={parseFloat(amount)} remaining={340} />
           )}
+
+          {/* Voice input */}
+          <VoiceInput onParsed={onVoiceParsed} />
 
           {/* Numpad */}
           <NumPad value={amount} onChange={setAmount} />
