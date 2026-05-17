@@ -13,6 +13,7 @@ import type {
   FutureYouRequest,
   FutureYouResponse,
   GamificationStatus,
+  OCRScanResponse,
   InflationQuest,
   MacroEventType,
   PetNudge,
@@ -138,6 +139,13 @@ export async function activateProfilingGoal(
   return response.summary;
 }
 
+/** POST /api/ocr/scan — Agent 4: Receipt Scanner */
+export async function scanReceipt(imageBase64: string): Promise<OCRScanResponse> {
+  return apiFetch<OCRScanResponse>("/api/ocr/scan", {
+    method: "POST",
+    body: JSON.stringify({ image_base64: imageBase64 }),
+  });
+}
 /** POST /api/fomo/negotiate */
 export async function fomoNegotiate(payload: FOMONegotiateRequest): Promise<FOMONegotiateResponse> {
   return apiFetch<FOMONegotiateResponse>("/api/fomo/negotiate", {

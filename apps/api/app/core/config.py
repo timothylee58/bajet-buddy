@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     ilmu_anthropic_base_url: str = "https://api.ilmu.ai/anthropic"
     ilmu_model: str = "nemo-super"
     anthropic_api_key: str = ""
+    openai_api_key: str = ""
+    deepseek_api_key: str = ""
     redis_url: str = "redis://localhost:6379"
     secret_key: str = "dev-secret-key-change-in-production"
     environment: str = "development"

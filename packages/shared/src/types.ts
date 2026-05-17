@@ -252,6 +252,45 @@ export interface UnlockableAgent {
   progress_label: string;
 }
 
+// ─── OCR (Agent 4: Receipt Scanner) ──────────────────────────────────────────
+export interface OCRTransaction {
+  merchant: string;
+  amount: number;
+  category: string;
+  date: string;
+  note: string;
+  transaction_type: "debit" | "credit";
+}
+
+export interface OCRScanResult {
+  document_type: "receipt" | "bank_statement";
+  store_name: string;
+  total_amount: number;
+  line_items: OCRTransaction[];
+  transactions: OCRTransaction[];
+  raw_text: string;
+}
+
+export interface OCRInsertResult {
+  transaction_id: string | null;
+  merchant: string;
+  amount: number;
+  db_inserted: boolean;
+  db_error: string | null;
+}
+
+export interface OCRScanResponse {
+  status: "ok" | "error";
+  scan_result: OCRScanResult | null;
+  insert_results: OCRInsertResult[];
+  total_inserted: number;
+  total_failed: number;
+  xp_earned: number;
+  processing_time_ms: number;
+  error: string | null;
+}
+
+// ─── Progressive Profiling ───────────────────────────────────────────────────
 export interface ProgressiveProfilingSummary {
   profile_score: number;
   principle: string;
