@@ -172,7 +172,7 @@ async def _call_claude_vision(image_data_url: str, settings: Any) -> OCRScanResu
         api_key=settings.ilmu_api_key or settings.anthropic_api_key,
         base_url=settings.ilmu_anthropic_base_url if settings.ilmu_api_key else None,
     )
-    model = settings.ilmu_model or "claude-opus-4-5"
+    model = settings.ilmu_model if settings.ilmu_api_key else "claude-opus-4-5-20251101"
 
     # Extract mime type and raw base64 from data URL
     if "," in image_data_url:
@@ -212,6 +212,7 @@ async def _call_claude_vision(image_data_url: str, settings: Any) -> OCRScanResu
             }
         ],
         max_tokens=4096,
+        temperature=0.0,
     )
     raw_text = response.content[0].text if response.content else ""
     try:
