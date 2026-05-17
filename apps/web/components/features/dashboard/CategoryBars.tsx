@@ -3,11 +3,11 @@
 import { formatRM, clamp } from "@/lib/utils";
 
 const MOCK_CATEGORIES = [
-  { name: "Food & Drinks", emoji: "🍜", spent: 680, allocated: 800, color: "#16a34a" },
-  { name: "Transport", emoji: "🚗", spent: 320, allocated: 400, color: "#2563eb" },
+  { name: "Food & Drinks", emoji: "🍜", spent: 680, allocated: 800, color: "#BA6200" },
+  { name: "Transport", emoji: "🚗", spent: 320, allocated: 400, color: "#D97706" },
   { name: "Shopping", emoji: "🛍️", spent: 950, allocated: 600, color: "#dc2626" },
-  { name: "Entertainment", emoji: "🎮", spent: 180, allocated: 200, color: "#9333ea" },
-  { name: "Utilities", emoji: "💡", spent: 210, allocated: 250, color: "#d97706" },
+  { name: "Entertainment", emoji: "🎮", spent: 180, allocated: 200, color: "#944E00" },
+  { name: "Utilities", emoji: "💡", spent: 210, allocated: 250, color: "#F59E0B" },
 ];
 
 export function CategoryBars() {

@@ -18,19 +18,28 @@
   --neutral-dark:    #3D3B42;
   --neutral-light:   #F2F1F5;
 
-  --background:  #F5F4FA;
-  --surface:     #FFFFFF;
-  --foreground:  #1A1825;
-  --muted:       #797581;
-  --border:      #E5E3EF;
+  --background:      #fffaf4;
+  --surface:         #FFFFFF;
+  --foreground:      #1c1917;
+  --muted:           #797581;
+  --border:          #E5E3EF;
 
   --success:  #16a34a;
-  --warning:  #BA6200;
+  --warning:  #b45309;
   --danger:   #dc2626;
+  --safe:     #ba6200;
 
-  --brand:       var(--primary);
-  --brand-light: var(--primary-light);
-  --brand-dark:  var(--primary-dark);
+  /* Brand identity: #BA6200 */
+  --brand:         #ba6200;
+  --brand-light:   #fff4e8;
+  --brand-dark:    #944e00;
+  --brand-muted:   #f5e6d6;
+  --brand-on-hero: #fcd9b6;
+
+  --surface-hero:   #1c140c;
+  --surface-card:   #ffffff;
+  --surface-muted:  #f7efe6;
+  --border-subtle:  #ead8c2;
 }
 
 @theme inline {
@@ -59,9 +68,27 @@
   --color-brand:           var(--brand);
   --color-brand-light:     var(--brand-light);
   --color-brand-dark:      var(--brand-dark);
+  --color-brand-muted:     var(--brand-muted);
+  --color-brand-on-hero:   var(--brand-on-hero);
+  --color-surface-hero:    var(--surface-hero);
+  --color-surface-card:    var(--surface-card);
+  --color-surface-muted:   var(--surface-muted);
+  --color-border-subtle:   var(--border-subtle);
 
   --font-headline: var(--font-fredoka);
   --font-sans:     var(--font-nunito);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background:    #14100c;
+    --foreground:    #f5f0eb;
+    --surface-card:  #1f1a16;
+    --surface-muted: #2a241e;
+    --border-subtle: #3d342c;
+    --brand-light:   #2a1f14;
+    --brand-muted:   #3d2e1f;
+  }
 }
 
 /* ─── Base ────────────────────────────────────────────────────────────────── */
@@ -70,11 +97,18 @@
 html, body { height: 100%; }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(circle at top left, rgba(186, 98, 0, 0.14), transparent 34rem),
+    linear-gradient(180deg, #fffaf4 0%, var(--background) 42%, #f8efe5 100%);
   color: var(--foreground);
   font-family: var(--font-nunito), "Nunito Sans", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(186, 98, 0, 0.24);
+  color: var(--foreground);
 }
 
 h1, h2, h3 {

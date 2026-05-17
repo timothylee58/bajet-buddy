@@ -26,7 +26,7 @@ export function TransactionReviewCard({
   const [transactions, setTransactions] = useState<OCRTransaction[]>(
     result.transactions.length > 0
       ? result.transactions.map(t => ({ ...t }))
-      : [{ merchant: result.store_name || "", amount: result.total_amount || 0, category: "other", date: "", note: "" }]
+      : [{ merchant: result.store_name || "", amount: result.total_amount || 0, category: "other", date: "", note: "", transaction_type: "debit" as const }]
   );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editField, setEditField] = useState<{ key: keyof OCRTransaction; value: string } | null>(null);

@@ -532,3 +532,98 @@ export interface PetStatusResponse {
   xp_to_next_level: number;
   progress_pct: number;
 }
+
+// ─── Sentinel Engine (frontend mock types) ────────────────────────────────────
+
+export type RiskProfileType =
+  | "grocery_sensitive"
+  | "fuel_sensitive"
+  | "delivery_sensitive"
+  | "vulnerable_consumer"
+  | "balanced";
+
+export type QuestDifficulty = "critical" | "rising" | "calm";
+
+export interface MockSentinelTransaction {
+  id: string;
+  merchant: string;
+  categoryId: string;
+  amount: number;
+  date: string;
+}
+
+export interface MacroMarketEvent {
+  id: string;
+  kind: string;
+  title: string;
+  headlineBm: string;
+  headlineEn: string;
+  severity: number;
+  affectedCategories: string[];
+  weeklyImpactRm: number;
+  difficulty: QuestDifficulty;
+}
+
+export interface SpendingCategorySummary {
+  id: string;
+  label: string;
+  emoji: string;
+  spent: number;
+  budget: number;
+  color: string;
+  topMerchants: string[];
+}
+
+export interface SentinelBadge {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+  earned: boolean;
+}
+
+export interface TabungGoal {
+  id: string;
+  name: string;
+  emoji: string;
+  targetRm: number;
+  savedRm: number;
+  weeklyTopUpRm: number;
+}
+
+export interface InflationImpactCategory {
+  categoryId: string;
+  label: string;
+  deltaRm: number;
+}
+
+export interface InflationImpact {
+  weeklyRm: number;
+  monthlyRm: number;
+  categoryBreakdown: InflationImpactCategory[];
+  pokaiRiskDelta: number;
+}
+
+export interface SurvivalQuest {
+  id: string;
+  title: string;
+  description: string;
+  targetCategoryId: string;
+  spendCapRm: number;
+  rewardXp: number;
+  badgeId: string;
+  badgeName: string;
+  badgeEmoji: string;
+  daysLeft: number;
+  progressPct: number;
+  active: boolean;
+  completed: boolean;
+}
+
+export interface PokaiForecast {
+  score: number;
+  label: string;
+  daysToPokai: number | null;
+  messageBm: string;
+  messageEn: string;
+}

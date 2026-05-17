@@ -31,12 +31,12 @@ export function FreezeScreen() {
     ? {
         title: "Freeze Active",
         icon: <ShieldAlert className="h-5 w-5" />,
-        tone: "border-blue-200 bg-blue-50 text-blue-950",
+        tone: "border-brand/25 bg-brand-light text-brand-dark",
       }
     : {
         title: "Guardrail Ready",
         icon: <ShieldCheck className="h-5 w-5" />,
-        tone: "border-emerald-200 bg-emerald-50 text-emerald-950",
+        tone: "border-brand/25 bg-brand-light text-brand-dark",
       };
 
   return (
@@ -61,7 +61,7 @@ export function FreezeScreen() {
                 {status.message}
               </p>
             </div>
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/70 text-blue-700">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/70 text-brand-dark">
               <Snowflake className="h-7 w-7" />
             </div>
           </div>
@@ -107,7 +107,7 @@ export function FreezeScreen() {
                 <motion.div
                   animate={{ width: `${gamification.status.progress_pct}%` }}
                   transition={{ duration: 0.35 }}
-                  className="h-full rounded-full bg-emerald-500"
+                  className="h-full rounded-full bg-brand"
                 />
               </div>
               <p className="mt-2 text-xs text-zinc-500">
@@ -122,13 +122,13 @@ export function FreezeScreen() {
               <button
                 onClick={() => freeze("soft")}
                 disabled={loading}
-                className="flex w-full items-start justify-between rounded-2xl border border-blue-200 bg-blue-50 px-4 py-4 text-left transition-colors hover:bg-blue-100 disabled:opacity-60"
+                className="flex w-full items-start justify-between rounded-2xl border border-brand/25 bg-brand-light px-4 py-4 text-left transition-colors hover:bg-brand-muted disabled:opacity-60"
               >
                 <div>
-                  <p className="font-semibold text-blue-950">Soft freeze</p>
-                  <p className="mt-1 text-sm text-blue-800">Auto-block spend checks but allow emergency override.</p>
+                  <p className="font-semibold text-brand-dark">Soft freeze</p>
+                  <p className="mt-1 text-sm text-brand-dark/80">Auto-block spend checks but allow emergency override.</p>
                 </div>
-                <span className="text-sm font-medium text-blue-700">Overrideable</span>
+                <span className="text-sm font-medium text-brand">Overrideable</span>
               </button>
               <button
                 onClick={() => freeze("hard")}

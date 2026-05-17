@@ -200,11 +200,11 @@ const sarahDemo = {
     { day: "Sun", amount: 91 },
   ],
   categoryProgress: [
-    { name: "Shopping", spent: 780, budget: 520, color: "#f97316" },
-    { name: "Food", spent: 420, budget: 500, color: "#14b8a6" },
-    { name: "Transport", spent: 260, budget: 320, color: "#38bdf8" },
-    { name: "Bills", spent: 390, budget: 430, color: "#a78bfa" },
-    { name: "Social", spent: 250, budget: 220, color: "#f43f5e" },
+    { name: "Shopping", spent: 780, budget: 520, color: "#BA6200" },
+    { name: "Food", spent: 420, budget: 500, color: "#D97706" },
+    { name: "Transport", spent: 260, budget: 320, color: "#944E00" },
+    { name: "Bills", spent: 390, budget: 430, color: "#F59E0B" },
+    { name: "Social", spent: 250, budget: 220, color: "#C2410C" },
   ],
   recentTransactions: [
     {
@@ -294,9 +294,47 @@ function riskStyles(risk: RiskStatus) {
   }
 
   return {
-    badge: "border-emerald-400/30 bg-emerald-400/10 text-emerald-100",
+    badge: "border-brand/30 bg-brand/10 text-brand-on-hero",
     icon: <ShieldCheck className="h-4 w-4" />,
   };
+}
+
+function getBudgetRiskStatus({
+  totalIncome,
+  totalSpent,
+  currentDailySafeAmount,
+  projectedDailySafeAmount,
+  purchaseTriggered,
+}: {
+  totalIncome: number;
+  totalSpent: number;
+  currentDailySafeAmount: number;
+  projectedDailySafeAmount: number;
+  purchaseTriggered: boolean;
+}): RiskStatus {
+  const spendRatio = totalSpent / Math.max(totalIncome, 1);
+
+  if (purchaseTriggered) {
+    if (projectedDailySafeAmount <= currentDailySafeAmount * 0.65 || spendRatio >= 0.9) {
+      return "high";
+    }
+
+    if (projectedDailySafeAmount <= currentDailySafeAmount * 0.9 || spendRatio >= 0.75) {
+      return "medium";
+    }
+
+    return "low";
+  }
+
+  if (spendRatio >= 0.9) {
+    return "high";
+  }
+
+  if (spendRatio >= 0.75) {
+    return "medium";
+  }
+
+  return "low";
 }
 
 function StatCard({
@@ -342,24 +380,51 @@ export function BehaviorDashboard() {
 
   const copy = dashboardCopy[locale];
 
+  const liveBudget = pulse.budget;
   const derived = useMemo(() => {
+    const sourceBudget = liveBudget ?? {
+      total_income: sarahDemo.salary,
+      total_spent: sarahDemo.monthlySpending,
+      remaining: sarahDemo.currentBalance,
+      days_left: sarahDemo.daysUntilSalary,
+      daily_safe_amount: sarahDemo.currentBalance / sarahDemo.daysUntilSalary,
+    };
     const balance = purchaseTriggered
-      ? sarahDemo.currentBalance - sarahDemo.plannedPurchaseAmount
-      : sarahDemo.currentBalance;
+      ? Math.max(sourceBudget.remaining - sarahDemo.plannedPurchaseAmount, 0)
+      : sourceBudget.remaining;
     const budgetUsedAmount = purchaseTriggered
-      ? sarahDemo.monthlySpending + sarahDemo.plannedPurchaseAmount
-      : sarahDemo.monthlySpending;
+      ? sourceBudget.total_spent + sarahDemo.plannedPurchaseAmount
+      : sourceBudget.total_spent;
     const budgetUsedPct = clamp(
-      (budgetUsedAmount / sarahDemo.monthlyBudget) * 100,
+      (budgetUsedAmount / Math.max(sourceBudget.total_income, 1)) * 100,
       0,
       100
     );
-    const dailySurvival = balance / sarahDemo.daysUntilSalary;
-    const risk = purchaseTriggered
-      ? sarahDemo.projectedRisk
-      : sarahDemo.currentRisk;
-    return { balance, budgetUsedAmount, budgetUsedPct, dailySurvival, risk };
-  }, [purchaseTriggered]);
+    const daysUntilSalary = Math.max(sourceBudget.days_left, 1);
+    const dailySurvival = purchaseTriggered
+      ? balance / daysUntilSalary
+      : sourceBudget.daily_safe_amount;
+    const risk = getBudgetRiskStatus({
+      totalIncome: sourceBudget.total_income,
+      totalSpent: budgetUsedAmount,
+      currentDailySafeAmount: sourceBudget.daily_safe_amount,
+      projectedDailySafeAmount: dailySurvival,
+      purchaseTriggered,
+    });
+
+    return {
+      totalIncome: sourceBudget.total_income,
+      totalSpent: sourceBudget.total_spent,
+      remaining: sourceBudget.remaining,
+      daysLeft: sourceBudget.days_left,
+      currentDailySafeAmount: sourceBudget.daily_safe_amount,
+      balance,
+      budgetUsedAmount,
+      budgetUsedPct,
+      dailySurvival,
+      risk,
+    };
+  }, [liveBudget, purchaseTriggered]);
 
   const riskUi = riskStyles(derived.risk);
 
@@ -371,13 +436,13 @@ export function BehaviorDashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="overflow-hidden rounded-lg border border-white/10 bg-[#071412] text-white"
+          className="overflow-hidden rounded-lg border border-white/10 bg-[#1C140C] text-white"
         >
           <div className="border-b border-white/10 px-4 py-3 sm:px-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-2">
                 <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-[0.24em] text-emerald-200/70">
+                  <p className="text-xs uppercase tracking-[0.24em] text-brand-on-hero/70">
                     {copy.product}
                   </p>
                   <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">
@@ -432,7 +497,7 @@ export function BehaviorDashboard() {
                 />
                 <StatCard
                   label={copy.daysUntilSalary}
-                  value={`${sarahDemo.daysUntilSalary}`}
+                  value={`${derived.daysLeft}`}
                   meta={`${copy.nextSalary}: ${copy.salaryDate}`}
                   icon={<CalendarClock className="h-4 w-4" />}
                 />
@@ -453,7 +518,7 @@ export function BehaviorDashboard() {
               <div className="rounded-lg border border-white/10 bg-white/5 p-4">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-emerald-200">
+                    <div className="flex items-center gap-2 text-brand-on-hero/80">
                       <AlertTriangle className="h-4 w-4" />
                       <h2 className="text-base font-semibold">{copy.nudgeTitle}</h2>
                     </div>
@@ -503,7 +568,7 @@ export function BehaviorDashboard() {
                       {formatCurrency(derived.dailySurvival)}
                     </p>
                     <p className="mt-1 text-xs text-zinc-400">
-                      {copy.daysUntilSalary}: {sarahDemo.daysUntilSalary}
+                      {copy.daysUntilSalary}: {derived.daysLeft}
                     </p>
                   </div>
                 </div>
@@ -558,7 +623,7 @@ export function BehaviorDashboard() {
                       ? "bg-red-500"
                       : derived.risk === "medium"
                       ? "bg-amber-400"
-                      : "bg-emerald-400"
+                      : "bg-brand"
                   )}
                 />
               </div>
@@ -607,7 +672,7 @@ export function BehaviorDashboard() {
               <a
                 key={section.id}
                 href={`#${section.id}`}
-                className="rounded-full border border-zinc-900/10 bg-white px-3 py-2 text-xs font-medium text-zinc-600 transition-colors hover:border-emerald-400/50 hover:text-emerald-700"
+                className="rounded-full border border-zinc-900/10 bg-white px-3 py-2 text-xs font-medium text-zinc-600 transition-colors hover:border-brand/40 hover:text-brand-dark"
               >
                 {copy[section.key]}
               </a>
@@ -640,7 +705,7 @@ export function BehaviorDashboard() {
             </p>
             {pulse.errors.length ? (
               <p className="text-xs text-amber-600">
-                Fallback data active: {pulse.errors[0]}
+                Live budget data is unavailable: {pulse.errors[0]}
               </p>
             ) : null}
           </div>
@@ -650,16 +715,16 @@ export function BehaviorDashboard() {
               Budget runway
             </p>
             <p className="mt-2 text-2xl font-semibold text-zinc-950">
-              {formatCurrency(pulse.budget.remaining)}
+              {formatCurrency(derived.remaining)}
             </p>
             <p className="mt-1 text-sm text-zinc-500">
-              {formatCurrency(pulse.budget.daily_safe_amount)} / day for {pulse.budget.days_left} days
+              {formatCurrency(derived.currentDailySafeAmount)} / day for {derived.daysLeft} days
             </p>
           </div>
 
           <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
             <div className="flex items-center gap-2 text-zinc-900">
-              <LockKeyhole className="h-4 w-4 text-sky-600" />
+              <LockKeyhole className="h-4 w-4 text-brand" />
               <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Freeze status</p>
             </div>
             <p className="mt-2 text-2xl font-semibold text-zinc-950">
@@ -700,7 +765,7 @@ export function BehaviorDashboard() {
                   {copy.currentBalance}
                 </p>
                 <p className="mt-1 text-xl font-semibold text-zinc-950">
-                  {formatCurrency(sarahDemo.currentBalance)}
+                  {formatCurrency(derived.remaining)}
                 </p>
               </div>
               <div>
@@ -716,7 +781,7 @@ export function BehaviorDashboard() {
                   {copy.riskStatus}
                 </p>
                 <p className="mt-1 text-xl font-semibold text-zinc-950">
-                  {sarahDemo.currentRisk.toUpperCase()}
+                  {derived.risk.toUpperCase()}
                 </p>
               </div>
             </div>
@@ -730,8 +795,8 @@ export function BehaviorDashboard() {
                   >
                     <defs>
                       <linearGradient id="heartbeatFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.02} />
+                        <stop offset="5%" stopColor="#BA6200" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#BA6200" stopOpacity={0.02} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid stroke="#e4e4e7" strokeDasharray="3 3" />
@@ -748,7 +813,7 @@ export function BehaviorDashboard() {
                     <Area
                       type="monotone"
                       dataKey="balance"
-                      stroke="#059669"
+                      stroke="#BA6200"
                       fill="url(#heartbeatFill)"
                       strokeWidth={2}
                     />
@@ -769,46 +834,50 @@ export function BehaviorDashboard() {
             </p>
           </div>
           <div className="rounded-lg border border-zinc-200 bg-white p-4">
-            <div className="space-y-4">
-              {[
-                {
-                  label: copy.monthlySpend,
-                  value: sarahDemo.monthlySpending,
-                  total: sarahDemo.monthlyBudget,
-                  color: "bg-emerald-500",
-                },
-                {
-                  label: copy.bnplDue,
-                  value: sarahDemo.bnplDueThisMonth,
-                  total: sarahDemo.monthlyBudget,
-                  color: "bg-amber-400",
-                },
-                {
-                  label: copy.fixedCommitments,
-                  value: sarahDemo.fixedCommitments,
-                  total: sarahDemo.monthlyBudget,
-                  color: "bg-sky-500",
-                },
-              ].map((item) => {
-                const pct = clamp((item.value / item.total) * 100, 0, 100);
-                return (
-                  <div key={item.label} className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-zinc-800">{item.label}</span>
-                      <span className="text-zinc-500">
-                        {formatCurrency(item.value)} / {formatCurrency(item.total)}
-                      </span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
-                      <motion.div
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 0.35 }}
-                        className={cn("h-full rounded-full", item.color)}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
+                  {copy.monthlyBudget}
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-zinc-950">
+                  {formatCurrency(derived.totalIncome)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
+                  {copy.monthlySpend}
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-zinc-950">
+                  {formatCurrency(derived.totalSpent)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
+                  {copy.currentBalance}
+                </p>
+                <p className="mt-2 text-2xl font-semibold text-zinc-950">
+                  {formatCurrency(derived.remaining)}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium text-zinc-800">{copy.budgetUsage}</span>
+                <span className="text-zinc-500">
+                  {formatCurrency(derived.budgetUsedAmount)} / {formatCurrency(derived.totalIncome)}
+                </span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
+                <motion.div
+                  animate={{ width: `${derived.budgetUsedPct}%` }}
+                  transition={{ duration: 0.35 }}
+                  className="h-full rounded-full bg-brand"
+                />
+              </div>
+              <p className="text-xs text-zinc-500">
+                {derived.budgetUsedPct.toFixed(0)}% {copy.used}
+              </p>
             </div>
           </div>
         </section>
@@ -837,7 +906,7 @@ export function BehaviorDashboard() {
                         className={cn(
                           "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
                           income
-                            ? "bg-emerald-50 text-emerald-700"
+                            ? "bg-brand-light text-brand-dark"
                             : "bg-zinc-100 text-zinc-700"
                         )}
                       >
@@ -860,7 +929,7 @@ export function BehaviorDashboard() {
                       <p
                         className={cn(
                           "font-semibold",
-                          income ? "text-emerald-600" : "text-zinc-900"
+                          income ? "text-brand" : "text-zinc-900"
                         )}
                       >
                         {income ? "+" : "-"}
@@ -977,7 +1046,7 @@ export function BehaviorDashboard() {
                           "rounded-full px-3 py-1 text-xs font-medium",
                           item.status === "due"
                             ? "bg-amber-100 text-amber-700"
-                            : "bg-emerald-100 text-emerald-700"
+                            : "bg-brand-muted text-brand-dark"
                         )}
                       >
                         {item.status === "due" ? copy.due : copy.paid}
@@ -1009,8 +1078,8 @@ export function BehaviorDashboard() {
                   >
                     <defs>
                       <linearGradient id="timelineFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0.02} />
+                        <stop offset="5%" stopColor="#BA6200" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#BA6200" stopOpacity={0.02} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid stroke="#e4e4e7" strokeDasharray="3 3" />
@@ -1027,7 +1096,7 @@ export function BehaviorDashboard() {
                     <Area
                       type="monotone"
                       dataKey="amount"
-                      stroke="#22c55e"
+                      stroke="#BA6200"
                       fill="url(#timelineFill)"
                       strokeWidth={2}
                     />

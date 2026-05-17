@@ -4,30 +4,25 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        // Primary — purple filled (design system "Primary" button)
-        default: "bg-primary text-white hover:bg-primary-dark shadow-sm",
-        // Secondary — white with border (design system "Secondary" button)
+        default:
+          "border-b-4 border-brand-dark bg-brand text-white shadow-sm hover:bg-brand-dark active:translate-y-0.5 active:border-b-2",
+        outline:
+          "border border-brand/25 bg-brand-light text-brand-dark hover:border-brand/40 hover:bg-brand-muted",
+        ghost: "text-brand-dark hover:bg-brand-light",
         secondary: "bg-white border border-border text-foreground hover:bg-neutral-light shadow-sm",
-        // Inverted — dark filled (design system "Inverted" button)
         inverted: "bg-neutral-dark text-white hover:bg-foreground shadow-sm",
-        // Outlined — white with tertiary border (design system "Outlined" button)
         outlined: "bg-white border-2 border-tertiary text-tertiary hover:bg-tertiary-light",
-        // Ghost — no background
-        ghost: "hover:bg-primary-light text-primary",
-        // Danger
         destructive: "bg-danger text-white hover:opacity-90 shadow-sm",
-        // Legacy compat
-        outline: "bg-white border border-border text-foreground hover:bg-neutral-light shadow-sm",
       },
       size: {
-        default: "h-10 px-5 py-2",
-        sm: "h-9 rounded-lg px-4 text-xs",
-        lg: "h-12 rounded-xl px-8 text-base",
-        icon: "h-10 w-10 rounded-xl",
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-xl px-3",
+        lg: "h-11 rounded-xl px-8",
+        icon: "h-10 w-10",
       },
     },
     defaultVariants: {

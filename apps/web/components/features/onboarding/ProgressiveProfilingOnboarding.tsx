@@ -36,13 +36,13 @@ const layerTone: Record<
   { badge: string; panel: string; label: string }
 > = {
   complete: {
-    badge: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
-    panel: "border-emerald-200 bg-emerald-50/80",
+    badge: "bg-brand/10 text-brand-dark border-brand/20",
+    panel: "border-brand/25 bg-brand-light/80",
     label: "Complete",
   },
   active: {
-    badge: "bg-sky-500/10 text-sky-700 border-sky-500/20",
-    panel: "border-sky-200 bg-sky-50/80",
+    badge: "bg-brand/10 text-brand-dark border-brand/20",
+    panel: "border-brand/25 bg-brand-light/80",
     label: "Active",
   },
   available: {
@@ -62,8 +62,8 @@ const agentTone: Record<
   { badge: string; dot: string; label: string }
 > = {
   unlocked: {
-    badge: "border-emerald-200 bg-emerald-50 text-emerald-800",
-    dot: "bg-emerald-500",
+    badge: "border-brand/25 bg-brand-light text-brand-dark",
+    dot: "bg-brand",
     label: "Unlocked",
   },
   ready: {
@@ -159,7 +159,7 @@ function GoalCard({
           className={cn(
             "rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]",
             goal.started
-              ? "bg-emerald-50 text-emerald-700"
+              ? "bg-brand-light text-brand-dark"
               : "bg-zinc-100 text-zinc-600"
           )}
         >
@@ -180,7 +180,7 @@ function GoalCard({
             Start
           </Button>
         ) : (
-          <ShieldCheck className="h-4 w-4 text-emerald-600" />
+          <ShieldCheck className="h-4 w-4 text-brand" />
         )}
       </div>
     </div>
@@ -229,10 +229,10 @@ export function ProgressiveProfilingOnboarding() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-      <section className="overflow-hidden rounded-3xl border border-emerald-500/15 bg-[#071412] p-6 text-white">
+      <section className="overflow-hidden rounded-3xl border border-brand/15 bg-[#1C140C] p-6 text-white">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-4">
-            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-100">
+            <span className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-on-hero">
               <Sparkles className="h-3.5 w-3.5" />
               Progressive profiling
             </span>
@@ -246,7 +246,7 @@ export function ProgressiveProfilingOnboarding() {
               </p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-200/70">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-on-hero/70">
                 Product principle
               </p>
               <p className="mt-2 text-base font-medium text-white">{summary.principle}</p>
@@ -264,22 +264,22 @@ export function ProgressiveProfilingOnboarding() {
 
           <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
             <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-emerald-200/70">Profile score</p>
+              <p className="text-[11px] uppercase tracking-[0.16em] text-brand-on-hero/70">Profile score</p>
               <p className="mt-2 text-4xl font-semibold">{summary.profile_score}</p>
               <p className="mt-2 text-sm text-zinc-300">Built from real usage depth, not front-loaded forms.</p>
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
               <div className="flex items-center gap-2 text-amber-300">
                 <Flame className="h-4 w-4" />
-                <p className="text-[11px] uppercase tracking-[0.16em] text-emerald-200/70">Streak</p>
+                <p className="text-[11px] uppercase tracking-[0.16em] text-brand-on-hero/70">Streak</p>
               </div>
               <p className="mt-2 text-4xl font-semibold">{summary.streak}</p>
               <p className="mt-2 text-sm text-zinc-300">Consistent checking earns more protection and unlocks more coaching.</p>
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-              <div className="flex items-center gap-2 text-emerald-300">
+              <div className="flex items-center gap-2 text-brand-on-hero">
                 <Trophy className="h-4 w-4" />
-                <p className="text-[11px] uppercase tracking-[0.16em] text-emerald-200/70">XP</p>
+                <p className="text-[11px] uppercase tracking-[0.16em] text-brand-on-hero/70">XP</p>
               </div>
               <p className="mt-2 text-4xl font-semibold">{summary.xp}</p>
               <p className="mt-2 text-sm text-zinc-300">{summary.days_observed} days of observed behaviour in the current profile.</p>
