@@ -1,26 +1,5 @@
 services:
   - type: web
-    name: bajet-buddy-web
-    runtime: node
-    rootDir: .
-    buildCommand: npm install && npm run build -w @bajetbuddy/web
-    startCommand: npm run start -w @bajetbuddy/web
-    envVars:
-      - key: NODE_VERSION
-        value: 20.19.2
-      - key: CI
-        value: "false"
-      - key: NEXT_PUBLIC_SUPABASE_URL
-        sync: false
-      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
-        sync: false
-      - key: NEXT_PUBLIC_API_URL
-        fromService:
-          name: bajet-buddy-api
-          type: web
-          property: host
-
-  - type: web
     name: bajet-buddy-api
     runtime: python
     rootDir: apps/api
@@ -29,13 +8,27 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.11"
-      - key: ANTHROPIC_API_KEY
-        sync: false
       - key: SUPABASE_URL
         sync: false
-      - key: SUPABASE_SERVICE_ROLE_KEY
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ILMU_API_KEY
+        sync: false
+      - key: ILMU_ANTHROPIC_BASE_URL
+        sync: false
+      - key: ILMU_MODEL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
         sync: false
       - key: REDIS_URL
         sync: false
+      - key: SECRET_KEY
+        sync: false
       - key: ALLOWED_ORIGINS
         sync: false
+      - key: ENVIRONMENT
+        value: production
