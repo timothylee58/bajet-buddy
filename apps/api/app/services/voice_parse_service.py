@@ -14,7 +14,7 @@ async def parse_voice_transcript(transcript: str) -> VoiceParseResponse:
     model = settings.ilmu_model or "claude-opus-4-5"
     api_key = settings.ilmu_api_key or settings.anthropic_api_key
     if not api_key:
-        return VoiceParseResponse(amount=None, merchant=None, category="other", item_name=None, confidence=0)
+        return VoiceParseResponse(amount=None, merchant=None, category="other", item_name=None, confidence=0, raw_transcript=transcript)
 
     client = anthropic.AsyncAnthropic(
         api_key=api_key,
