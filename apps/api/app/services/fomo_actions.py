@@ -1,23 +1,5 @@
 from __future__ import annotations
 
-"""
-FOMO cross-agent dispatch module.
-
-When the user commits to a FOMO decision, this module fans out the outcome
-to every AI agent in the system so they can update their models:
-
-- Gamification: XP award / streak update
-- Persona Engine: behavioural signal injection
-- Sentinel: risk profile signal + PWA monitor flag for BNPL
-- Pet Companion: mood update after every decision
-- Pattern Detection: transaction record for impulse pattern analysis
-- Freeze Engine: auto-trigger check if BNPL + dangerous heat
-
-Every function is async-safe and uses in-memory stores so it works in the
-demo environment without a real database.
-"""
-
-import json
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 

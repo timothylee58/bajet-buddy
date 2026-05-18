@@ -593,8 +593,6 @@ async def scan_commodities(user_id: str) -> dict:
     2. Correlate with current market news/price data
     3. Return commodity cards with personalized predictions
     """
-    state = _get_state(user_id)
-
     # Step 1: Analyze user's transaction categories
     user_categories: set[str] = set()
     category_merchants: dict[str, list[str]] = {}

@@ -97,16 +97,12 @@ def evaluate_risk(payload: RiskEvaluationInput) -> RiskEvaluationResult:
     # ≥ RM200 → large  (full: 1.0×)
     if payload.amount < 20:
         amount_tier = 0.2
-        amount_tier_label = "micro"
     elif payload.amount < 80:
         amount_tier = 0.5
-        amount_tier_label = "small"
     elif payload.amount < 200:
         amount_tier = 0.8
-        amount_tier_label = "medium"
     else:
         amount_tier = 1.0
-        amount_tier_label = "large"
 
     factors: list[RiskFactorDetail] = []
     reason_codes: list[str] = []

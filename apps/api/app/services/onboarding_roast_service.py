@@ -56,7 +56,7 @@ Based on these answers, respond ONLY with a JSON object (no markdown fences, no 
     if settings.ilmu_api_key or settings.anthropic_api_key:
         client = anthropic.AsyncAnthropic(
             api_key=settings.ilmu_api_key or settings.anthropic_api_key,
-            base_url=settings.ilmu_anthropic_base_url,
+            base_url=settings.ilmu_anthropic_base_url if settings.ilmu_api_key else None,
         )
         model = settings.ilmu_model or "claude-opus-4-5"
         message = await client.messages.create(
