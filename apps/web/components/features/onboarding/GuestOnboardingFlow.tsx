@@ -219,28 +219,28 @@ export function GuestOnboardingFlow({ onComplete }: GuestOnboardingFlowProps) {
     <AnimatePresence mode="wait">
       {step === "questions" && (
         <motion.div key="questions" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }}
-          className="fixed inset-0 z-50 bg-zinc-950">
+          className="fixed inset-0 z-50 bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)]">
           <OnboardingChat onComplete={handleQuestionsComplete} />
         </motion.div>
       )}
 
       {step === "analyzing" && (
         <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-zinc-950 flex items-center justify-center">
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)]">
           <AnalyzingAnimation />
         </motion.div>
       )}
 
       {step === "statement" && (
         <motion.div key="statement" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }}
-          className="fixed inset-0 z-50 bg-zinc-950">
+          className="fixed inset-0 z-50 bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)]">
           <BankStatementUpload onComplete={handleStatementComplete} onSkip={handleStatementSkip} />
         </motion.div>
       )}
 
       {step === "roast" && persona && (
         <motion.div key="roast" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, y: 50 }}
-          className="fixed inset-0 z-50 bg-zinc-950">
+          className="fixed inset-0 z-50 bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)]">
           <PersonaSummary
             persona={persona}
             estimatedBudget={budget}
@@ -275,14 +275,14 @@ function AnalyzingAnimation() {
       {/* Pulsing brain */}
       <div className="relative mx-auto w-32 h-32">
         <motion.div
-          className="absolute inset-0 bg-brand/30 blur-2xl rounded-full"
+          className="absolute inset-0 bg-primary/25 blur-2xl rounded-full"
           animate={{ scale: [0.8, 1.3, 0.8], opacity: [0.3, 0.6, 0.3] }}
           transition={{ duration: 2, repeat: Infinity }}
         />
         <motion.div
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ duration: 1.5, repeat: Infinity }}
-          className="relative w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-full flex items-center justify-center text-5xl border border-zinc-700 shadow-xl"
+          className="relative flex h-full w-full items-center justify-center rounded-full border border-white/80 bg-white/90 text-5xl shadow-xl"
         >
           🧠
         </motion.div>
@@ -304,14 +304,14 @@ function AnalyzingAnimation() {
 
       {/* Animated text */}
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold text-white">Agent 1 analyzing your data</h2>
+        <h2 className="text-2xl font-bold text-foreground">Agent 1 analyzing your data</h2>
         <AnimatePresence mode="wait">
           <motion.p
             key={msgIdx}
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
-            className="text-sm text-zinc-400"
+            className="text-sm text-muted"
           >
             {messages[msgIdx]}
           </motion.p>
@@ -343,37 +343,37 @@ function PersonaSummary({ persona, estimatedBudget, xpEarned, hasRealData }: any
   return (
     <div
       onClick={goToDashboard}
-      className="flex flex-col min-h-[100dvh] bg-zinc-950 text-white overflow-hidden cursor-pointer"
+      className="flex min-h-[100dvh] cursor-pointer flex-col overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)] text-foreground"
     >
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-6">
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
           className="text-7xl">{persona.emoji}</motion.div>
         <div>
           <h2 className="text-3xl font-bold">{persona.name}</h2>
-          <p className="text-sm text-zinc-400 mt-1">
+          <p className="mt-1 text-sm text-muted">
             {hasRealData ? "Analyzed from your real spending data" : "Estimated from your answers"}
           </p>
           {persona.confidence && (
-            <p className="text-xs text-zinc-500 mt-1">Confidence: {persona.confidence}%</p>
+            <p className="mt-1 text-xs text-neutral">Confidence: {persona.confidence}%</p>
           )}
         </div>
-        <p className="text-lg text-zinc-300 italic max-w-sm">"{persona.roast}"</p>
+        <p className="max-w-sm text-lg italic text-foreground">"{persona.roast}"</p>
 
         {estimatedBudget && (
           <div className="w-full max-w-xs space-y-2">
-            <p className="text-xs text-zinc-500 uppercase tracking-widest">Estimated Monthly Spending</p>
+            <p className="text-xs uppercase tracking-widest text-muted">Estimated Monthly Spending</p>
             {estimatedBudget.slice(0, 4).map((item: any) => (
               <div key={item.category} className="flex items-center gap-2 text-sm">
                 <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: item.color }} />
-                <span className="flex-1 text-left text-zinc-300">{item.category}</span>
-                <span className="text-zinc-400">RM{item.amount}</span>
+                <span className="flex-1 text-left text-foreground">{item.category}</span>
+                <span className="text-muted">RM{item.amount}</span>
               </div>
             ))}
           </div>
         )}
 
-        <div className="text-sm text-brand">+{xpEarned} XP earned</div>
-        <p className="text-xs text-zinc-500">Tap anywhere or wait {countdown > 0 ? `${countdown}s` : "..."}</p>
+        <div className="text-sm font-semibold text-primary-dark">+{xpEarned} XP earned</div>
+        <p className="text-xs text-muted">Tap anywhere or wait {countdown > 0 ? `${countdown}s` : "..."}</p>
       </div>
     </div>
   );

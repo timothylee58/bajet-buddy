@@ -133,13 +133,13 @@ export function FreezeScreen() {
               <button
                 onClick={() => freeze("hard")}
                 disabled={loading}
-                className="flex w-full items-start justify-between rounded-2xl border border-zinc-200 bg-zinc-950 px-4 py-4 text-left text-white transition-opacity hover:opacity-95 disabled:opacity-60"
+                className="flex w-full items-start justify-between rounded-2xl border border-white/80 bg-white/85 px-4 py-4 text-left text-foreground transition-opacity hover:opacity-95 disabled:opacity-60"
               >
                 <div>
                   <p className="font-semibold">Hard freeze</p>
-                  <p className="mt-1 text-sm text-zinc-300">Lock the account until the spending window passes.</p>
+                  <p className="mt-1 text-sm text-muted">Lock the account until the spending window passes.</p>
                 </div>
-                <span className="text-sm font-medium text-zinc-300">No bypass</span>
+                <span className="text-sm font-medium text-muted">No bypass</span>
               </button>
               <button
                 onClick={() => setShowOverride(true)}
@@ -149,7 +149,7 @@ export function FreezeScreen() {
                 Emergency override ({status.override_cost_xp} XP)
               </button>
             </div>
-            <div className="mt-4 space-y-2 text-sm text-zinc-600">
+            <div className="mt-4 space-y-2 text-sm text-muted">
               {overrideGap > 0 ? (
                 <p>You need {overrideGap} more XP before a soft-freeze override is allowed.</p>
               ) : (

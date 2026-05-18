@@ -229,10 +229,10 @@ export function ProgressiveProfilingOnboarding() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-      <section className="overflow-hidden rounded-3xl border border-brand/15 bg-[#1C140C] p-6 text-white">
+      <section className="overflow-hidden rounded-3xl border border-white/80 bg-white/90 p-6 text-foreground shadow-[0_24px_80px_-32px_rgba(124,92,255,0.3)] backdrop-blur-xl">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-4">
-            <span className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-on-hero">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary-light px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-dark">
               <Sparkles className="h-3.5 w-3.5" />
               Progressive profiling
             </span>
@@ -240,49 +240,49 @@ export function ProgressiveProfilingOnboarding() {
               <h1 className="max-w-3xl text-3xl font-semibold tracking-tight">
                 Onboarding that earns data through value, not forms.
               </h1>
-              <p className="max-w-2xl text-sm leading-7 text-zinc-300">
+              <p className="max-w-2xl text-sm leading-7 text-muted">
                 Bajet Buddy starts with an instant verdict, captures behaviour passively, waits for real pattern confidence,
                 and only asks for high-commitment goal data when the user is ready.
               </p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-on-hero/70">
+            <div className="rounded-2xl border border-white/80 bg-surface-muted p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-dark">
                 Product principle
               </p>
-              <p className="mt-2 text-base font-medium text-white">{summary.principle}</p>
-              <p className="mt-3 text-sm leading-6 text-zinc-300">{summary.next_best_action}</p>
+              <p className="mt-2 text-base font-medium text-foreground">{summary.principle}</p>
+              <p className="mt-3 text-sm leading-6 text-muted">{summary.next_best_action}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Button asChild>
                 <Link href="/check?demo=sarah">See instant value</Link>
               </Button>
-              <Button variant="outline" asChild className="border-white/15 bg-white/5 text-white hover:bg-white/10">
+              <Button variant="outline" asChild>
                 <Link href="/dashboard">Back to dashboard</Link>
               </Button>
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-brand-on-hero/70">Profile score</p>
+            <div className="rounded-3xl border border-white/80 bg-white p-5 shadow-sm">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-primary-dark">Profile score</p>
               <p className="mt-2 text-4xl font-semibold">{summary.profile_score}</p>
-              <p className="mt-2 text-sm text-zinc-300">Built from real usage depth, not front-loaded forms.</p>
+              <p className="mt-2 text-sm text-muted">Built from real usage depth, not front-loaded forms.</p>
             </div>
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-              <div className="flex items-center gap-2 text-amber-300">
+            <div className="rounded-3xl border border-white/80 bg-white p-5 shadow-sm">
+              <div className="flex items-center gap-2 text-tertiary">
                 <Flame className="h-4 w-4" />
-                <p className="text-[11px] uppercase tracking-[0.16em] text-brand-on-hero/70">Streak</p>
+                <p className="text-[11px] uppercase tracking-[0.16em] text-primary-dark">Streak</p>
               </div>
               <p className="mt-2 text-4xl font-semibold">{summary.streak}</p>
-              <p className="mt-2 text-sm text-zinc-300">Consistent checking earns more protection and unlocks more coaching.</p>
+              <p className="mt-2 text-sm text-muted">Consistent checking earns more protection and unlocks more coaching.</p>
             </div>
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-              <div className="flex items-center gap-2 text-brand-on-hero">
+            <div className="rounded-3xl border border-white/80 bg-white p-5 shadow-sm">
+              <div className="flex items-center gap-2 text-primary-dark">
                 <Trophy className="h-4 w-4" />
-                <p className="text-[11px] uppercase tracking-[0.16em] text-brand-on-hero/70">XP</p>
+                <p className="text-[11px] uppercase tracking-[0.16em] text-primary-dark">XP</p>
               </div>
               <p className="mt-2 text-4xl font-semibold">{summary.xp}</p>
-              <p className="mt-2 text-sm text-zinc-300">{summary.days_observed} days of observed behaviour in the current profile.</p>
+              <p className="mt-2 text-sm text-muted">{summary.days_observed} days of observed behaviour in the current profile.</p>
             </div>
           </div>
         </div>
@@ -290,8 +290,8 @@ export function ProgressiveProfilingOnboarding() {
 
       <section className="mt-8">
         <div className="mb-4 flex items-center gap-2">
-          <Radar className="h-4 w-4 text-zinc-600" />
-          <h2 className="text-xl font-semibold text-zinc-950">Progressive profiling layers</h2>
+          <Radar className="h-4 w-4 text-primary-dark" />
+          <h2 className="text-xl font-semibold text-foreground">Progressive profiling layers</h2>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           {summary.layers.map((layer) => (
@@ -303,8 +303,8 @@ export function ProgressiveProfilingOnboarding() {
       <section className="mt-8 grid gap-8 xl:grid-cols-[1fr_1fr]">
         <div>
           <div className="mb-4 flex items-center gap-2">
-            <Target className="h-4 w-4 text-zinc-600" />
-            <h2 className="text-xl font-semibold text-zinc-950">Layer 3 goal-directed data</h2>
+            <Target className="h-4 w-4 text-primary-dark" />
+            <h2 className="text-xl font-semibold text-foreground">Layer 3 goal-directed data</h2>
           </div>
           <div className="grid gap-4">
             {summary.goals.map((goal) => (
@@ -322,8 +322,8 @@ export function ProgressiveProfilingOnboarding() {
 
         <div>
           <div className="mb-4 flex items-center gap-2">
-            <BrainCircuit className="h-4 w-4 text-zinc-600" />
-            <h2 className="text-xl font-semibold text-zinc-950">Unlockable AI agents</h2>
+            <BrainCircuit className="h-4 w-4 text-primary-dark" />
+            <h2 className="text-xl font-semibold text-foreground">Unlockable AI agents</h2>
           </div>
           <div className="grid gap-4">
             {summary.unlockable_agents.map((agent) => (

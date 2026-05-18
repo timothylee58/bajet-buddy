@@ -11,35 +11,35 @@
   --secondary-light: #E0F7FF;
 
   --tertiary:        #BA6200;
-  --tertiary-dark:   #8C4A00;
-  --tertiary-light:  #FFF0D6;
+  --tertiary-dark:   #944E00;
+  --tertiary-light:  #FFF1DE;
 
   --neutral:         #797581;
   --neutral-dark:    #3D3B42;
   --neutral-light:   #F2F1F5;
 
-  --background:      #fffaf4;
+  --background:      #fff9f4;
   --surface:         #FFFFFF;
   --foreground:      #1c1917;
   --muted:           #797581;
-  --border:          #E5E3EF;
+  --border:          #DDD7F2;
 
-  --success:  #16a34a;
-  --warning:  #b45309;
-  --danger:   #dc2626;
-  --safe:     #ba6200;
+  --success:  #22c55e;
+  --warning:  #f59e0b;
+  --danger:   #ef4444;
+  --safe:     #7c5cff;
 
-  /* Brand identity: #BA6200 */
-  --brand:         #ba6200;
-  --brand-light:   #fff4e8;
-  --brand-dark:    #944e00;
-  --brand-muted:   #f5e6d6;
-  --brand-on-hero: #fcd9b6;
+  /* Brand identity: #7C5CFF */
+  --brand:         #7c5cff;
+  --brand-light:   #ede9ff;
+  --brand-dark:    #5e3fd4;
+  --brand-muted:   #ddd4ff;
+  --brand-on-hero: #f5eeff;
 
-  --surface-hero:   #1c140c;
+  --surface-hero:   #fff7e8;
   --surface-card:   #ffffff;
-  --surface-muted:  #f7efe6;
-  --border-subtle:  #ead8c2;
+  --surface-muted:  #f7f2ff;
+  --border-subtle:  #eadffb;
 }
 
 @theme inline {
@@ -81,13 +81,13 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background:    #14100c;
-    --foreground:    #f5f0eb;
-    --surface-card:  #1f1a16;
-    --surface-muted: #2a241e;
-    --border-subtle: #3d342c;
-    --brand-light:   #2a1f14;
-    --brand-muted:   #3d2e1f;
+    --background:    #fff9f4;
+    --foreground:    #1c1917;
+    --surface-card:  #ffffff;
+    --surface-muted: #f7f2ff;
+    --border-subtle: #eadffb;
+    --brand-light:   #ede9ff;
+    --brand-muted:   #ddd4ff;
   }
 }
 
@@ -98,8 +98,10 @@ html, body { height: 100%; }
 
 body {
   background:
-    radial-gradient(circle at top left, rgba(186, 98, 0, 0.14), transparent 34rem),
-    linear-gradient(180deg, #fffaf4 0%, var(--background) 42%, #f8efe5 100%);
+    radial-gradient(circle at top left, rgba(124, 92, 255, 0.22), transparent 28rem),
+    radial-gradient(circle at top right, rgba(79, 195, 247, 0.18), transparent 24rem),
+    radial-gradient(circle at bottom left, rgba(186, 98, 0, 0.14), transparent 24rem),
+    linear-gradient(180deg, #fffefc 0%, var(--background) 45%, #f7f2ff 100%);
   color: var(--foreground);
   font-family: var(--font-nunito), "Nunito Sans", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -107,7 +109,7 @@ body {
 }
 
 ::selection {
-  background: rgba(186, 98, 0, 0.24);
+  background: rgba(124, 92, 255, 0.22);
   color: var(--foreground);
 }
 

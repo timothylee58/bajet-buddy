@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, Field
-from typing import Literal
+from typing import Literal, Optional
 
 
 class CheckRequest(BaseModel):
@@ -53,3 +53,36 @@ class CheckResponse(BaseModel):
     persona: PersonaSnapshot | None = None
     freeze_status: FreezeSnapshot | None = None
     pipeline_trace: list[str] = Field(default_factory=list)
+
+
+class ChatCheckRequest(BaseModel):
+    """Natural-language pre-purchase check request."""
+    message: str = Field(..., min_length=2, description="User's natural language spend intent, e.g. 'Should I buy a RM189 dress from Shopee?'")
+    language_preference: Literal["bm", "en", "manglish"] = "manglish"
+    tone_mode: Literal["professional", "friendly", "manglish", "strict", "encouraging"] = "friendly"
+    purchase_at: datetime | None = None
+
+
+class ParsedSpendIntent(BaseModel):
+    """Structured fields extracted from natural language by the AI parser."""
+    amount: float = Field(..., gt=0)
+    category: str
+    merchant: str = "Unknown"
+    item_name: str | None = None
+    merchant_type: Literal["essential", "discretionary", "mixed"] = "discretionary"
+    essential: bool = False
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    paraphrased: str = Field(default="", description="A natural paraphrase of the parsed intent for display")
+
+
+class ChatMessage(BaseModel):
+    """A single chat message in the conversation."""
+    role: Literal["user", "bajetbuddy"]
+    content: str
+
+
+class ChatCheckResponse(BaseModel):
+    """Chat-native response wrapping the structured check result + conversational messages."""
+    messages: list[ChatMessage]
+    result: CheckResponse
+    parsed_intent: ParsedSpendIntent

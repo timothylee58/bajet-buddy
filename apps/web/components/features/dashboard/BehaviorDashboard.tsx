@@ -436,26 +436,26 @@ export function BehaviorDashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="overflow-hidden rounded-lg border border-white/10 bg-[#1C140C] text-white"
+          className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/85 text-foreground shadow-[0_24px_80px_-32px_rgba(124,92,255,0.3)] backdrop-blur-xl"
         >
-          <div className="border-b border-white/10 px-4 py-3 sm:px-6">
+          <div className="border-b border-white/70 px-4 py-3 sm:px-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-2">
                 <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-[0.24em] text-brand-on-hero/70">
+                  <p className="text-xs uppercase tracking-[0.24em] text-primary-dark/70">
                     {copy.product}
                   </p>
-                  <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                  <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                     {copy.headline}
                   </h1>
-                  <p className="max-w-2xl text-sm leading-6 text-zinc-300">
+                  <p className="max-w-2xl text-sm leading-6 text-muted">
                     {copy.subheadline}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 self-start rounded-lg border border-white/10 bg-white/5 p-1">
-                <span className="px-2 text-[11px] uppercase tracking-[0.16em] text-zinc-400">
+              <div className="flex items-center gap-2 self-start rounded-2xl border border-white/80 bg-white/90 p-1 shadow-sm">
+                <span className="px-2 text-[11px] uppercase tracking-[0.16em] text-muted">
                   {copy.language}
                 </span>
                 <Button
@@ -480,11 +480,11 @@ export function BehaviorDashboard() {
 
           <div className="grid gap-6 px-4 py-5 sm:px-6 lg:grid-cols-[1.3fr_0.9fr]">
             <div className="space-y-5">
-              <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-300">
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
                 <span>{copy.profile}</span>
-                <span className="text-zinc-500">•</span>
+                <span className="text-border">•</span>
                 <span>{copy.location}</span>
-                <span className="text-zinc-500">•</span>
+                <span className="text-border">•</span>
                 <span>{copy.cycle}</span>
               </div>
 
@@ -515,14 +515,14 @@ export function BehaviorDashboard() {
                 />
               </div>
 
-              <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+              <div className="rounded-2xl border border-white/80 bg-white/90 p-4 shadow-sm">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-brand-on-hero/80">
+                    <div className="flex items-center gap-2 text-primary-dark">
                       <AlertTriangle className="h-4 w-4" />
                       <h2 className="text-base font-semibold">{copy.nudgeTitle}</h2>
                     </div>
-                    <p className="max-w-2xl text-sm leading-6 text-zinc-300">
+                    <p className="max-w-2xl text-sm leading-6 text-muted">
                       {copy.nudgeBody}
                     </p>
                   </div>
@@ -538,36 +538,36 @@ export function BehaviorDashboard() {
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                    <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
+                  <div className="rounded-2xl border border-white/80 bg-surface-muted p-3">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted">
                       {copy.plannedPurchase}
                     </p>
-                    <p className="mt-2 text-lg font-semibold text-white">
+                    <p className="mt-2 text-lg font-semibold text-foreground">
                       {formatCurrency(sarahDemo.plannedPurchaseAmount)}
                     </p>
-                    <p className="mt-1 text-xs text-zinc-400">
+                    <p className="mt-1 text-xs text-muted">
                       {copy.merchant} · {copy.dress}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                    <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
+                  <div className="rounded-2xl border border-white/80 bg-surface-muted p-3">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted">
                       {copy.projectedBalance}
                     </p>
-                    <p className="mt-2 text-lg font-semibold text-white">
+                    <p className="mt-2 text-lg font-semibold text-foreground">
                       {formatCurrency(derived.balance)}
                     </p>
-                    <p className="mt-1 text-xs text-zinc-400">
+                    <p className="mt-1 text-xs text-muted">
                       {copy.currentBalance}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                    <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
+                  <div className="rounded-2xl border border-white/80 bg-surface-muted p-3">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted">
                       {copy.projectedDaily}
                     </p>
-                    <p className="mt-2 text-lg font-semibold text-white">
+                    <p className="mt-2 text-lg font-semibold text-foreground">
                       {formatCurrency(derived.dailySurvival)}
                     </p>
-                    <p className="mt-1 text-xs text-zinc-400">
+                    <p className="mt-1 text-xs text-muted">
                       {copy.daysUntilSalary}: {derived.daysLeft}
                     </p>
                   </div>
@@ -593,27 +593,27 @@ export function BehaviorDashboard() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-2xl border border-white/80 bg-white/90 p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">
                     {copy.monthlyBudget}
                   </p>
-                  <p className="mt-1 text-2xl font-semibold text-white">
+                  <p className="mt-1 text-2xl font-semibold text-foreground">
                     {formatCurrency(sarahDemo.monthlyBudget)}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">
                     {copy.budgetUsage}
                   </p>
-                  <p className="mt-1 text-2xl font-semibold text-white">
+                  <p className="mt-1 text-2xl font-semibold text-foreground">
                     {derived.budgetUsedPct.toFixed(0)}%
                   </p>
                 </div>
               </div>
 
-              <div className="h-3 overflow-hidden rounded-full bg-white/10">
+              <div className="h-3 overflow-hidden rounded-full bg-white/80">
                 <motion.div
                   animate={{ width: `${derived.budgetUsedPct}%` }}
                   transition={{ duration: 0.35 }}
@@ -629,35 +629,35 @@ export function BehaviorDashboard() {
               </div>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">
+                <div className="rounded-2xl border border-white/80 bg-surface-muted p-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">
                     {copy.monthlySpend}
                   </p>
-                  <p className="mt-2 text-lg font-semibold text-white">
+                  <p className="mt-2 text-lg font-semibold text-foreground">
                     {formatCurrency(derived.budgetUsedAmount)}
                   </p>
                 </div>
-                <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">
+                <div className="rounded-2xl border border-white/80 bg-surface-muted p-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">
                     {copy.fixedCommitments}
                   </p>
-                  <p className="mt-2 text-lg font-semibold text-white">
+                  <p className="mt-2 text-lg font-semibold text-foreground">
                     {formatCurrency(sarahDemo.fixedCommitments)}
                   </p>
                 </div>
-                <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">
+                <div className="rounded-2xl border border-white/80 bg-surface-muted p-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">
                     {copy.bnplDue}
                   </p>
-                  <p className="mt-2 text-lg font-semibold text-white">
+                  <p className="mt-2 text-lg font-semibold text-foreground">
                     {formatCurrency(sarahDemo.bnplDueThisMonth)}
                   </p>
                 </div>
-                <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">
+                <div className="rounded-2xl border border-white/80 bg-surface-muted p-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted">
                     {copy.note}
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-zinc-300">
+                  <p className="mt-2 text-sm leading-6 text-muted">
                     {copy.focusNote}
                   </p>
                 </div>
@@ -666,13 +666,13 @@ export function BehaviorDashboard() {
           </div>
         </motion.div>
 
-        <div className="sticky top-[57px] z-30 -mx-4 overflow-x-auto border-y border-zinc-900/5 bg-zinc-50/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+        <div className="sticky top-[57px] z-30 -mx-4 overflow-x-auto border-y border-white/70 bg-white/90 px-4 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
           <div className="flex min-w-max gap-2">
             {sections.map((section) => (
               <a
                 key={section.id}
                 href={`#${section.id}`}
-                className="rounded-full border border-zinc-900/10 bg-white px-3 py-2 text-xs font-medium text-zinc-600 transition-colors hover:border-brand/40 hover:text-brand-dark"
+                className="rounded-full border border-white/80 bg-white px-3 py-2 text-xs font-medium text-muted transition-colors hover:border-primary/30 hover:text-primary-dark"
               >
                 {copy[section.key]}
               </a>
@@ -684,17 +684,17 @@ export function BehaviorDashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
-          className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 lg:grid-cols-[1.2fr_0.8fr_0.8fr_1fr]"
+          className="grid gap-4 rounded-[1.5rem] border border-white/80 bg-white/90 p-4 shadow-sm lg:grid-cols-[1.2fr_0.8fr_0.8fr_1fr]"
         >
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-zinc-900">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <RefreshCw className={cn("h-4 w-4", pulse.loading && "animate-spin")} />
               <span>Live pulse</span>
             </div>
-            <p className="text-sm leading-6 text-zinc-600">
+            <p className="text-sm leading-6 text-muted">
               Refreshes every 15 seconds using the current budget summary, freeze state, and gamification status.
             </p>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-muted">
               {pulse.lastUpdated
                 ? `Last updated ${pulse.lastUpdated.toLocaleTimeString("en-MY", {
                     hour: "numeric",

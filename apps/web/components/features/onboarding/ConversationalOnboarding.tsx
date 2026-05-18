@@ -108,7 +108,7 @@ export function ConversationalOnboarding() {
 
   if (phase === "loading") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 text-white p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)] p-6 text-foreground">
         <motion.div
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
@@ -116,7 +116,7 @@ export function ConversationalOnboarding() {
         >
           🤔
         </motion.div>
-        <p className="text-xl font-semibold text-emerald-400">
+        <p className="text-xl font-semibold text-primary-dark">
           BajetBuddy is analysing your vibe...
         </p>
         <div className="flex gap-1 mt-4">
@@ -135,7 +135,7 @@ export function ConversationalOnboarding() {
 
   if (phase === "result" && result) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white p-6 flex flex-col items-center">
+      <div className="flex min-h-screen flex-col items-center bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)] p-6 text-foreground">
         <div className="w-full max-w-md space-y-6 py-10">
           {/* Persona emoji */}
           <motion.div
@@ -153,8 +153,8 @@ export function ConversationalOnboarding() {
             transition={{ delay: 0.3 }}
             className="text-center"
           >
-            <p className="text-sm text-zinc-400 uppercase tracking-widest mb-1">You are...</p>
-            <h1 className="text-2xl font-bold text-white">{result.persona_name}</h1>
+            <p className="mb-1 text-sm uppercase tracking-widest text-muted">You are...</p>
+            <h1 className="text-2xl font-bold text-foreground">{result.persona_name}</h1>
           </motion.div>
 
           {/* Roast */}
@@ -162,10 +162,10 @@ export function ConversationalOnboarding() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="bg-zinc-900 rounded-3xl p-6"
+            className="rounded-3xl border border-white/80 bg-white/85 p-6"
           >
-            <p className="text-sm font-semibold text-orange-400 mb-2">The Roast 🔥</p>
-            <p className="text-white leading-relaxed">{result.roast}</p>
+            <p className="mb-2 text-sm font-semibold text-tertiary-dark">The Roast 🔥</p>
+            <p className="leading-relaxed text-foreground">{result.roast}</p>
           </motion.div>
 
           {/* Encouragement */}
@@ -173,10 +173,10 @@ export function ConversationalOnboarding() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.65 }}
-            className="bg-emerald-900/40 border border-emerald-700/50 rounded-3xl p-6"
+            className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6"
           >
-            <p className="text-sm font-semibold text-emerald-400 mb-2">But here&apos;s the thing...</p>
-            <p className="text-emerald-100 leading-relaxed">{result.encouragement}</p>
+            <p className="mb-2 text-sm font-semibold text-emerald-700">But here&apos;s the thing...</p>
+            <p className="leading-relaxed text-emerald-900">{result.encouragement}</p>
           </motion.div>
 
           {/* Stats */}
@@ -186,13 +186,13 @@ export function ConversationalOnboarding() {
             transition={{ delay: 0.8 }}
             className="grid grid-cols-2 gap-3"
           >
-            <div className="bg-zinc-900 rounded-2xl p-4">
-              <p className="text-xs text-zinc-400 mb-1">Monthly waste estimate</p>
-              <p className="text-lg font-bold text-red-400">{result.estimated_monthly_waste}</p>
+            <div className="rounded-2xl border border-white/80 bg-white/85 p-4">
+              <p className="mb-1 text-xs text-muted">Monthly waste estimate</p>
+              <p className="text-lg font-bold text-red-500">{result.estimated_monthly_waste}</p>
             </div>
-            <div className="bg-zinc-900 rounded-2xl p-4">
-              <p className="text-xs text-zinc-400 mb-1">Top weakness</p>
-              <p className="text-sm font-semibold text-white">{result.top_weakness}</p>
+            <div className="rounded-2xl border border-white/80 bg-white/85 p-4">
+              <p className="mb-1 text-xs text-muted">Top weakness</p>
+              <p className="text-sm font-semibold text-foreground">{result.top_weakness}</p>
             </div>
           </motion.div>
 
@@ -201,10 +201,10 @@ export function ConversationalOnboarding() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.95 }}
-            className="bg-blue-900/40 border border-blue-700/50 rounded-2xl p-4"
+            className="rounded-2xl border border-secondary/20 bg-secondary-light p-4"
           >
-            <p className="text-xs font-semibold text-blue-400 mb-1">💡 BajetBuddy&apos;s Tip</p>
-            <p className="text-blue-100 text-sm leading-relaxed">{result.ai_tip}</p>
+            <p className="mb-1 text-xs font-semibold text-secondary-dark">💡 BajetBuddy&apos;s Tip</p>
+            <p className="text-sm leading-relaxed text-secondary-dark">{result.ai_tip}</p>
           </motion.div>
 
           {/* CTA */}
@@ -215,7 +215,7 @@ export function ConversationalOnboarding() {
           >
             <a
               href="/dashboard"
-              className="block w-full text-center bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-4 rounded-2xl transition-colors"
+              className="block w-full rounded-2xl bg-gradient-to-r from-primary to-secondary py-4 text-center font-bold text-white transition-colors hover:brightness-105"
             >
               Let&apos;s fix this together →
             </a>
@@ -226,7 +226,7 @@ export function ConversationalOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)] p-6 text-foreground">
       <div className="w-full max-w-md space-y-8">
         {/* Progress dots */}
         <div className="flex justify-center gap-2">
@@ -234,7 +234,7 @@ export function ConversationalOnboarding() {
             <div
               key={i}
               className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                i === step ? "bg-emerald-400" : i < step ? "bg-emerald-700" : "bg-zinc-700"
+                  i === step ? "bg-primary" : i < step ? "bg-secondary" : "bg-border"
               }`}
             />
           ))}
@@ -250,7 +250,7 @@ export function ConversationalOnboarding() {
             transition={{ duration: 0.25 }}
             className="space-y-6"
           >
-            <h2 className="text-xl font-semibold text-white leading-snug">
+            <h2 className="text-xl font-semibold leading-snug text-foreground">
               {currentQuestion.text}
             </h2>
 
@@ -262,13 +262,13 @@ export function ConversationalOnboarding() {
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleNext()}
                   placeholder="Type your answer..."
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-white/80 bg-white/85 px-4 py-3 text-foreground placeholder:text-muted focus:outline-none focus:border-primary"
                   autoFocus
                 />
                 <button
                   onClick={handleNext}
                   disabled={!inputValue.trim()}
-                  className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-black font-semibold py-3 rounded-xl transition-colors"
+                  className="w-full rounded-xl bg-gradient-to-r from-primary to-secondary py-3 font-semibold text-white transition-colors hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Next →
                 </button>
@@ -279,7 +279,7 @@ export function ConversationalOnboarding() {
                   <button
                     key={option}
                     onClick={() => handleOption(option)}
-                    className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-emerald-500 text-white text-sm font-medium py-4 px-3 rounded-xl transition-all text-left"
+                    className="rounded-xl border border-white/80 bg-white/85 px-3 py-4 text-left text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-white"
                   >
                     {option}
                   </button>

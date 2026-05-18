@@ -3,6 +3,8 @@ import { createClient } from "./supabase/client";
 import type {
   AwardXPRequest,
   AwardXPResponse,
+  ChatCheckRequest,
+  ChatCheckResponse,
   CheckRequest,
   CheckResponse,
   FOMONegotiateRequest,
@@ -55,6 +57,14 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 /** POST /api/check */
 export async function checkSpend(payload: CheckRequest): Promise<CheckResponse> {
   return apiFetch<CheckResponse>("/api/check", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** POST /api/check/chat — natural language pre-purchase check */
+export async function chatCheckSpend(payload: ChatCheckRequest): Promise<ChatCheckResponse> {
+  return apiFetch<ChatCheckResponse>("/api/check/chat", {
     method: "POST",
     body: JSON.stringify(payload),
   });
