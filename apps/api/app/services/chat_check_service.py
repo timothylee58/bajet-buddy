@@ -211,24 +211,25 @@ def _build_chat_messages(
     # Agent 2: Finance Planner — negotiation intro
     if result.verdict == "jangan_dulu":
         negotiation_intro = (
-            f"I ada 3 options for you:\n"
-            f"💰 Option A — Buy with cash (but this will makan your daily runway)\n"
-            f"📉 Option B — Use BNPL (tapi nanti your financial health drop)\n"
-            f"🧘 Option C — Walk away for 48 hours (earn +200 Discipline XP!)\n\n"
-            f"Mana satu you nak pilih?"
+            "I ada 3 options for you:\n"
+            "💰 Option A — Buy with cash (but this will makan your daily runway)\n"
+            "📉 Option B — Use BNPL (tapi nanti your financial health drop)\n"
+            "🧘 Option C — Walk away for 48 hours (earn +200 Discipline XP!)\n\n"
+            "Mana satu you nak pilih?"
         )
     elif result.verdict == "fikir_dulu":
         negotiation_intro = (
-            f"You boleh proceed, tapi fikir dulu. This purchase will squeeze your budget a bit.\n"
-            f"Option A — Buy now, tighter week ahead\n"
-            f"Option B — Wait 24 hours, see if you still want it\n"
-            f"Option C — Save to wishlist, revisit after salary\n\n"
-            f"What do you think?"
+            "You boleh proceed, tapi fikir dulu. This purchase will squeeze your budget a bit.\n"
+            "Option A — Buy now, tighter week ahead\n"
+            "Option B — Wait 24 hours, see if you still want it\n"
+            "Option C — Save to wishlist, revisit after salary\n\n"
+            "What do you think?"
         )
     else:
         negotiation_intro = (
-            f"Your budget still looks healthy after this spend. If you really need it, go ahead!\n"
-            f"But remember — small spends add up. Keep tracking, yeah? 💪"
+            "Your budget still looks healthy after this spend. If you really need it, go ahead!\n"
+            "But remember — small spends add up. Keep tracking, yeah? 💪"
+        )
     # Persona context
     persona_line = ""
     if result.persona:
