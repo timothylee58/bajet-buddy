@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
     secret_key: str = "dev-secret-key-change-in-production"
     environment: str = "development"
-    allowed_origins: str = '["http://localhost:3000"]'
+    allowed_origins: str = '["*"]'
     demo_user_id: str = "00000000-0000-0000-0000-000000000001"
 
     class Config:

@@ -23,9 +23,16 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allow the Next.js frontend
+# CORS — allow the Next.js frontend; in production set ALLOWED_ORIGINS env var
 settings = get_settings()
-origins = json.loads(settings.allowed_origins)
+try:
+    origins = json.loads(settings.allowed_origins)
+except Exception:
+    origins = ["*"]
+
+# Fall back to wildcard when no specific origins configured (safe for demo/dev)
+if not origins:
+    origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
