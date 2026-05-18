@@ -30,7 +30,7 @@ async def agent1_onboard_endpoint(
     current_user: AuthenticatedUser | None = Depends(get_optional_user),
 ) -> OnboardingAnalysisResponse:
     """Agent 1 onboarding: analyse 5 Q&A answers via DeepSeek to assign initial persona."""
-    user_id = current_user.user_id if current_user and current_user.user_id else "demo"
+    user_id = current_user.user_id if current_user and current_user.user_id else "00000000-0000-0000-0000-000000000001"
     answers = {
         "coffee_boba_weekly_estimate": payload.coffee_boba_weekly_estimate,
         "impulse_category_lean": payload.impulse_category_lean,

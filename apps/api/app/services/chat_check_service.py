@@ -11,6 +11,7 @@ from app.schemas.check import (
     ChatCheckResponse,
     ChatMessage,
     CheckRequest,
+    CheckResponse,
     ParsedSpendIntent,
 )
 from app.services.check_agent_service import run_manual_prepurchase_check
@@ -92,6 +93,15 @@ def _regex_parse(message: str) -> ParsedSpendIntent | None:
 
     essential = any(kw in text for kw in ESSENTIAL_KEYWORDS)
 
+    # BNPL detection
+    bnpl_keywords = [
+        "bnpl", "pay later", "paylater", "installment", "ansuran", "cicilan",
+        "atome", "grab paylater", "spaylater", "hoolah", "split payment",
+        "buy now pay later", "0% installment", "zero interest installment",
+    ]
+    bnpl = any(kw in text for kw in bnpl_keywords)
+
+    bnpl_suffix = " (via BNPL)" if bnpl else ""
     return ParsedSpendIntent(
         amount=amount,
         category=category,
@@ -99,8 +109,9 @@ def _regex_parse(message: str) -> ParsedSpendIntent | None:
         item_name=item_name,
         merchant_type="essential" if essential else "discretionary",
         essential=essential,
+        bnpl=bnpl,
         confidence=0.6,
-        paraphrased=f"Spend RM{amount:.2f} on {item_name or 'item'} at {merchant} ({category})",
+        paraphrased=f"Spend RM{amount:.2f} on {item_name or 'item'} at {merchant} ({category}){bnpl_suffix}",
     )
 
 
@@ -141,8 +152,9 @@ JSON shape:
   "item_name": "<the item they want to buy, or null>",
   "merchant_type": "essential|discretionary|mixed",
   "essential": <bool>,
+  "bnpl": <bool, true if user mentions BNPL, pay later, installment, ansuran, cicilan, Atome, Grab PayLater, SPayLater, Hoolah, or any buy-now-pay-later scheme>,
   "confidence": <float 0-1, how confident you are in this parse>,
-  "paraphrased": "<a natural Malaysian/Manglish paraphrase confirming what you understood>"
+  "paraphrased": "<a natural Malaysian/Manglish paraphrase confirming what you understood, mention BNPL if applicable>"
 }}
 
 Rules:
@@ -150,7 +162,9 @@ Rules:
 - Default category is "shopping"
 - For Grab rides use "transport", for GrabFood use "food"
 - Be generous with item_name extraction
-- paraphrased should sound like a friendly Malaysian confirming the spend, e.g. "OK, you nak beli Nike Air Max for RM450 from JD Sports, category shopping" """
+- bnpl detection is IMPORTANT: if user says "using BNPL", "pay later", "installment", "ansuran", "cicilan", "atome", "grab paylater", "spaylater", "hoolah", "split payment" → set bnpl=true
+- paraphrased should sound like a friendly Malaysian confirming the spend, e.g. "OK, you nak beli Nike Air Max for RM450 from JD Sports, category shopping. BNPL: no."
+- If bnpl=true, paraphrased should warn: "ALERT: you're considering BNPL for this purchase" """
 
     try:
         resp = await client.messages.create(
@@ -215,13 +229,68 @@ def _build_chat_messages(
         negotiation_intro = (
             f"Your budget still looks healthy after this spend. If you really need it, go ahead!\n"
             f"But remember — small spends add up. Keep tracking, yeah? 💪"
+    # Persona context
+    persona_line = ""
+    if result.persona:
+        persona_line = f"🕵️ Your persona: **{result.persona.name}** {result.persona.emoji} — {result.persona.description}\n\n"
+
+    # Budget context with numbers
+    budget_line = ""
+    if result.projected_remaining_balance is not None:
+        daily = result.projected_daily_survival_amount or 0
+        remaining = result.projected_remaining_balance
+        budget_line = f"💳 After this: **RM{remaining:.2f}** left, ~RM{daily:.2f}/day\n"
+
+    # Risk factors as readable tags
+    risk_tags = ""
+    if result.reason_codes:
+        friendly_names = {
+            "LOW_DAILY_SURVIVAL": "daily runway too low",
+            "DAILY_SURVIVAL_BELOW_RM25": "below RM25/day",
+            "DAILY_SURVIVAL_TIGHT": "tight daily budget",
+            "HIGH_CATEGORY_USAGE": f"{parsed.category} budget nearly full",
+            "CATEGORY_BUDGET_ABOVE_85": f"{parsed.category} over 85% used",
+            "DISCRETIONARY_PURCHASE": "want vs need check",
+            "BNPL_DUE_THIS_MONTH": "BNPL payment due",
+            "BNPL_DUE_WITHIN_7_DAYS": "BNPL due this week",
+            "END_OF_MONTH_PRESSURE": "late in salary cycle",
+            "MIDNIGHT_SPENDING_PATTERN": "late-night impulse zone",
+            "LATE_NIGHT_PURCHASE": "late-night purchase",
+        }
+        tags = [friendly_names.get(c, c) for c in result.reason_codes[:4]]
+        risk_tags = "🔍 " + " · ".join(tags) + "\n"
+
+    # Agent 2: Finance Planner — negotiation intro
+    if result.verdict == "jangan_dulu":
+        negotiation_intro = (
+            "I ada 3 options for you:\n"
+            "💰 Option A — Buy with cash (but this will makan your daily runway)\n"
+            "📉 Option B — Use BNPL (tapi nanti your financial health drop)\n"
+            "🧘 Option C — Walk away for 48 hours (earn +200 Discipline XP!)\n\n"
+            "Mana satu you nak pilih?"
+        )
+    elif result.verdict == "fikir_dulu":
+        negotiation_intro = (
+            "You boleh proceed, tapi fikir dulu. This purchase will squeeze your budget a bit.\n"
+            "Option A — Buy now, tighter week ahead\n"
+            "Option B — Wait 24 hours, see if you still want it\n"
+            "Option C — Save to wishlist, revisit after salary\n\n"
+            "What do you think?"
+        )
+    else:
+        negotiation_intro = (
+            "Your budget still looks healthy after this spend. If you really need it, go ahead!\n"
+            "But remember — small spends add up. Keep tracking, yeah? 💪"
         )
 
     ai_content = (
         f"{emoji} **{result.verdict.upper().replace('_', ' ')}**\n\n"
+        f"{persona_line}"
         f"{nudge}\n\n"
-        f"📊 Risk score: {result.risk_score}/100 | Budget impact: {result.budget_impact_pct:.0f}%\n"
-        f"{'⚠️ Proactive alert triggered' if result.proactive_alert else ''}\n\n"
+        f"{budget_line}"
+        f"{risk_tags}"
+        f"📊 Risk: {result.risk_score}/100 | Budget impact: {result.budget_impact_pct:.0f}%\n"
+        f"{'⚠️ Proactive alert triggered!' if result.proactive_alert else ''}\n\n"
         f"{negotiation_intro}"
     )
 
@@ -232,17 +301,55 @@ def _build_chat_messages(
     ]
 
 
-async def run_chat_check(payload: ChatCheckRequest, user_id: str = "demo") -> ChatCheckResponse:
+async def run_chat_check(payload: ChatCheckRequest, user_id: str = "00000000-0000-0000-0000-000000000001") -> ChatCheckResponse:
     """Full chat-based pre-purchase check: parse → reason → respond."""
-    parsed = await parse_spend_intent(payload.message)
+    try:
+        parsed = await parse_spend_intent(payload.message)
+    except ValueError:
+        # Friendly error when no spend amount can be extracted
+        error_message = (
+            "Sorry, I couldn't find a spend amount in your message. "
+            "Please include the price, like 'Should I buy a RM189 dress from Shopee?' "
+            "or 'I want to spend RM50 on lunch.'"
+        )
+        return ChatCheckResponse(
+            messages=[
+                ChatMessage(role="user", content=payload.message),
+                ChatMessage(role="bajetbuddy", content=error_message),
+            ],
+            result=CheckResponse(
+                verdict="fikir_dulu",
+                nudge_bm="Saya tak dapat kesan jumlah perbelanjaan. Sila masukkan harga.",
+                nudge_en="I couldn't detect a spend amount. Please include a price.",
+                risk_score=0,
+                budget_impact_pct=0,
+                xp_earned=0,
+            ),
+            parsed_intent=ParsedSpendIntent(
+                amount=0,
+                category="other",
+                merchant="Unknown",
+                confidence=0,
+                paraphrased="Could not parse spend amount",
+            ),
+        )
+
+    # Auto-classify category types: food/transport/health → mixed, utilities → essential
+    auto_type = parsed.merchant_type
+    if auto_type == "discretionary":
+        if parsed.category in ("food", "transport", "health", "utilities", "education"):
+            auto_type = "mixed"
+        if parsed.category == "utilities":
+            auto_type = "essential"
 
     check_req = CheckRequest(
         amount=parsed.amount,
         category=parsed.category,
         merchant=parsed.merchant,
-        merchant_type=parsed.merchant_type,
+        merchant_type=auto_type,
         item_name=parsed.item_name,
-        essential=parsed.essential,
+        essential=parsed.essential or parsed.category == "utilities",
+        bnpl=parsed.bnpl,
         language_preference=payload.language_preference,
         tone_mode=payload.tone_mode,
         purchase_at=payload.purchase_at,

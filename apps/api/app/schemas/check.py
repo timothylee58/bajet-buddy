@@ -10,6 +10,7 @@ class CheckRequest(BaseModel):
     merchant_type: Literal["essential", "discretionary", "mixed"] = "discretionary"
     item_name: str | None = None
     essential: bool = False
+    bnpl: bool = Field(default=False, description="Whether the user intends to use BNPL (Buy Now Pay Later)")
     language_preference: Literal["bm", "en", "manglish"] = "manglish"
     tone_mode: Literal["professional", "friendly", "manglish", "strict", "encouraging"] = "friendly"
     purchase_at: datetime | None = None
@@ -61,16 +62,18 @@ class ChatCheckRequest(BaseModel):
     language_preference: Literal["bm", "en", "manglish"] = "manglish"
     tone_mode: Literal["professional", "friendly", "manglish", "strict", "encouraging"] = "friendly"
     purchase_at: datetime | None = None
+    bnpl: bool = Field(default=False, description="Whether user explicitly mentions BNPL in message (set by parser)")
 
 
 class ParsedSpendIntent(BaseModel):
     """Structured fields extracted from natural language by the AI parser."""
-    amount: float = Field(..., gt=0)
+    amount: float = Field(..., ge=0, description="Spend amount. Zero means parsing failed")
     category: str
     merchant: str = "Unknown"
     item_name: str | None = None
     merchant_type: Literal["essential", "discretionary", "mixed"] = "discretionary"
     essential: bool = False
+    bnpl: bool = Field(default=False, description="Whether the user intends to use BNPL")
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
     paraphrased: str = Field(default="", description="A natural paraphrase of the parsed intent for display")
 

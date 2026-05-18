@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { getPetStatus, selectPetSpecies, awardPetXP } from "@/lib/api";
+import { useGuestMode } from "@/hooks/useGuestMode";
 import type {
   PetProfile,
   PetNudge,
@@ -40,6 +41,7 @@ export function usePetCompanion(): UsePetCompanionReturn {
   const [levelUpPending, setLevelUpPending] = useState(false);
   const [newAccessory, setNewAccessory] = useState<PetAccessory | null>(null);
   const mountedRef = useRef(true);
+  const { isGuest } = useGuestMode();
 
   useEffect(() => {
     mountedRef.current = true;
@@ -47,37 +49,51 @@ export function usePetCompanion(): UsePetCompanionReturn {
   }, []);
 
   const refresh = useCallback(async (context = "dashboard_open", amount_rm?: number, category?: string) => {
+    if (isGuest) {
+      setProfile(null);
+      setNudge(null);
+      setAvailableAccessories([]);
+      setXpToNext(0);
+      setProgressPct(0);
+      return;
+    }
     setLoading(true);
     try {
       const status = await getPetStatus(context, amount_rm, category);
       if (!mountedRef.current) return;
       setProfile(status.profile);
-      setNudge(status.nudge);
+      // Use API nudge if present, else pick a random Malaysian fallback
+      if (status.nudge) {
+        setNudge(status.nudge);
+      } else {
+        const { MY_FALLBACK_NUDGES } = await import("@/components/features/pet/PetSpeechBubble");
+        const pick = MY_FALLBACK_NUDGES[Math.floor(Math.random() * MY_FALLBACK_NUDGES.length)];
+        setNudge({ message: pick.message, mood: pick.mood, xp_hint: null, trigger: "fallback" });
+      }
       setAvailableAccessories(status.available_accessories);
       setXpToNext(status.xp_to_next_level);
       setProgressPct(status.progress_pct);
     } catch {
-      // silently fail — pet widget is non-critical
+      // On failure, still show a random Malaysian nudge so the pet isn't silent
+      try {
+        const { MY_FALLBACK_NUDGES } = await import("@/components/features/pet/PetSpeechBubble");
+        const pick = MY_FALLBACK_NUDGES[Math.floor(Math.random() * MY_FALLBACK_NUDGES.length)];
+        if (mountedRef.current) setNudge({ message: pick.message, mood: pick.mood, xp_hint: null, trigger: "fallback" });
+      } catch { /* truly silent */ }
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, []);
+  }, [isGuest]);
 
   useEffect(() => {
-    getPetStatus("dashboard_open")
-      .then((status) => {
-        if (!mountedRef.current) return;
-        setProfile(status.profile);
-        setNudge(status.nudge);
-        setAvailableAccessories(status.available_accessories);
-        setXpToNext(status.xp_to_next_level);
-        setProgressPct(status.progress_pct);
-      })
-      .catch(() => {})
-      .finally(() => { if (mountedRef.current) setLoading(false); });
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      void refresh();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [refresh]);
 
   const changePet = useCallback(async (species: PetSpecies) => {
+    if (isGuest) return;
     try {
       const updated = await selectPetSpecies(species);
       if (!mountedRef.current) return;
@@ -85,9 +101,10 @@ export function usePetCompanion(): UsePetCompanionReturn {
     } catch {
       // ignore
     }
-  }, []);
+  }, [isGuest]);
 
   const award = useCallback(async (payload: AwardXPRequest): Promise<AwardXPResponse | null> => {
+    if (isGuest) return null;
     try {
       const result = await awardPetXP(payload);
       if (!mountedRef.current) return result;
@@ -98,7 +115,7 @@ export function usePetCompanion(): UsePetCompanionReturn {
     } catch {
       return null;
     }
-  }, []);
+  }, [isGuest]);
 
   const dismissLevelUp = useCallback(() => setLevelUpPending(false), []);
   const dismissAccessory = useCallback(() => setNewAccessory(null), []);

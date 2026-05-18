@@ -17,7 +17,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.22),_transparent_26rem),radial-gradient(circle_at_bottom_right,_rgba(79,195,247,0.18),_transparent_24rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)] p-6 selection:bg-primary/25">
+    <div className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-background p-6 selection:bg-primary/25">
       {/* Background Effects */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-[-10%] left-[-10%] h-[50%] w-[50%] rounded-full bg-primary/20 blur-[120px]" />
@@ -51,8 +51,7 @@ export default function LandingPage() {
           transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
           className="relative group"
         >
-          {/* Animated glowing border effect */}
-          <div className="absolute -inset-[1px] rounded-3xl bg-gradient-to-r from-primary via-secondary to-tertiary blur opacity-35 transition duration-1000 group-hover:opacity-60 group-hover:duration-200"></div>
+          <div className="absolute -inset-[1px] rounded-3xl border border-primary/20"></div>
           
           <div className="relative space-y-6 rounded-[2rem] border border-white/80 bg-white/85 p-8 shadow-[0_24px_80px_-32px_rgba(124,92,255,0.35)] backdrop-blur-xl">
             <div className="space-y-3">
@@ -64,9 +63,8 @@ export default function LandingPage() {
             
             <Button
               onClick={handleGuestMode}
-              className="relative h-14 w-full overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-secondary to-tertiary text-lg font-bold text-white shadow-[0_0_40px_-10px_rgba(124,92,255,0.35)] transition-all active:scale-[0.98]"
+              className="relative h-14 w-full overflow-hidden rounded-2xl bg-primary text-lg font-bold text-white shadow-sm transition-all active:scale-[0.98]"
             >
-              <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 transition-opacity duration-300 group-hover/btn:opacity-100" />
               <span className="flex items-center justify-center gap-2">
                 Accept & Continue
                 <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />

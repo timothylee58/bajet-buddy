@@ -12,7 +12,7 @@ VERDICT_MAP = {
 }
 
 
-async def run_manual_prepurchase_check(payload: CheckRequest, user_id: str = "demo") -> CheckResponse:
+async def run_manual_prepurchase_check(payload: CheckRequest, user_id: str = "00000000-0000-0000-0000-000000000001") -> CheckResponse:
     state = await run_prepurchase_reasoning_graph(payload, user_id=user_id)
     risk = state.risk_result
     nudge = state.nudge_result

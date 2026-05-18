@@ -79,6 +79,9 @@ def analyze_persona(
     current_balance: float,
     bnpl_commitments: int,
     days_until_salary: int,
+    onboarding_data: dict | None = None,
+    savings_rate: float | None = None,
+    active_subscriptions: int = 0,
     xp: int = 420,
     streak: int = 7,
 ) -> dict:
@@ -150,6 +153,64 @@ def analyze_persona(
         if current_balance >= 0.3 * monthly_income and bnpl_commitments == 0 and top_category_share <= 0.5:
             scores["future_homeowner"] += 18
 
+        # ── Onboarding / profile modifiers ──────────────────────────────
+        # Savings rate: high savers lean toward future_homeowner, low savers toward spenders
+        if savings_rate is not None:
+            if savings_rate >= 0.2:  # saving 20%+ of income
+                scores["future_homeowner"] += 28
+                scores["gaji_habis_king"] -= 15
+                scores["bnpl_roller"] -= 10
+            elif savings_rate >= 0.1:
+                scores["savings_starter"] += 15
+                scores["future_homeowner"] += 12
+            else:  # saving < 10%
+                scores["gaji_habis_king"] += 18
+                scores["bnpl_roller"] += 12
+
+        # Active subscriptions (Netflix, Spotify, etc.) — small recurring drains
+        if active_subscriptions >= 4:
+            scores["bubble_tea_bro"] += 12
+            scores["grabfood_spiral"] += 8
+
+        # Onboarding answers: spending_style, biggest_expense, savings_goal
+        if onboarding_data:
+            spending_style = onboarding_data.get("spending_style", "")
+            biggest_expense = onboarding_data.get("biggest_expense", "")
+            savings_goal = onboarding_data.get("savings_goal", "")
+            impulse_rating = onboarding_data.get("impulse_rating", "")
+
+            if "impulse" in spending_style.lower() or "treat" in spending_style.lower():
+                scores["midnight_shopee_queen"] += 20
+                scores["gaji_habis_king"] += 15
+            if "careful" in spending_style.lower() or "budget" in spending_style.lower():
+                scores["future_homeowner"] += 20
+                scores["savings_starter"] += 15
+                scores["gaji_habis_king"] -= 12
+
+            if "shopping" in biggest_expense.lower() or "online" in biggest_expense.lower():
+                scores["midnight_shopee_queen"] += 18
+            if "food" in biggest_expense.lower() or "makan" in biggest_expense.lower():
+                scores["grabfood_spiral"] += 18
+                scores["mamak_lepak_spender"] += 15
+            if "transport" in biggest_expense.lower() or "petrol" in biggest_expense.lower():
+                scores["gaji_habis_king"] += 12
+
+            if "house" in savings_goal.lower() or "home" in savings_goal.lower():
+                scores["future_homeowner"] += 30
+            if "travel" in savings_goal.lower() or "vacation" in savings_goal.lower():
+                scores["bonus_burner"] += 15
+            if "emergency" in savings_goal.lower() or "save" in savings_goal.lower():
+                scores["savings_starter"] += 20
+                scores["future_homeowner"] += 10
+
+            # Self-reported impulse rating: 1-5 scale
+            if isinstance(impulse_rating, (int, float)):
+                if impulse_rating >= 4:
+                    scores["midnight_shopee_queen"] += 22
+                    scores["bnpl_roller"] += 16
+                elif impulse_rating <= 2:
+                    scores["future_homeowner"] += 18
+
         persona_key = max(scores, key=scores.get)
         confidence = max(55, min(97, scores[persona_key]))
         top_signals = [
@@ -161,10 +222,23 @@ def analyze_persona(
             top_signals.append(f"Late-night shopping hits: {shopping_late_hits}")
         if bnpl_hits or bnpl_commitments:
             top_signals.append(f"BNPL exposure: {bnpl_hits} flagged transactions, {bnpl_commitments} commitments")
+        if savings_rate is not None:
+            top_signals.append(f"Monthly savings rate: {savings_rate * 100:.0f}%")
+        if active_subscriptions:
+            top_signals.append(f"Active subscriptions/loans: {active_subscriptions}")
+        if onboarding_data and onboarding_data.get("spending_style"):
+            top_signals.append(f"Self-described spending: {onboarding_data['spending_style']}")
 
+        signal_parts = [f"{top_category} concentration", "merchant repetition", "spending timing"]
+        if onboarding_data:
+            signal_parts.append("onboarding self-assessment")
+        if savings_rate is not None:
+            signal_parts.append(f"savings behaviour ({savings_rate*100:.0f}% rate)")
+        if active_subscriptions:
+            signal_parts.append(f"{active_subscriptions} subscriptions/loans")
         explanation = (
-            f"This persona is driven by {top_category} concentration, merchant repetition, "
-            f"and spending timing patterns that match {PERSONAS[persona_key].name.lower()}."
+            f"This persona is driven by {', '.join(signal_parts)} "
+            f"that match {PERSONAS[persona_key].name.lower()}."
         )
 
     persona = PERSONAS[persona_key]

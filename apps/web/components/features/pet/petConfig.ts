@@ -70,11 +70,11 @@ export const PET_SPECIES: Record<PetSpecies, PetSpeciesConfig> = {
     locked: true,
     lockReason: "Premium subscribers only",
     stages: [
-      { image: "/pets/pet-1.png", name: "Finance Intern", tagline: "Still learning the basics.", minXp: 0 },
-      { image: "/pets/pet-2.png", name: "Junior Analyst", tagline: "Numbers start making sense.", minXp: 200 },
-      { image: "/pets/pet-3.png", name: "Portfolio Manager", tagline: "Masters in money management.", minXp: 500 },
-      { image: "/pets/pet-4.png", name: "CFO Mode", tagline: "Command the finances.", minXp: 1000 },
-      { image: "/pets/pet-5.png", name: "Warren Buffett", tagline: "Legendary financial wisdom.", minXp: 2000 },
+      { image: "/pets/extras-1.png", name: "Finance Intern", tagline: "Still learning the basics.", minXp: 0 },
+      { image: "/pets/extras-2.png", name: "Junior Analyst", tagline: "Numbers start making sense.", minXp: 200 },
+      { image: "/pets/extras-3.png", name: "Portfolio Manager", tagline: "Masters in money management.", minXp: 500 },
+      { image: "/pets/extras-4.png", name: "CFO Mode", tagline: "Command the finances.", minXp: 1000 },
+      { image: "/pets/extras-4.png", name: "Warren Buffett", tagline: "Legendary financial wisdom.", minXp: 2000 },
     ],
   },
 };

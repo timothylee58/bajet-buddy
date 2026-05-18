@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Clock, Loader2, CheckCircle2, Flame } from "lucide-react";
 import { cn, formatRM } from "@/lib/utils";
 import { FOMOHeatGauge } from "./FOMOHeatGauge";
 import { ImpulseBountyJar } from "./ImpulseBountyJar";
+import { PwaLockdownOverlay } from "./PwaLockdownOverlay";
 import { useFOMONegotiator } from "@/hooks/useFOMONegotiator";
+import { usePwaMonitor } from "@/hooks/usePwaMonitor";
 import type {
   EmotionalState,
   FOMOChoice,
@@ -118,6 +121,13 @@ function OptionCard({
 
   const xpColor = option.xp_delta > 0 ? "text-emerald-600" : option.xp_delta < 0 ? "text-red-500" : "text-zinc-400";
 
+  // Action descriptors for each choice
+  const actionDescriptions: Record<FOMOChoice, string> = {
+    cash: "📊 Budget auto-updated · 🧠 Persona engine synced · 🐱 Pet companion notified",
+    bnpl: "🛡️ 24h PWA monitor ACTIVE · 🚨 Shopee/Lazada = lockdown · 🔍 Sentinel alerted · 😿 Pet disappointed",
+    walk_away: "🫙 Bounty Jar deposit · 🔥 Streak bonus · 🎉 Pet celebrates · 🧊 12h cooldown · 🏆 Unlock Hype Man",
+  };
+
   return (
     <motion.button
       whileHover={{ scale: 1.01 }}
@@ -149,6 +159,15 @@ function OptionCard({
               12-hour cooldown — breathe, then reconsider
             </div>
           )}
+          {/* Action consequences */}
+          <p className={cn(
+            "text-[10px] mt-1.5 leading-4 border-t pt-1.5",
+            choiceKey === "walk_away" ? "text-emerald-500 border-emerald-100" :
+            choiceKey === "bnpl" ? "text-amber-500 border-amber-200" :
+            "text-zinc-400 border-zinc-100"
+          )}>
+            {actionDescriptions[choiceKey]}
+          </p>
         </div>
         <div className={cn("shrink-0 text-sm font-bold", xpColor)}>
           {option.xp_delta > 0 ? `+${option.xp_delta}` : option.xp_delta !== 0 ? String(option.xp_delta) : "±0"} XP
@@ -168,7 +187,15 @@ function ResolutionView({
   onClose: () => void;
 }) {
   const isWalkAway = resolution.cooldown_until !== null;
-  const bigEmoji = isWalkAway ? "🧘" : resolution.loot_box_unlocked ? "🎁" : resolution.xp_delta < 0 ? "😬" : "✅";
+  const isBnpl = resolution.heat_delta > 0 && !isWalkAway;
+  const bigEmoji = isWalkAway ? "🧘" : resolution.loot_box_unlocked ? "🎁" : isBnpl ? "⚠️" : resolution.xp_delta < 0 ? "😬" : "✅";
+
+  // Agent sync indicators
+  const syncedAgents = isWalkAway
+    ? ["🧠 Persona", "🔍 Sentinel", "🐱 Pet", "🏆 Gamification", "📊 Budget"]
+    : isBnpl
+    ? ["🧠 Persona", "🔍 Sentinel", "😿 Pet", "🛡️ PWA Monitor", "⚠️ Risk alert"]
+    : ["🧠 Persona", "📊 Budget", "🐱 Pet"];
 
   return (
     <motion.div
@@ -186,9 +213,26 @@ function ResolutionView({
           {bigEmoji}
         </motion.div>
         <p className="font-bold text-zinc-900">
-          {isWalkAway ? "Walked away — respect!" : resolution.loot_box_unlocked ? "Bounty Jar maxed!" : "Decision logged."}
+          {isWalkAway ? "Walked away — respect!" : resolution.loot_box_unlocked ? "Bounty Jar maxed!" : isBnpl ? "BNPL committed — monitor active" : "Decision logged."}
         </p>
         <p className="text-sm text-zinc-500 leading-6 max-w-[280px] mx-auto">{resolution.message}</p>
+      </div>
+
+      {/* Agent sync indicators */}
+      <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-2.5">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400 mb-1.5">
+          AI Agents Synced
+        </p>
+        <div className="flex flex-wrap gap-1">
+          {syncedAgents.map((agent) => (
+            <span
+              key={agent}
+              className="inline-flex items-center rounded-full bg-white border border-zinc-200 px-2 py-0.5 text-[10px] text-zinc-600"
+            >
+              {agent}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Persona reaction */}
@@ -254,6 +298,8 @@ export function FOMONegotiatorModal({ open, request, onClose }: FOMONegotiatorMo
     phase, negotiation, resolution, emotionalState, personaPreference,
     error, open: startFlow, setEmotion, setPersona, confirmEmotion, choose, reset,
   } = useFOMONegotiator();
+  const { lockdown, dismissLockdown } = usePwaMonitor();
+  const [scenario, setScenario] = useState<string | null>(null);
 
   function handleOpen() {
     if (request) startFlow(request);
@@ -261,6 +307,7 @@ export function FOMONegotiatorModal({ open, request, onClose }: FOMONegotiatorMo
 
   function handleClose() {
     reset();
+    setScenario(null);
     onClose();
   }
 
@@ -270,30 +317,40 @@ export function FOMONegotiatorModal({ open, request, onClose }: FOMONegotiatorMo
   }
 
   return (
+    <>
     <AnimatePresence onExitComplete={reset}>
       {open && (
         <>
+          {/* Backdrop */}
           <motion.div
             key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm"
           />
+
+          {/* Centered card — clicking outside the card dismisses */}
           <motion.div
-            key="sheet"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 320, damping: 32 }}
+            key="card"
+            initial={{ opacity: 0, scale: 0.92, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 16 }}
+            transition={{ type: "spring", stiffness: 340, damping: 30 }}
             onAnimationComplete={(def) => {
               if (def === "animate" && phase === "idle" && request) handleOpen();
             }}
-            className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-lg rounded-t-3xl bg-white shadow-2xl max-h-[92dvh] flex flex-col"
+            onClick={handleClose}
+            className="fixed inset-0 z-[70] flex items-center justify-center p-4"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-zinc-100 bg-white px-5 py-4 rounded-t-3xl shrink-0">
+            {/* Inner card — stopPropagation so clicks don't bubble to dismiss */}
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-lg rounded-3xl bg-white shadow-2xl max-h-[88dvh] flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-zinc-100 bg-white px-5 py-4 rounded-t-3xl shrink-0">
               <div className="flex items-center gap-2">
                 <span className="text-xl">🧠</span>
                 <div>
@@ -326,6 +383,37 @@ export function FOMONegotiatorModal({ open, request, onClose }: FOMONegotiatorMo
                   <div className="text-center space-y-1">
                     <p className="text-2xl font-bold text-zinc-900">{formatRM(request.amount)}</p>
                     <p className="text-sm text-zinc-500">{request.item_name} @ {request.merchant}</p>
+                  </div>
+
+                  {/* ── Scenario suggestion chips ── */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400 text-center">
+                      What&apos;s triggering this?
+                    </p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {[
+                        { id: "flash",   emoji: "⚡", label: "Flash sale ending soon" },
+                        { id: "stock",   emoji: "📦", label: "Low stock warning" },
+                        { id: "payday",  emoji: "💸", label: "Just got paid" },
+                        { id: "browse",  emoji: "👀", label: "Doom-scrolling again" },
+                        { id: "deserve", emoji: "🎁", label: "I deserve a treat" },
+                        { id: "friend",  emoji: "👫", label: "Friend recommended it" },
+                      ].map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setScenario(scenario === s.id ? null : s.id)}
+                          className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
+                            scenario === s.id
+                              ? "border-violet-400 bg-violet-50 text-violet-700 shadow-sm"
+                              : "border-zinc-200 bg-white text-zinc-600 hover:border-violet-300 hover:text-violet-600"
+                          }`}
+                        >
+                          <span>{s.emoji}</span>
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -476,10 +564,16 @@ export function FOMONegotiatorModal({ open, request, onClose }: FOMONegotiatorMo
               {phase === "resolved" && resolution && (
                 <ResolutionView resolution={resolution} onClose={handleClose} />
               )}
-            </div>
-          </motion.div>
+            </div>{/* end body scroll */}
+            </div>{/* end inner card */}
+          </motion.div>{/* end card motion.div */}
         </>
       )}
+
     </AnimatePresence>
+
+      {/* PWA Lockdown overlay — outside AnimatePresence since it self-manages animations */}
+      <PwaLockdownOverlay lockdown={lockdown} onDismiss={dismissLockdown} />
+    </>
   );
 }

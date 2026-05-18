@@ -16,6 +16,7 @@ export interface BudgetSummary {
   total_spent: number;
   remaining: number;
   days_left: number;
+  total_days?: number;
   daily_safe_amount: number;
 }
 
@@ -48,6 +49,7 @@ export interface CheckRequest {
   merchant_type?: "essential" | "discretionary" | "mixed";
   item_name?: string;
   essential?: boolean;
+  bnpl?: boolean;
   language_preference?: "bm" | "en" | "manglish";
   tone_mode?: "professional" | "friendly" | "manglish" | "strict" | "encouraging";
   purchase_at?: string;
@@ -87,6 +89,7 @@ export interface ChatCheckRequest {
   language_preference?: "bm" | "en" | "manglish";
   tone_mode?: "professional" | "friendly" | "manglish" | "strict" | "encouraging";
   purchase_at?: string;
+  bnpl?: boolean;
 }
 
 export interface ParsedSpendIntent {
@@ -96,6 +99,7 @@ export interface ParsedSpendIntent {
   item_name?: string | null;
   merchant_type: "essential" | "discretionary" | "mixed";
   essential: boolean;
+  bnpl?: boolean;
   confidence: number;
   paraphrased: string;
 }
@@ -149,6 +153,18 @@ export interface PersonaAnalysis extends Persona {
   suggested_intervention_rule: string;
   confidence: number;
   top_signals: string[];
+  last_reroll_at?: string | null;
+  next_reroll_at?: string | null;
+  cooldown_days?: number | null;
+}
+
+export interface PersonaRerollResponse {
+  status: "ok" | "cooldown" | "error";
+  persona?: PersonaAnalysis | null;
+  last_reroll_at?: string | null;
+  next_reroll_at?: string | null;
+  cooldown_days?: number | null;
+  error?: string | null;
 }
 
 export interface FutureTimelinePoint {
@@ -309,9 +325,21 @@ export interface OCRInsertResult {
   db_error: string | null;
 }
 
+/** AI spending summary produced by DeepSeek after OCR extraction */
+export interface OCRSpendingSummary {
+  headline: string;
+  insight: string;
+  top_category: string;
+  total_debits: number;
+  total_credits: number;
+  savings_tip: string;
+}
+
 export interface OCRScanResponse {
   status: "ok" | "error";
   scan_result: OCRScanResult | null;
+  /** Manglish AI summary from DeepSeek — present when DEEPSEEK_API_KEY is set */
+  spending_summary: OCRSpendingSummary | null;
   insert_results: OCRInsertResult[];
   total_inserted: number;
   total_failed: number;

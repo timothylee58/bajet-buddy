@@ -5,6 +5,7 @@ import {
   activateProfilingGoal,
   getProfilingSummary,
 } from "@/lib/api";
+import { useGuestMode } from "@/hooks/useGuestMode";
 import type {
   ProfilingGoalType,
   ProgressiveProfilingSummary,
@@ -63,6 +64,7 @@ export function useProgressiveProfiling() {
   const [summary, setSummary] = useState<ProgressiveProfilingSummary>(DEFAULT_SUMMARY);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isGuest } = useGuestMode();
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -71,17 +73,21 @@ export function useProgressiveProfiling() {
       const data = await getProfilingSummary();
       setSummary(data);
     } catch (err) {
-      setSummary(DEFAULT_SUMMARY);
       setError(err instanceof Error ? err.message : "Unable to load profiling summary");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isGuest]);
 
   const activateGoal = useCallback(
     async (type: ProfilingGoalType, commitmentAmount: number) => {
       setLoading(true);
       setError(null);
+      if (isGuest) {
+        setError("Sign in to activate savings goals");
+        setLoading(false);
+        return false;
+      }
       try {
         const data = await activateProfilingGoal(type, commitmentAmount);
         setSummary(data);
@@ -93,7 +99,7 @@ export function useProgressiveProfiling() {
         setLoading(false);
       }
     },
-    []
+    [isGuest]
   );
 
   useEffect(() => {

@@ -1,12 +1,16 @@
-"""In-memory freeze state (replace with DB in production)."""
+"""Freeze service — persists to Supabase freeze_events table."""
+from __future__ import annotations
+
 from datetime import datetime, timezone
 from typing import Literal
+import logging
+
+from app.core.database import get_supabase
 from app.services.gamification_service import spend_xp
 
-# Simple in-memory store — keyed by user_id
-_freeze_store: dict[str, dict] = {}
+logger = logging.getLogger(__name__)
 
-DEFAULT_STATE = {
+DEFAULT_STATE: dict = {
     "active": False,
     "type": "soft",
     "reason": "manual",
@@ -17,15 +21,56 @@ DEFAULT_STATE = {
 }
 
 
-def get_freeze_status(user_id: str = "demo") -> dict:
-    return _freeze_store.get(user_id, DEFAULT_STATE.copy())
+def _latest_active(user_id: str) -> dict | None:
+    """Return the most recent active (not released) freeze event from Supabase."""
+    supabase = get_supabase()
+    if supabase is None:
+        return None
+    try:
+        res = (
+            supabase.table("freeze_events")
+            .select("*")
+            .eq("user_id", user_id)
+            .is_("released_at", "null")
+            .order("started_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if hasattr(res, "data") and res.data and len(res.data) > 0:
+            row = res.data[0]
+            return {
+                "active": True,
+                "type": row.get("freeze_type", "soft"),
+                "reason": row.get("trigger_source", "manual"),
+                "message": row.get("note", "Freeze active."),
+                "can_override": row.get("freeze_type", "soft") == "soft",
+                "override_cost_xp": 50,
+                "activated_at": row.get("started_at"),
+            }
+    except Exception as e:
+        logger.warning("Failed to fetch freeze status from Supabase: %s", e)
+    return None
 
 
-def activate_freeze(user_id: str = "demo", freeze_type: Literal["soft", "hard"] = "soft") -> dict:
+def get_freeze_status(user_id: str = "00000000-0000-0000-0000-000000000001") -> dict:
+    """Returns current freeze status, preferring Supabase over defaults."""
+    active = _latest_active(user_id)
+    if active is not None:
+        return active
+    return DEFAULT_STATE.copy()
+
+
+def activate_freeze(
+    user_id: str = "00000000-0000-0000-0000-000000000001",
+    freeze_type: Literal["soft", "hard"] = "soft",
+    trigger_source: Literal["manual", "auto", "buddy"] = "manual",
+) -> dict:
+    """Activate a freeze — inserts into freeze_events table."""
+    now = datetime.now(timezone.utc).isoformat()
     state = {
         "active": True,
         "type": freeze_type,
-        "reason": "manual",
+        "reason": trigger_source,
         "message": (
             "Soft freeze active — you can override in an emergency."
             if freeze_type == "soft"
@@ -33,23 +78,50 @@ def activate_freeze(user_id: str = "demo", freeze_type: Literal["soft", "hard"] 
         ),
         "can_override": freeze_type == "soft",
         "override_cost_xp": 50,
-        "activated_at": datetime.now(timezone.utc).isoformat(),
+        "activated_at": now,
     }
-    _freeze_store[user_id] = state
+
+    supabase = get_supabase()
+    if supabase is not None:
+        try:
+            supabase.table("freeze_events").insert({
+                "user_id": user_id,
+                "freeze_type": freeze_type,
+                "trigger_source": trigger_source,
+                "note": state["message"],
+                "started_at": now,
+            }).execute()
+        except Exception as e:
+            logger.warning("Failed to persist freeze to Supabase: %s", e)
+
     return state
 
 
-def override_freeze(user_id: str = "demo") -> dict:
-    state = _freeze_store.get(user_id, DEFAULT_STATE.copy())
-    if not state.get("can_override", True):
+def override_freeze(user_id: str = "00000000-0000-0000-0000-000000000001") -> dict:
+    """Override (release) the active freeze — sets released_at."""
+    current = get_freeze_status(user_id)
+    if not current.get("can_override", True):
         raise ValueError("Hard freeze cannot be overridden")
-    spend_xp(user_id, int(state.get("override_cost_xp", 0)))
-    _freeze_store[user_id] = DEFAULT_STATE.copy()
+
+    spend_xp(user_id, int(current.get("override_cost_xp", 0)))
+
+    now = datetime.now(timezone.utc).isoformat()
+    supabase = get_supabase()
+    if supabase is not None:
+        try:
+            supabase.table("freeze_events") \
+                .update({"released_at": now}) \
+                .eq("user_id", user_id) \
+                .is_("released_at", "null") \
+                .execute()
+        except Exception as e:
+            logger.warning("Failed to release freeze in Supabase: %s", e)
+
     return DEFAULT_STATE.copy()
 
 
 def maybe_trigger_auto_freeze(
-    user_id: str = "demo",
+    user_id: str = "00000000-0000-0000-0000-000000000001",
     *,
     risk_score: int,
     projected_daily_survival_amount: float,
@@ -57,19 +129,6 @@ def maybe_trigger_auto_freeze(
 ) -> dict:
     """Autonomously freeze when runway turns critical."""
     if projected_daily_survival_amount < 25 or risk_score >= 90:
-        state = {
-            "active": True,
-            "type": "soft" if days_until_salary <= 7 else "hard",
-            "reason": "auto",
-            "message": (
-                "Auto-freeze triggered because daily survival dropped below RM25."
-                if projected_daily_survival_amount < 25
-                else "Auto-freeze triggered because spending risk reached a critical level."
-            ),
-            "can_override": days_until_salary <= 7,
-            "override_cost_xp": 50,
-            "activated_at": datetime.now(timezone.utc).isoformat(),
-        }
-        _freeze_store[user_id] = state
-        return state
+        ft: Literal["soft", "hard"] = "hard" if days_until_salary <= 7 else "soft"
+        return activate_freeze(user_id, ft, trigger_source="auto")
     return get_freeze_status(user_id)
