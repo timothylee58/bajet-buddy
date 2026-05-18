@@ -151,6 +151,11 @@ export async function getGamificationStatus(): Promise<GamificationStatus> {
   return apiFetch<GamificationStatus>("/api/gamification/status");
 }
 
+/** GET /api/gamification/agents */
+export async function getAgentRoster(): Promise<{ id: string; name: string; emoji: string; description: string; unlock_condition: string; unlocked: boolean }[]> {
+  return apiFetch("/api/gamification/agents");
+}
+
 /** GET /api/profiling/summary */
 export async function getProfilingSummary(): Promise<ProgressiveProfilingSummary> {
   return apiFetch<ProgressiveProfilingSummary>("/api/profiling/summary");

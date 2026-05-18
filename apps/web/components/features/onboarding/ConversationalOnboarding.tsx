@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { API_URL } from "@/lib/constants";
 import { scanReceipt } from "@/lib/api";
 import { Camera, SkipForward, Loader2 } from "lucide-react";
-import Image from "next/image";
 import type { OCRScanResponse, OCRTransaction, PetSpecies } from "@/types";
 import { TransactionReviewCard } from "@/components/features/check/TransactionReviewCard";
 import { PET_SPECIES } from "@/components/features/pet/petConfig";
@@ -204,7 +204,7 @@ export function ConversationalOnboarding() {
           {scanImage && !scanResult && !isScanning && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
               <div className="relative overflow-hidden rounded-2xl border-2 border-white/70">
-                <img src={scanImage} className="w-full max-h-[200px] object-contain bg-white/60" alt="Preview" />
+                <Image src={scanImage} alt="Preview" width={400} height={200} className="w-full max-h-[200px] object-contain bg-white/60" unoptimized />
               </div>
               <button
                 onClick={handleUpload}

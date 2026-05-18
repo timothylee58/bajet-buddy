@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { API_URL } from "@/lib/constants";
+import { getAgentRoster } from "@/lib/api";
 
 interface Agent {
   id: string;
@@ -28,10 +28,9 @@ export function AgentRoster() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/gamification/agents`)
-      .then((r) => r.json())
-      .then((data: Agent[]) => setAgents(data))
-      .catch(() => {/* silently handle */ })
+    getAgentRoster()
+      .then((data) => setAgents(data))
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 

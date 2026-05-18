@@ -7,6 +7,7 @@ import re
 import time
 from typing import Any
 
+import anthropic
 from openai import AsyncOpenAI
 
 from app.core.config import get_settings
@@ -102,23 +103,26 @@ async def scan_receipt(
     except Exception as e:
         return OCRScanResponse(status="error", error=f"Invalid base64 image: {e}")
 
-    if not settings.openai_api_key:
+    if not (settings.openai_api_key or settings.ilmu_api_key or settings.anthropic_api_key):
         return OCRScanResponse(
             status="error",
-            error="OPENAI_API_KEY not configured — required for image OCR",
+            error="No AI API key configured — set OPENAI_API_KEY, ILMU_API_KEY, or ANTHROPIC_API_KEY",
         )
 
-    # ── Step 1: OCR via ChatGPT-4o ─────────────────────────────────────────
+    # ── Step 1: OCR — GPT-4o preferred, Claude fallback ───────────────────
     scan_result: OCRScanResult | None = None
     try:
-        scan_result = await _call_openai_vision(image_data_url, settings)
+        if settings.openai_api_key:
+            scan_result = await _call_openai_vision(image_data_url, settings)
+        else:
+            scan_result = await _call_claude_vision(image_data_url, settings)
         logger.info(
             "OCR success: %s txns extracted, doc_type=%s",
             len(scan_result.transactions),
             scan_result.document_type,
         )
     except Exception as e:
-        logger.exception("ChatGPT OCR failed")
+        logger.exception("OCR failed")
         return OCRScanResponse(status="error", error=f"OCR failed: {e}")
 
     # ── Step 2: AI Spending Summary via DeepSeek ───────────────────────────
@@ -163,10 +167,10 @@ async def scan_receipt(
     )
 
 
-# ── OCR: ChatGPT-4o Vision ─────────────────────────────────────────────────────
+# ── OCR: GPT-4o Vision (primary) ─────────────────────────────────────────────
 
 async def _call_openai_vision(image_data_url: str, settings: Any) -> OCRScanResult:
-    """Use ChatGPT-4o for image OCR — the only model with reliable vision support."""
+    """Use GPT-4o for receipt/statement OCR — preferred for structured extraction."""
     client = AsyncOpenAI(api_key=settings.openai_api_key)
     response = await client.chat.completions.create(
         model="gpt-4o",
@@ -198,6 +202,63 @@ async def _call_openai_vision(image_data_url: str, settings: Any) -> OCRScanResu
         return _parse_vision_response(raw_text)
     except Exception as e:
         raise RuntimeError(f"OpenAI OCR parse failed: {e}") from e
+
+
+# ── OCR: Claude Vision (fallback) ────────────────────────────────────────────
+
+async def _call_claude_vision(image_data_url: str, settings: Any) -> OCRScanResult:
+    """Use Claude vision for receipt/statement OCR."""
+    client = anthropic.AsyncAnthropic(
+        api_key=settings.ilmu_api_key or settings.anthropic_api_key,
+        base_url=settings.ilmu_anthropic_base_url if settings.ilmu_api_key else None,
+    )
+    model = settings.ilmu_model if settings.ilmu_api_key else "claude-opus-4-5-20251101"
+
+    # Extract mime type and raw base64 from data URL
+    if "," in image_data_url:
+        header, raw_b64 = image_data_url.split(",", 1)
+        media_type = header.split(":")[1].split(";")[0] if ":" in header else "image/jpeg"
+    else:
+        raw_b64 = image_data_url
+        media_type = "image/jpeg"
+
+    supported_types = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+    if media_type not in supported_types:
+        media_type = "image/jpeg"
+
+    response = await client.messages.create(
+        model=model,
+        system=RECEIPT_SYSTEM_PROMPT,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": media_type,
+                            "data": raw_b64,
+                        },
+                    },
+                    {
+                        "type": "text",
+                        "text": (
+                            "Extract all transactions from this image as JSON. "
+                            "Identify debit vs credit for each row."
+                        ),
+                    },
+                ],
+            }
+        ],
+        max_tokens=4096,
+        temperature=0.0,
+    )
+    raw_text = response.content[0].text if response.content else ""
+    try:
+        return _parse_vision_response(raw_text)
+    except Exception as e:
+        raise RuntimeError(f"Claude OCR parse failed: {e}") from e
 
 
 # ── Summary: DeepSeek (text-only, cheap) ──────────────────────────────────────

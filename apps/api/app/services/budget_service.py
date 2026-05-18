@@ -57,10 +57,12 @@ async def get_budget_summary(user_id: str | None = None) -> dict:
 
     transactions = await get_user_transactions(user_id)
 
-    # Income from profile or transactions
-    total_income = sum(t["amount"] for t in transactions if t.get("category") == "income" or t.get("amount", 0) > 0)
+    # Prefer profile-declared income; fall back to summing income-category transactions.
+    # Positive-amount non-income transactions (refunds, credits) are intentionally excluded
+    # from the income total to avoid inflating the budget — they reduce spending instead.
+    total_income = await _fetch_monthly_income(user_id)
     if total_income == 0:
-        total_income = await _fetch_monthly_income(user_id)
+        total_income = sum(t["amount"] for t in transactions if t.get("category") == "income")
 
     total_spent = sum(abs(t["amount"]) for t in transactions if t.get("category") != "income" and t.get("amount", 0) < 0)
 
