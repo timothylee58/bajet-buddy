@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import urllib.parse
 from typing import AsyncGenerator
 
 import httpx
@@ -34,7 +35,9 @@ async def _stream_from_agentcore(
     payload: dict,
 ) -> AsyncGenerator[str, None]:
     """Stream SSE chunks from the AgentCore runtime endpoint."""
-    url = f"https://bedrock-agentcore.{region}.amazonaws.com/runtimes/{runtime_arn}/invocations"
+    # Fix 4: ARN must be URL-encoded (contains colons and slashes)
+    escaped_arn = urllib.parse.quote(runtime_arn, safe="")
+    url = f"https://bedrock-agentcore.{region}.amazonaws.com/runtimes/{escaped_arn}/invocations"
     headers = {
         "Authorization": f"Bearer {bearer_token}",
         "Content-Type": "application/json",
@@ -43,13 +46,13 @@ async def _stream_from_agentcore(
         headers["X-Amzn-Bedrock-AgentCore-Runtime-Session-Id"] = session_id
 
     async with httpx.AsyncClient(timeout=60.0) as client:
-        async with client.stream("POST", url, headers=headers, json=payload) as resp:
+        # Fix 4 (continued): qualifier param required by the AgentCore API
+        async with client.stream("POST", url, params={"qualifier": "DEFAULT"}, headers=headers, json=payload) as resp:
             resp.raise_for_status()
             async for line in resp.aiter_lines():
                 if line.startswith("data: "):
-                    yield line[6:]
-                elif line:
-                    yield line
+                    # Strip surrounding quotes that AgentCore adds to string chunks
+                    yield line[6:].replace('"', "")
 
 
 @router.post("/chat")
