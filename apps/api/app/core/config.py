@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     environment: str = "development"
     allowed_origins: str = '["http://localhost:3000"]'
     demo_user_id: str = "00000000-0000-0000-0000-000000000001"
+    bedrock_aws_region: str = "us-west-2"
+    bedrock_agent_name: str = "bajet-buddy"
+    bedrock_guardrail_id: str = ""
+    cognito_client_id: str = ""
+    cognito_discovery_url: str = ""
+    agentcore_runtime_arn: str = ""
+    agentcore_bearer_token: str = ""
 
     class Config:
         env_file = ".env"
