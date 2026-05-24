@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Edit2, X, Store, CreditCard, Tag, Calendar, Database, CheckCircle2, AlertCircle, Zap, ScanLine, Receipt, Landmark } from "lucide-react";
+import { Check, Edit2, X, Store, CreditCard, Tag, Calendar, Database, CheckCircle2, AlertCircle, Zap, ScanLine, Receipt, Landmark, Trash2, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import type { OCRScanResponse, OCRTransaction } from "@/types";
 
@@ -51,6 +51,29 @@ export function TransactionReviewCard({
     });
     setEditingIndex(null);
     setEditField(null);
+  };
+
+  const removeTransaction = (index: number) => {
+    setTransactions(prev => prev.filter((_, i) => i !== index));
+    if (editingIndex === index) {
+      setEditingIndex(null);
+      setEditField(null);
+    }
+  };
+
+  const addTransaction = () => {
+    const newTxn: OCRTransaction = {
+      merchant: "",
+      amount: 0,
+      category: "other",
+      date: new Date().toISOString().slice(0, 10),
+      note: "",
+      transaction_type: "debit",
+    };
+    setTransactions(prev => [...prev, newTxn]);
+    // Auto-enter edit mode on the new row
+    setEditingIndex(transactions.length);
+    setEditField({ key: "merchant", value: "" });
   };
 
   const isReceipt = result.document_type === "receipt";
@@ -125,9 +148,14 @@ export function TransactionReviewCard({
                       )}
                     </div>
                     {editingIndex !== i && (
-                      <Button variant="ghost" size="icon" className="text-zinc-400 shrink-0" onClick={() => startEdit(i, "merchant", txn.merchant)}>
-                        <Edit2 size={14} />
-                      </Button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button variant="ghost" size="icon" className="text-zinc-400" onClick={() => startEdit(i, "merchant", txn.merchant)}>
+                          <Edit2 size={14} />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-red-500" onClick={() => removeTransaction(i)}>
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
                     )}
                   </div>
 
@@ -231,6 +259,15 @@ export function TransactionReviewCard({
                 </div>
               ))}
             </div>
+
+            {/* Add transaction */}
+            <button
+              onClick={addTransaction}
+              className="w-full rounded-xl border-2 border-dashed border-zinc-200 p-3 text-sm text-zinc-400 hover:border-brand hover:text-brand transition-colors flex items-center justify-center gap-2"
+            >
+              <Plus size={16} />
+              Add transaction manually
+            </button>
 
             {/* Summary */}
             <div className={`p-4 rounded-xl border ${

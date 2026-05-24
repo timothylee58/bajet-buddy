@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getLeaderboard } from "@/lib/api";
+import { useGuestMode } from "@/hooks/useGuestMode";
 import type { BuddyEntry } from "@/types";
 
 const MOCK_LEADERBOARD: BuddyEntry[] = [
@@ -13,13 +14,31 @@ const MOCK_LEADERBOARD: BuddyEntry[] = [
 export function useBuddies() {
   const [leaderboard, setLeaderboard] = useState<BuddyEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isGuest } = useGuestMode();
+
+  const refresh = useCallback(async () => {
+    if (isGuest) {
+      setLeaderboard(MOCK_LEADERBOARD);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await getLeaderboard();
+      setLeaderboard(data as BuddyEntry[]);
+    } catch {
+      setLeaderboard(MOCK_LEADERBOARD);
+    } finally {
+      setLoading(false);
+    }
+  }, [isGuest]);
 
   useEffect(() => {
-    getLeaderboard()
-      .then((data) => setLeaderboard(data as BuddyEntry[]))
-      .catch(() => setLeaderboard(MOCK_LEADERBOARD))
-      .finally(() => setLoading(false));
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      void refresh();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [refresh]);
 
   return { leaderboard, loading };
 }

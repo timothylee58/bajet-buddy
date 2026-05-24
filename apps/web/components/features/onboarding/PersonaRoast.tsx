@@ -31,18 +31,18 @@ export function PersonaRoast({
   onEnter,
 }: PersonaRoastProps) {
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-zinc-950 text-white selection:bg-brand/30 overflow-hidden relative">
+    <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.18),_transparent_28rem),radial-gradient(circle_at_bottom_right,_rgba(79,195,247,0.14),_transparent_24rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)] text-foreground selection:bg-primary/25">
       {/* Background Ambience */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[20%] w-[50%] h-[50%] rounded-full bg-brand/20 blur-[130px] animate-pulse" />
-        <div className="absolute bottom-[0%] right-[-20%] w-[60%] h-[60%] rounded-full bg-blue-500/10 blur-[150px]" />
+        <div className="absolute top-[-10%] left-[20%] h-[50%] w-[50%] animate-pulse rounded-full bg-primary/20 blur-[130px]" />
+        <div className="absolute bottom-[0%] right-[-20%] h-[60%] w-[60%] rounded-full bg-secondary/15 blur-[150px]" />
       </div>
 
       <div className="flex-1 flex flex-col p-0 relative z-10 overflow-y-auto">
         <div className="w-full">
           {/* Hero Section */}
           <div className="px-6 pt-16 pb-12 text-center relative">
-            <div className="absolute top-6 right-6 bg-zinc-900/80 border border-zinc-800 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-zinc-300 shadow-xl backdrop-blur-md">
+            <div className="absolute right-6 top-6 rounded-full border border-white/80 bg-white/85 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-primary-dark shadow-xl backdrop-blur-md">
               Level {persona.level}
             </div>
             
@@ -52,8 +52,8 @@ export function PersonaRoast({
               transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 20 }}
               className="relative mx-auto mb-8 w-32 h-32"
             >
-              <div className="absolute inset-0 bg-brand/30 blur-2xl rounded-full animate-pulse" />
-              <div className="relative flex h-full w-full items-center justify-center rounded-[2rem] bg-gradient-to-br from-zinc-800 to-zinc-900 text-7xl shadow-[0_0_50px_-10px_rgba(34,197,94,0.4)] border border-zinc-700/50">
+              <div className="absolute inset-0 animate-pulse rounded-full bg-primary/25 blur-2xl" />
+              <div className="relative flex h-full w-full items-center justify-center rounded-[2rem] border border-white/80 bg-white/90 text-7xl shadow-[0_24px_60px_-28px_rgba(124,92,255,0.35)]">
                 {persona.emoji}
               </div>
             </motion.div>
@@ -64,12 +64,12 @@ export function PersonaRoast({
               transition={{ delay: 0.4 }}
               className="space-y-3"
             >
-              <h2 className="text-xs font-bold uppercase tracking-widest text-brand-light flex items-center justify-center gap-2">
-                <span className="w-8 h-[1px] bg-brand-light/30"></span>
+              <h2 className="flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-primary-dark">
+                <span className="h-[1px] w-8 bg-primary/25"></span>
                 Your Financial Persona
-                <span className="w-8 h-[1px] bg-brand-light/30"></span>
+                <span className="h-[1px] w-8 bg-primary/25"></span>
               </h2>
-              <h1 className="text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-zinc-200 to-zinc-400 pb-2">
+              <h1 className="bg-gradient-to-r from-primary via-secondary to-tertiary bg-clip-text pb-2 text-5xl font-black tracking-tight text-transparent">
                 {persona.name}
               </h1>
             </motion.div>
@@ -82,8 +82,8 @@ export function PersonaRoast({
             className="p-6 space-y-8 max-w-md mx-auto"
           >
             {/* The Roast */}
-            <div className="p-6 rounded-3xl bg-zinc-900/60 border border-zinc-800 relative italic text-zinc-300 text-center shadow-2xl backdrop-blur-xl">
-              <span className="absolute -top-3 left-6 bg-zinc-950 px-4 py-1 text-[10px] font-bold text-brand uppercase tracking-widest rounded-full border border-zinc-800">
+            <div className="relative rounded-3xl border border-white/80 bg-white/85 p-6 text-center italic text-foreground shadow-2xl backdrop-blur-xl">
+              <span className="absolute -top-3 left-6 rounded-full border border-white/80 bg-white px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-primary-dark">
                 The Roast
               </span>
               <p className="text-lg leading-relaxed font-medium">&quot;{persona.roast}&quot;</p>
@@ -92,25 +92,25 @@ export function PersonaRoast({
             {/* Estimated Budget */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-white flex items-center gap-2 text-xl">
-                  <TrendingUp size={22} className="text-brand" />
+                <h3 className="flex items-center gap-2 text-xl font-bold text-foreground">
+                  <TrendingUp size={22} className="text-primary" />
                   Estimated Spending
                 </h3>
               </div>
               
-              <div className="space-y-5 p-6 rounded-3xl bg-zinc-900/40 border border-zinc-800 backdrop-blur-xl">
+              <div className="space-y-5 rounded-3xl border border-white/80 bg-white/80 p-6 backdrop-blur-xl">
                 {estimatedBudget.map((item, idx) => (
                   <div key={item.category} className="space-y-2.5">
                     <div className="flex justify-between text-sm font-semibold">
-                      <span className="text-zinc-400 uppercase tracking-wider">{item.category}</span>
-                      <span className="text-white">RM {item.amount}</span>
+                      <span className="uppercase tracking-wider text-muted">{item.category}</span>
+                      <span className="text-foreground">RM {item.amount}</span>
                     </div>
-                    <div className="h-2.5 w-full bg-zinc-950 rounded-full overflow-hidden border border-zinc-800/50">
+                    <div className="h-2.5 w-full overflow-hidden rounded-full border border-white/80 bg-surface-muted">
                       <motion.div 
                         initial={{ width: 0 }}
                         animate={{ width: `${item.percentage}%` }}
                         transition={{ delay: 0.8 + idx * 0.1, duration: 1.2, ease: "easeOut" }}
-                        className="h-full rounded-full relative overflow-hidden"
+                        className="relative h-full overflow-hidden rounded-full"
                         style={{ backgroundColor: item.color }}
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
@@ -120,9 +120,9 @@ export function PersonaRoast({
                 ))}
               </div>
 
-              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex gap-3 shadow-lg">
+              <div className="flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-lg">
                 <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={20} />
-                <p className="text-xs text-amber-200/80 leading-relaxed">
+                <p className="text-xs leading-relaxed text-amber-900">
                   Based on Malaysian averages + your answers. Gets smarter as you log real transactions.
                 </p>
               </div>
@@ -136,20 +136,20 @@ export function PersonaRoast({
               className="pt-6 pb-12 space-y-6"
             >
               <div className="relative group">
-                <div className="absolute -inset-[1px] bg-gradient-to-r from-brand via-emerald-400 to-blue-500 rounded-3xl blur opacity-50 group-hover:opacity-100 transition duration-500 animate-gradient-xy"></div>
+                <div className="absolute -inset-[1px] rounded-3xl bg-gradient-to-r from-primary via-secondary to-tertiary blur opacity-50 transition duration-500 group-hover:opacity-100"></div>
                 <Button 
                   onClick={onEnter}
-                  className="relative w-full py-8 text-xl font-bold bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 rounded-3xl transition-all active:scale-[0.98] text-white shadow-2xl overflow-hidden"
+                  className="relative w-full overflow-hidden rounded-3xl py-8 text-xl font-bold text-white transition-all active:scale-[0.98]"
                 >
-                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-zinc-700/50 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+                  <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/25 to-transparent opacity-0 group-hover:opacity-100" />
                   <span className="relative z-10 flex items-center justify-center">
-                    <Rocket className="mr-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform text-brand" size={24} />
-                    I Accept My Fate — Let&apos;s Go!
+                    <Rocket className="mr-3 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1 text-white" size={24} />
+                    Haiya! I Accept My Fate — Let's Go!
                   </span>
                 </Button>
               </div>
               <div className="text-center">
-                <span className="inline-flex items-center gap-1.5 text-brand font-bold animate-bounce bg-brand/10 border border-brand/20 px-5 py-2 rounded-full text-sm shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+                <span className="inline-flex animate-bounce items-center gap-1.5 rounded-full border border-primary/20 bg-primary-light px-5 py-2 text-sm font-bold text-primary-dark shadow-[0_0_15px_rgba(124,92,255,0.18)]">
                   <Sparkles size={16} />
                   +{xpEarned} XP earned!
                 </span>

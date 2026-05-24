@@ -51,3 +51,12 @@ class PersonaAnalyzeRequest(BaseModel):
 
 class PersonaAnalyzeResponse(BaseModel):
     persona: PersonaOut
+
+
+class PersonaRerollResponse(BaseModel):
+    status: Literal["ok", "cooldown", "error"]
+    persona: PersonaOut | None = None
+    last_reroll_at: datetime | None = None
+    next_reroll_at: datetime | None = None
+    cooldown_days: int | None = None
+    error: str | None = None

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { getPersona } from "@/lib/api";
+import { useState, useEffect } from "react";
+import { getPersona, rerollPersona } from "@/lib/api";
 import { useGuestMode } from "@/hooks/useGuestMode";
-import type { PersonaAnalysis } from "@/types";
+import type { PersonaAnalysis, PersonaRerollResponse } from "@/types";
 
 const MOCK_PERSONA: PersonaAnalysis = {
   type: "midnight_shopee_queen",
@@ -28,30 +28,80 @@ const MOCK_PERSONA: PersonaAnalysis = {
 };
 
 export function usePersona() {
-  const [apiPersona, setApiPersona] = useState<PersonaAnalysis | null>(null);
-  const [apiLoading, setApiLoading] = useState(true);
+  const [persona, setPersona] = useState<PersonaAnalysis | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [rerolling, setRerolling] = useState(false);
+  const [lastRerollAt, setLastRerollAt] = useState<string | null>(null);
+  const [nextRerollAt, setNextRerollAt] = useState<string | null>(null);
+  const [cooldownDays, setCooldownDays] = useState<number | null>(null);
   const { isGuest, guestData } = useGuestMode();
 
+  const applyPersona = (data: PersonaAnalysis) => {
+    setPersona(data);
+    setLastRerollAt(data.last_reroll_at ?? null);
+    setNextRerollAt(data.next_reroll_at ?? null);
+    setCooldownDays(data.cooldown_days ?? null);
+  };
+
   useEffect(() => {
-    if (isGuest) return;
+    if (isGuest && guestData.persona) {
+      applyPersona({
+        ...MOCK_PERSONA, // base types
+        ...guestData.persona,
+        xp: guestData.xp,
+        streak: guestData.streak,
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (isGuest && !guestData.persona) {
+      setPersona(null);
+      setLastRerollAt(null);
+      setNextRerollAt(null);
+      setCooldownDays(null);
+      setLoading(false);
+      return;
+    }
+
     getPersona()
-      .then((data) => setApiPersona(data as PersonaAnalysis))
-      .catch(() => setApiPersona(MOCK_PERSONA))
-      .finally(() => setApiLoading(false));
-  }, [isGuest]);
+      .then((data) => applyPersona(data as PersonaAnalysis))
+      .catch(() => applyPersona(MOCK_PERSONA))
+      .finally(() => setLoading(false));
+  }, [isGuest, guestData]);
 
-  const persona = useMemo<PersonaAnalysis | null>(() => {
-    if (!isGuest) return apiPersona;
-    if (!guestData.persona) return null;
-    return {
-      ...MOCK_PERSONA,
-      ...(guestData.persona as Partial<PersonaAnalysis>),
-      xp: guestData.xp,
-      streak: guestData.streak,
-    };
-  }, [isGuest, guestData.persona, guestData.xp, guestData.streak, apiPersona]);
+  const rerunPersona = async () => {
+    if (isGuest) {
+      return { status: "error", error: "Guest mode" } as PersonaRerollResponse;
+    }
+    setRerolling(true);
+    try {
+      const response = (await rerollPersona()) as PersonaRerollResponse;
+      if (response.status === "ok" && response.persona) {
+        applyPersona(response.persona);
+      }
+      if (response.last_reroll_at !== undefined) {
+        setLastRerollAt(response.last_reroll_at ?? null);
+      }
+      if (response.next_reroll_at !== undefined) {
+        setNextRerollAt(response.next_reroll_at ?? null);
+      }
+      if (response.cooldown_days !== undefined) {
+        setCooldownDays(response.cooldown_days ?? null);
+      }
+      return response;
+    } finally {
+      setRerolling(false);
+    }
+  };
 
-  const loading = isGuest ? false : apiLoading;
-
-  return { persona, loading };
+  return {
+    persona,
+    loading,
+    rerolling,
+    lastRerollAt,
+    nextRerollAt,
+    cooldownDays,
+    rerunPersona,
+  };
 }

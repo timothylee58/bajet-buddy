@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { fomoNegotiate, fomoResolve, awardPetXP, getPetNudge } from "@/lib/api";
+import { useToast } from "@/components/ui/ToastProvider";
 import type {
   EmotionalState,
   FOMOChoice,
@@ -35,6 +36,7 @@ export function useFOMONegotiator(): UseFOMONegotiatorReturn {
   const [emotionalState, setEmotionalState] = useState<EmotionalState>("happy");
   const [personaPreference, setPersonaPreference] = useState<PersonaCode>("pak_cik_audit");
   const [error, setError] = useState<string | null>(null);
+  const { success: toastSuccess, error: toastError } = useToast();
 
   const open = useCallback((_req: FOMONegotiateRequest) => {
     setError(null);
@@ -73,16 +75,39 @@ export function useFOMONegotiator(): UseFOMONegotiatorReturn {
       const result = await fomoResolve({ choice, amount, category, emotional_state: emotionalState });
       setResolution(result);
       setPhase("resolved");
-      // Fire-and-forget pet XP + mood nudge after FOMO decision
+
+      // ── Cross-agent actions based on choice ──────────────────────────
       const event = choice === "walk_away" ? "walk_away" : choice === "bnpl" ? "impulse_blocked" : "budget_under";
       const context = choice === "walk_away" ? "savings_goal_met" : "impulse_spend";
+
+      // Pet Companion: mood response to every decision
       awardPetXP({ event, amount_rm: amount }).catch(() => {});
       getPetNudge({ context, amount_rm: amount, category }).catch(() => {});
+
+      // BNPL: trigger PWA monitor check (backend already activated it via fomo_actions)
+      // The PwaLockdownOverlay polls independently — this just ensures it picks up fast
+      if (choice === "bnpl") {
+        // Import dynamically to avoid circular dependency concerns
+        import("@/lib/api").then(({ getPwaMonitorState }) => {
+          getPwaMonitorState().catch(() => {});
+        });
+      }
+
+      // Toast feedback
+      if (choice === "walk_away") {
+        toastSuccess(`Walked away! +20 XP · Streak: ${result.walk_away_streak}`);
+      } else if (choice === "bnpl") {
+        toastError("BNPL committed. PWA monitor activated — opening Shopee/Lazada triggers lockdown.", "BNPL_MONITOR_ACTIVE");
+      } else {
+        toastSuccess("Cash purchase logged. Budget updated.");
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      setError(msg);
       setPhase("error");
+      toastError(msg, "FOMO_FAILED");
     }
-  }, [emotionalState]);
+  }, [emotionalState, toastSuccess, toastError]);
 
   const reset = useCallback(() => {
     setPhase("idle");

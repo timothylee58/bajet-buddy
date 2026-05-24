@@ -1,16 +1,16 @@
 "use client";
 
-import { BrainCircuit, House, Sparkles, ShieldCheck, Users } from "lucide-react";
+import { Home, ShieldAlert, PlusCircle, Medal, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Home",    icon: House },
-  { href: "/check",     label: "Guard",   icon: ShieldCheck },
-  { href: "/simulator", label: "Future",  icon: Sparkles },
-  { href: "/persona",   label: "Persona", icon: BrainCircuit },
-  { href: "/buddies",   label: "Circle",  icon: Users },
+  { href: "/dashboard", label: "Home",     icon: Home,        isMain: false },
+  { href: "/sentinel",  label: "Watchdog", icon: ShieldAlert, isMain: false },
+  { href: "/check",     label: "Check",    icon: PlusCircle,  isMain: true },
+  { href: "/badges",    label: "Badges",   icon: Medal,       isMain: false },
+  { href: "/profiles",  label: "Profile",  icon: User,        isMain: false },
 ] as const;
 
 export function BottomNav() {
@@ -18,41 +18,39 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-surface/95 pb-safe backdrop-blur"
+      className="fixed bottom-0 left-0 right-0 z-20 flex justify-around items-center px-4 py-3 pb-safe bg-white shadow-[0_-4px_16px_rgba(0,0,0,0.05)] rounded-t-[32px]"
       aria-label="Main navigation"
     >
-      <ul className="mx-auto flex w-full max-w-7xl items-center justify-around px-2 pt-2 pb-3">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(href + "/");
+      {NAV_ITEMS.map(({ href, label, icon: Icon, isMain }) => {
+        const active = pathname === href || pathname.startsWith(href + "/");
+
+        if (isMain) {
           return (
-            <li key={href}>
-              <Link
-                href={href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex min-w-[60px] flex-col items-center gap-1 rounded-xl px-3 py-1.5 transition-all",
-                  active
-                    ? "bg-primary-light text-primary"
-                    : "text-neutral hover:text-foreground hover:bg-neutral-light"
-                )}
-              >
-                <span
-                  className={cn(
-                    "flex h-6 w-6 items-center justify-center rounded-lg transition-colors",
-                    active && "bg-primary text-white"
-                  )}
-                  aria-hidden="true"
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                </span>
-                <span className={cn("text-[10px] font-semibold", active ? "text-primary" : "text-neutral")}>
-                  {label}
-                </span>
-              </Link>
-            </li>
+            <Link
+              key={href}
+              href={href}
+              className="flex flex-col items-center justify-center bg-primary text-white rounded-2xl w-[80px] h-[72px] -mt-8 shadow-[0_4px_12px_rgba(186,98,0,0.4)] active-press"
+            >
+              <Icon className="w-[28px] h-[28px] mb-1" />
+              <span className="font-sans text-[14px] font-bold">{label}</span>
+            </Link>
           );
-        })}
-      </ul>
+        }
+
+        return (
+          <Link
+            key={href}
+            href={href}
+            className={cn(
+              "flex flex-col items-center justify-center",
+              active ? "text-primary" : "text-[#5c5c5c] hover:text-foreground"
+            )}
+          >
+            <Icon className="w-[24px] h-[24px] mb-1" />
+            <span className="font-sans text-[12px] font-bold">{label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }

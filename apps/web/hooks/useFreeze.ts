@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getFreezeStatus, activateFreeze, overrideFreeze } from "@/lib/api";
 import { useGuestMode } from "./useGuestMode";
+import { useToast } from "@/components/ui/ToastProvider";
 import type { FreezeStatus } from "@/types";
 
 const DEFAULT_STATUS: FreezeStatus = {
@@ -20,6 +21,7 @@ export function useFreeze() {
   const [error, setError] = useState<string | null>(null);
 
   const { isGuest, guestData, updateGuestData } = useGuestMode();
+  const { success: toastSuccess, error: toastError } = useToast();
 
   const refresh = useCallback(async () => {
     if (isGuest) {
@@ -46,7 +48,6 @@ export function useFreeze() {
       const data = await getFreezeStatus();
       setStatus(data as FreezeStatus);
     } catch (err) {
-      setStatus(DEFAULT_STATUS);
       setError(err instanceof Error ? err.message : "Unable to load freeze status");
     } finally {
       setLoading(false);
@@ -62,22 +63,36 @@ export function useFreeze() {
 
   async function freeze(type: "soft" | "hard") {
     setError(null);
+    if (isGuest) {
+      setError("Sign in to activate spending freeze");
+      return;
+    }
     try {
       const updated = await activateFreeze(type);
       setStatus(updated as FreezeStatus);
+      toastSuccess(`${type === "hard" ? "Hard" : "Soft"} freeze activated — spending locked`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to activate freeze");
+      const msg = err instanceof Error ? err.message : "Unable to activate freeze";
+      setError(msg);
+      toastError(msg, "FREEZE_FAILED");
     }
   }
 
   async function override() {
     setError(null);
+    if (isGuest) {
+      setError("Sign in to override spending freeze");
+      return false;
+    }
     try {
       const updated = await overrideFreeze();
       setStatus(updated as FreezeStatus);
+      toastSuccess("Freeze overridden — spending unlocked");
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to override freeze");
+      const msg = err instanceof Error ? err.message : "Unable to override freeze";
+      setError(msg);
+      toastError(msg, "OVERRIDE_FAILED");
       return false;
     }
   }

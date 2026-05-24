@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka, Nunito_Sans } from "next/font/google";
+import { Toaster } from "sonner";
+import { TextSizeProvider } from "@/components/ui/TextSizeProvider";
 import "./globals.css";
 
 const fredoka = Fredoka({
@@ -21,13 +23,17 @@ export const metadata: Metadata = {
   description:
     "Malaysia's AI-powered spending intervention engine. Stop bad decisions before they happen.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/logo.ico",
+    apple: "/logo.ico",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#7C5CFF",
+  themeColor: "#BA6200",
 };
 
 export default function RootLayout({
@@ -37,8 +43,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`h-full antialiased ${fredoka.variable} ${nunitoSans.variable}`}>
-      <body className="min-h-full flex flex-col bg-background">
-        {children}
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        <TextSizeProvider>
+          {children}
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              style: {
+                borderRadius: "16px",
+                padding: "14px 18px",
+                fontSize: "14px",
+                fontFamily: "var(--font-nunito), sans-serif",
+              },
+            }}
+          />
+        </TextSizeProvider>
       </body>
     </html>
   );

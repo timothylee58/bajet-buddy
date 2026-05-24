@@ -10,6 +10,12 @@ from app.core.config import get_settings
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
+# Force all users to the demo profile (Sarah) for local dev — bypasses Supabase auth entirely.
+# Remove this block and restore get_current_user / get_optional_user below for production.
+FORCE_DEMO_USER = True
+DEMO_USER_ID = "00000000-0000-0000-0000-000000000001"
+DEMO_EMAIL = "demo@bajetbuddy.local"
+
 
 @dataclass(slots=True)
 class AuthenticatedUser:
@@ -54,6 +60,9 @@ async def _fetch_supabase_user(access_token: str) -> dict:
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
 ) -> AuthenticatedUser:
+    if FORCE_DEMO_USER:
+        return AuthenticatedUser(user_id=DEMO_USER_ID, email=DEMO_EMAIL)
+
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -70,6 +79,9 @@ async def get_optional_user(
 ) -> AuthenticatedUser | None:
     """Like get_current_user but doesn't reject unauthenticated requests.
     Returns None when no token is provided. Used for public/demo endpoints."""
+    if FORCE_DEMO_USER:
+        return AuthenticatedUser(user_id=DEMO_USER_ID, email=DEMO_EMAIL)
+
     if credentials is None or credentials.scheme.lower() != "bearer":
         return None
     try:

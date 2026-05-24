@@ -29,11 +29,11 @@ export function OCRPitchCard({
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-zinc-950 text-white selection:bg-brand/30 overflow-hidden relative">
+    <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.2),_transparent_28rem),radial-gradient(circle_at_bottom_right,_rgba(79,195,247,0.18),_transparent_24rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)] text-foreground selection:bg-primary/25">
       {/* Background Ambience */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-brand/20 blur-[130px]" />
-        <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 blur-[120px]" />
+        <div className="absolute top-[-20%] left-[-10%] h-[60%] w-[60%] rounded-full bg-primary/20 blur-[130px]" />
+        <div className="absolute bottom-[10%] right-[-10%] h-[50%] w-[50%] rounded-full bg-secondary/20 blur-[120px]" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10">
@@ -47,18 +47,18 @@ export function OCRPitchCard({
           >
             <div className="relative inline-block">
               <div className="absolute inset-0 bg-brand/30 blur-2xl rounded-full" />
-              <div className="relative flex h-28 w-28 mx-auto items-center justify-center rounded-3xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700/50 shadow-2xl overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-b from-brand/20 to-transparent opacity-50" />
-                <FileUp size={48} className="text-brand-light drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]" />
+              <div className="relative mx-auto flex h-28 w-28 items-center justify-center overflow-hidden rounded-3xl border border-white/80 bg-white/85 shadow-[0_24px_60px_-28px_rgba(124,92,255,0.35)]">
+                <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-transparent opacity-50" />
+                <FileUp size={48} className="text-primary drop-shadow-[0_0_15px_rgba(124,92,255,0.35)]" />
               </div>
             </div>
             
             <div className="space-y-3">
-              <h2 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-white to-zinc-400">
+              <h2 className="text-4xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-primary to-tertiary">
                 Snap, Upload, Drop PDFs
               </h2>
-              <p className="text-lg text-zinc-400 leading-relaxed max-w-sm mx-auto">
-                BajetBuddy reads your receipts and bank statements so you don&apos;t have to type.
+              <p className="mx-auto max-w-sm text-lg leading-relaxed text-muted">
+                BajetBuddy reads your receipts and bank statements so you don't have to type.
               </p>
             </div>
           </motion.div>
@@ -79,22 +79,22 @@ export function OCRPitchCard({
             />
             
             <div className="relative group">
-              <div className="absolute -inset-[1px] bg-gradient-to-r from-brand to-emerald-400 rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-500"></div>
+              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-primary via-secondary to-tertiary blur opacity-40 transition duration-500 group-hover:opacity-70"></div>
               <Button 
                 onClick={handleFileClick}
-                className="relative w-full py-8 text-xl font-bold bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 rounded-2xl transition-all active:scale-[0.98] text-white shadow-2xl"
+                className="relative w-full rounded-2xl border border-white/80 bg-white/90 py-8 text-xl font-bold text-foreground shadow-[0_24px_60px_-24px_rgba(124,92,255,0.35)] transition-all active:scale-[0.98]"
               >
-                <Camera className="mr-3 text-brand" size={28} />
+                <Camera className="mr-3 text-primary" size={28} />
                 Try with a file now
               </Button>
             </div>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-zinc-800" />
+                <span className="w-full border-t border-white/80" />
               </div>
               <div className="relative flex justify-center text-xs uppercase tracking-widest font-semibold">
-                <span className="bg-zinc-950 px-4 text-zinc-600">or</span>
+                <span className="bg-background px-4 text-muted">or</span>
               </div>
             </div>
 
@@ -102,15 +102,15 @@ export function OCRPitchCard({
               <Button 
                 variant="outline" 
                 onClick={onSkipToQuestions}
-                className="w-full justify-between py-7 rounded-2xl border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 backdrop-blur-md text-zinc-300 transition-colors shadow-lg"
+                className="w-full justify-between rounded-2xl py-7 backdrop-blur-md transition-colors shadow-lg"
               >
                 <span className="text-base font-medium">Skip → answer a few fun questions</span>
-                <ArrowRight size={18} className="text-zinc-500" />
+                <ArrowRight size={18} className="text-muted" />
               </Button>
               <Button 
                 variant="ghost" 
                 onClick={onSkipToApp}
-                className="w-full justify-center py-6 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50 rounded-2xl transition-colors"
+                className="w-full justify-center rounded-2xl py-6 text-muted transition-colors hover:bg-primary-light/60 hover:text-primary-dark"
               >
                 <SkipForward size={18} className="mr-2 opacity-70" />
                 <span className="font-medium">Skip → go straight to the app</span>

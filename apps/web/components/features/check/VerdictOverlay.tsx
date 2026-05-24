@@ -55,7 +55,7 @@ export function VerdictOverlay({ result, amount, onReset }: VerdictOverlayProps)
           {cfg.emoji}
         </motion.div>
         <h2 data-testid="verdict-label" className={`text-2xl font-bold ${cfg.color}`}>{cfg.label}</h2>
-        <p className="text-sm text-zinc-500 mt-1">{cfg.labelEN}</p>
+        <p className="text-sm text-muted mt-1">{cfg.labelEN}</p>
       </div>
 
       {/* Amount */}
@@ -66,11 +66,11 @@ export function VerdictOverlay({ result, amount, onReset }: VerdictOverlayProps)
       </div>
 
       {/* Nudge — BM first */}
-      <div className={`rounded-2xl bg-white/70 dark:bg-zinc-900/50 p-4 border ${cfg.border}`}>
-        <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 leading-relaxed">
+      <div className={`rounded-2xl bg-white p-4 border ${cfg.border}`}>
+        <p className="text-sm font-medium text-foreground leading-relaxed">
           {result.nudge_bm}
         </p>
-        <p data-testid="verdict-nudge-en" className="text-xs text-zinc-400 mt-2 leading-relaxed italic">
+        <p data-testid="verdict-nudge-en" className="text-xs text-muted mt-2 leading-relaxed italic">
           {result.nudge_en}
         </p>
       </div>
@@ -78,19 +78,19 @@ export function VerdictOverlay({ result, amount, onReset }: VerdictOverlayProps)
       {/* Stats row */}
       <div className="flex justify-around text-center">
         <div>
-          <p className="text-xs text-zinc-400">Risk Score</p>
+          <p className="text-xs text-muted">Risk Score</p>
           <p className={`text-lg font-bold ${cfg.color}`}>{result.risk_score}</p>
         </div>
         <div>
-          <p className="text-xs text-zinc-400">Budget Impact</p>
+          <p className="text-xs text-muted">Budget Impact</p>
           <p className={`text-lg font-bold ${cfg.color}`}>
             {result.budget_impact_pct.toFixed(0)}%
           </p>
         </div>
         {result.xp_earned > 0 && (
           <div>
-            <p className="text-xs text-zinc-400">XP Earned</p>
-            <p className="text-lg font-bold text-green-600">+{result.xp_earned}</p>
+            <p className="text-xs text-muted">XP Earned</p>
+            <p className="text-lg font-bold text-primary">+{result.xp_earned}</p>
           </div>
         )}
       </div>
@@ -100,7 +100,7 @@ export function VerdictOverlay({ result, amount, onReset }: VerdictOverlayProps)
         {result.verdict === "jangan_dulu" && (
           <button
             onClick={() => setFomoOpen(true)}
-            className="w-full rounded-2xl bg-amber-500 py-3 text-sm font-semibold text-white hover:bg-amber-600 transition-colors"
+            className="w-full rounded-2xl bg-primary py-3 text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
           >
             🧠 Negotiate with FOMO Negotiator
           </button>
@@ -109,7 +109,7 @@ export function VerdictOverlay({ result, amount, onReset }: VerdictOverlayProps)
           {result.verdict === "jangan_dulu" && (
             <button
               data-testid="save-to-wishlist-button"
-              className="flex-1 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 py-3 text-sm font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 transition-colors"
+              className="flex-1 rounded-2xl bg-white border border-border py-3 text-sm font-semibold text-foreground hover:bg-surface-muted transition-colors"
             >
               💾 Wishlist
             </button>
@@ -117,7 +117,7 @@ export function VerdictOverlay({ result, amount, onReset }: VerdictOverlayProps)
           <button
             onClick={onReset}
             data-testid="check-another-button"
-            className="flex-1 rounded-2xl bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 py-3 text-sm font-semibold hover:opacity-90 transition-opacity"
+            className="flex-1 rounded-2xl bg-neutral-dark text-white py-3 text-sm font-semibold hover:opacity-90 transition-opacity"
           >
             Check Another
           </button>

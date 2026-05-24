@@ -2,7 +2,7 @@ from dataclasses import asdict
 
 from fastapi import APIRouter, Depends
 
-from app.core.auth import AuthenticatedUser, get_current_user
+from app.core.auth import AuthenticatedUser, get_optional_user
 from app.nudge_agent import NudgeRequestModel, generate_nudge_package
 from app.nudge_agent.service import (
     BnplContextPayload,
@@ -19,7 +19,7 @@ router = APIRouter()
 @router.post("/generate", response_model=NudgeGenerateResponse)
 async def generate_nudge(
     payload: NudgeGenerateRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
+    current_user: AuthenticatedUser | None = Depends(get_optional_user),
 ) -> NudgeGenerateResponse:
     result = await generate_nudge_package(
         NudgeRequestModel(

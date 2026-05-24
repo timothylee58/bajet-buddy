@@ -53,8 +53,9 @@ def _demo_transaction_signals(now: datetime, category: str) -> list[dict[str, An
     ]
 
 
-def _get_category_budget(category: str) -> dict[str, Any]:
-    for item in get_category_budgets():
+async def _get_category_budget(category: str, user_id: str) -> dict[str, Any]:
+    cats = await get_category_budgets(user_id)
+    for item in cats:
         if item["id"] == category:
             return item
     return {"id": category, "name": category.title(), "allocated": 300.0, "spent": 120.0, "emoji": "📦", "color": "#64748b"}
@@ -71,21 +72,40 @@ def _detect_proactive_pattern(now: datetime, persona_type: str, category: str, a
 
 async def _observe_transaction_intent(state: GraphState) -> GraphState:
     state.trace.append("observe_transaction_intent")
+    # Build user profile from database or defaults — includes onboarding context
     state.user_profile = {
         "name": "Sarah",
         "age": 26,
         "occupation": "Fresh grad",
         "monthly_income": 3200.0,
+        # Onboarding answers (would come from DB in production)
+        "onboarding": {
+            "spending_style": "I tend to impulse-buy when I'm stressed or bored",
+            "biggest_expense": "Online shopping and food delivery",
+            "savings_goal": "Save for a house down payment",
+            "impulse_rating": 4,
+        },
+        # Financial context
+        "savings_rate": 0.08,  # 8% of income saved monthly
+        "active_subscriptions": 3,  # Netflix, Spotify, phone plan
+        "bnpl_commitments": 2,
     }
     return state
 
 
 async def _load_context(state: GraphState) -> GraphState:
     state.trace.append("load_context")
-    state.budget_summary = get_budget_summary(state.user_id)
-    state.category_budget = _get_category_budget(state.payload.category)
+    state.budget_summary = await get_budget_summary(state.user_id)
+    state.category_budget = await _get_category_budget(state.payload.category, state.user_id)
+    profile = state.user_profile
     persona = learn_persona_from_transaction_signals(
-        _demo_transaction_signals(state.now, state.payload.category)
+        _demo_transaction_signals(state.now, state.payload.category),
+        onboarding_data=profile.get("onboarding"),
+        savings_rate=profile.get("savings_rate"),
+        active_subscriptions=profile.get("active_subscriptions", 0),
+        bnpl_commitments=profile.get("bnpl_commitments", 0),
+        monthly_income=profile.get("monthly_income", 3200),
+        current_balance=state.budget_summary.get("remaining", 340),
     )
     state.persona = persona
     proactive_alert, proactive_reason = _detect_proactive_pattern(
@@ -119,6 +139,7 @@ async def _evaluate_risk_node(state: GraphState) -> GraphState:
             category_budget_spent=category["spent"],
             bnpl_due_this_month=0.0 if state.payload.essential else bnpl_due_this_month,
             bnpl_due_within_7_days=0.0 if state.payload.essential else bnpl_due_within_7_days,
+            uses_bnpl=getattr(state.payload, "bnpl", False),
             has_midnight_spending_pattern=state.persona["type"] == "midnight_shopee_queen",
             historical_behaviour_score=max(
                 10,
@@ -134,9 +155,15 @@ async def _generate_nudge_node(state: GraphState) -> GraphState:
     budget = state.budget_summary
     category = state.category_budget
     risk = state.risk_result
+    profile = state.user_profile
     state.nudge_result = await generate_nudge_package(
         NudgeRequestModel(
-            user_profile=UserProfilePayload(**state.user_profile),
+            user_profile=UserProfilePayload(
+                name=profile.get("name", "User"),
+                age=profile.get("age"),
+                occupation=profile.get("occupation"),
+                monthly_income=profile.get("monthly_income"),
+            ),
             transaction_intent=TransactionIntentPayload(
                 amount=state.payload.amount,
                 merchant=state.payload.merchant,
@@ -144,6 +171,7 @@ async def _generate_nudge_node(state: GraphState) -> GraphState:
                 merchant_type="essential" if state.payload.essential else state.payload.merchant_type,
                 item_name=state.payload.item_name,
                 essential=state.payload.essential,
+                uses_bnpl=getattr(state.payload, "bnpl", False),
             ),
             risk_score=risk.risk_score,
             budget_context=BudgetContextPayload(
@@ -184,7 +212,7 @@ async def _finalize_action_node(state: GraphState) -> GraphState:
     return state
 
 
-async def run_prepurchase_reasoning_graph(payload: Any, user_id: str = "demo") -> GraphState:
+async def run_prepurchase_reasoning_graph(payload: Any, user_id: str = "00000000-0000-0000-0000-000000000001") -> GraphState:
     now = payload.purchase_at or datetime.now(timezone.utc)
     state = GraphState(payload=payload, user_id=user_id, now=now)
     for node in (

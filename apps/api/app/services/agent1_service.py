@@ -42,7 +42,7 @@ Return a valid JSON object:
 Be honest: if the data is sparse or mixed, set confidence lower. Don't force a persona if patterns aren't clear."""
 
 
-async def run_agent1_profile(user_id: str = "demo") -> Agent1ProfileResponse:
+async def run_agent1_profile(user_id: str = "00000000-0000-0000-0000-000000000001") -> Agent1ProfileResponse:
     t0 = time.monotonic()
     settings = get_settings()
 
@@ -56,7 +56,7 @@ async def run_agent1_profile(user_id: str = "demo") -> Agent1ProfileResponse:
 
     # Resolve demo user_id to a real UUID if needed
     resolved_user_id = user_id
-    if user_id == "demo" or len(user_id) < 32:
+    if user_id == "00000000-0000-0000-0000-000000000001" or len(user_id) < 32:
         try:
             profiles = supabase.table("profiles").select("id").limit(1).execute()
             if hasattr(profiles, "data") and profiles.data and len(profiles.data) > 0:
@@ -245,7 +245,7 @@ Return a JSON object:
 
 
 async def analyze_onboarding_answers(
-    answers: dict[str, str], user_id: str = "demo"
+    answers: dict[str, str], user_id: str = "00000000-0000-0000-0000-000000000001"
 ) -> dict:
     """Run onboarding persona analysis via DeepSeek. Saves result to DB."""
     import time as _time

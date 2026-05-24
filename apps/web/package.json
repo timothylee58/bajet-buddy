@@ -11,9 +11,9 @@
   "dependencies": {
     "@bajetbuddy/shared": "*",
     "@radix-ui/react-slot": "^1.2.3",
-    "class-variance-authority": "^0.7.1",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.38.0",
@@ -28,6 +28,7 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.15.11",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

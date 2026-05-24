@@ -54,7 +54,6 @@ export function useDashboardPulse() {
         setBudget(data as BudgetSummary);
       } catch (err) {
         if (!active) return;
-        setBudget(DEFAULT_BUDGET);
         setBudgetError(err instanceof Error ? err.message : "Unable to load budget summary");
       } finally {
         if (!active) return;

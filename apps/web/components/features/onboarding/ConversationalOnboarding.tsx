@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { API_URL } from "@/lib/constants";
+import { scanReceipt } from "@/lib/api";
+import { Camera, SkipForward, Loader2 } from "lucide-react";
+import type { OCRScanResponse, OCRTransaction, PetSpecies } from "@/types";
+import { TransactionReviewCard } from "@/components/features/check/TransactionReviewCard";
+import { PET_SPECIES } from "@/components/features/pet/petConfig";
 
 interface OnboardingRoast {
   persona_name: string;
@@ -58,9 +64,21 @@ export function ConversationalOnboarding() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [inputValue, setInputValue] = useState("");
-  const [phase, setPhase] = useState<"questions" | "loading" | "result">("questions");
+  const [phase, setPhase] = useState<"questions" | "scan" | "pet" | "loading" | "result">("questions");
   const [result, setResult] = useState<OnboardingRoast | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPet, setSelectedPet] = useState<PetSpecies>("squirrel");
+  // Scan state
+  const [scanImage, setScanImage] = useState<string | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanResult, setScanResult] = useState<OCRScanResponse | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const currentQuestion = QUESTIONS[step];
 
@@ -92,7 +110,7 @@ export function ConversationalOnboarding() {
     if (step < QUESTIONS.length - 1) {
       setStep(step + 1);
     } else {
-      submitAnswers(updated);
+      setPhase("scan");
     }
   }
 
@@ -102,13 +120,214 @@ export function ConversationalOnboarding() {
     if (step < QUESTIONS.length - 1) {
       setStep(step + 1);
     } else {
-      submitAnswers(updated);
+      setPhase("scan");
     }
+  }
+
+  // ── Scan handlers ──
+  const handleFilePick = () => fileInputRef.current?.click();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setScanError(null);
+      const reader = new FileReader();
+      reader.onload = (event) => setScanImage(event.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!scanImage) return;
+    setIsScanning(true);
+    setScanError(null);
+    try {
+      const res = await scanReceipt(scanImage);
+      setScanResult(res);
+      setIsScanning(false);
+    } catch (err: any) {
+      setScanError(err?.message || "OCR scan failed");
+      setIsScanning(false);
+    }
+  };
+
+  const handleScanDone = (editedTransactions: OCRTransaction[]) => {
+    // Update scanResult with the edited transactions
+    setScanResult(prev => prev ? {
+      ...prev,
+      scan_result: prev.scan_result ? { ...prev.scan_result, transactions: editedTransactions } : null,
+    } : null);
+    setPhase("pet");
+  };
+  const handleScanCancel = () => setScanResult(null);
+  const handleScanSkip = () => setPhase("pet");
+
+  const handlePetPick = (species: PetSpecies) => {
+    setSelectedPet(species);
+    submitAnswers(answers);
+  };
+
+  if (phase === "scan") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-foreground">
+        <div className="w-full max-w-md space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center space-y-3"
+          >
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-white/85 shadow-xl">
+              <Camera size={40} className="text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold">Snap a receipt or statement 📸</h2>
+            <p className="text-sm text-muted leading-relaxed">
+              Agent 4 (OCR) reads your receipts so you don&apos;t have to type.
+              Even a screenshot works — it helps sharpen your persona.
+            </p>
+          </motion.div>
+
+          {/* File area */}
+          {!scanImage && !scanResult && (
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              onClick={handleFilePick}
+              className="flex aspect-[3/2] w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-[1.75rem] border-2 border-dashed border-primary/25 bg-white/75 transition-colors hover:border-primary/45 hover:bg-white"
+            >
+              <Camera size={36} className="text-primary" />
+              <span className="text-sm text-muted">Tap to upload a receipt or statement</span>
+              <span className="text-xs text-neutral">Screenshot or photo — the more, the better ✨</span>
+            </motion.button>
+          )}
+
+          {scanImage && !scanResult && !isScanning && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+              <div className="relative overflow-hidden rounded-2xl border-2 border-white/70">
+                <Image src={scanImage} alt="Preview" width={400} height={200} className="w-full max-h-[200px] object-contain bg-white/60" unoptimized />
+              </div>
+              <button
+                onClick={handleUpload}
+                className="w-full rounded-xl bg-primary py-3 font-semibold text-white transition-colors hover:brightness-105 flex items-center justify-center gap-2"
+              >
+                <Camera size={18} />
+                Scan with Agent 4
+              </button>
+              <button onClick={() => setScanImage(null)} className="w-full text-xs text-muted hover:text-primary-dark">
+                Choose different file
+              </button>
+            </motion.div>
+          )}
+
+          {isScanning && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-5 py-10">
+              <Loader2 size={36} className="text-primary animate-spin" />
+              <p className="text-sm font-medium text-foreground">Agent 4 is scanning your receipt...</p>
+              <p className="text-xs text-muted">Extracting merchant, amount, and category</p>
+            </motion.div>
+          )}
+
+          {scanResult && (
+            <TransactionReviewCard
+              scanResponse={scanResult}
+              onConfirm={handleScanDone}
+              onCancel={handleScanCancel}
+            />
+          )}
+
+          {/* Scan error */}
+          {scanError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 text-center">
+              {scanError}
+            </div>
+          )}
+
+          {/* Hidden file input */}
+          <input type="file" ref={fileInputRef} className="hidden" accept="image/*,.pdf" onChange={handleFileChange} />
+
+          {/* Skip */}
+          {!scanResult && !isScanning && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="text-center">
+              <button onClick={handleScanSkip} className="flex items-center gap-2 mx-auto text-sm text-muted transition-colors hover:text-primary-dark">
+                <SkipForward size={16} />
+                Skip — just roast me based on my answers
+              </button>
+            </motion.div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "pet") {
+    const SPECIES_ORDER: PetSpecies[] = ["squirrel", "fox", "raccoon", "rabbit"];
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-foreground">
+        <div className="w-full max-w-md space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center space-y-3"
+          >
+            <div className="mx-auto text-6xl">🐾</div>
+            <h2 className="text-2xl font-bold">Pick your companion</h2>
+            <p className="text-sm text-muted leading-relaxed">
+              Your buddy grows with you as you save. Pick one that feels like you!
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {SPECIES_ORDER.map((species) => {
+              const config = PET_SPECIES[species];
+              const stage = config.stages[0];
+              const isSelected = species === selectedPet;
+              return (
+                <motion.button
+                  key={species}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => handlePetPick(species)}
+                  className={[
+                    "flex flex-col items-center gap-3 rounded-2xl border-2 p-5 transition-all",
+                    isSelected
+                      ? "border-emerald-400 bg-emerald-50 ring-2 ring-emerald-200"
+                      : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50",
+                  ].join(" ")}
+                >
+                  <Image
+                    src={stage.image}
+                    alt={config.label}
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 object-contain"
+                  />
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-zinc-800">{config.label}</p>
+                    <p className="text-xs text-zinc-500">{config.emoji}</p>
+                    <p className="text-[11px] text-zinc-400 mt-1 leading-tight">{stage.tagline}</p>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {selectedPet && (
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              onClick={() => submitAnswers(answers)}
+              className="w-full rounded-xl bg-primary py-3 font-semibold text-white transition-colors hover:brightness-105"
+            >
+              Continue with {PET_SPECIES[selectedPet].label} →
+            </motion.button>
+          )}
+        </div>
+      </div>
+    );
   }
 
   if (phase === "loading") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 text-white p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 text-foreground">
         <motion.div
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
@@ -116,7 +335,7 @@ export function ConversationalOnboarding() {
         >
           🤔
         </motion.div>
-        <p className="text-xl font-semibold text-emerald-400">
+        <p className="text-xl font-semibold text-primary-dark">
           BajetBuddy is analysing your vibe...
         </p>
         <div className="flex gap-1 mt-4">
@@ -135,7 +354,7 @@ export function ConversationalOnboarding() {
 
   if (phase === "result" && result) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white p-6 flex flex-col items-center">
+      <div className="flex min-h-screen flex-col items-center bg-background p-6 text-foreground">
         <div className="w-full max-w-md space-y-6 py-10">
           {/* Persona emoji */}
           <motion.div
@@ -153,8 +372,8 @@ export function ConversationalOnboarding() {
             transition={{ delay: 0.3 }}
             className="text-center"
           >
-            <p className="text-sm text-zinc-400 uppercase tracking-widest mb-1">You are...</p>
-            <h1 className="text-2xl font-bold text-white">{result.persona_name}</h1>
+            <p className="mb-1 text-sm uppercase tracking-widest text-muted">You are...</p>
+            <h1 className="text-2xl font-bold text-foreground">{result.persona_name}</h1>
           </motion.div>
 
           {/* Roast */}
@@ -162,10 +381,10 @@ export function ConversationalOnboarding() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="bg-zinc-900 rounded-3xl p-6"
+            className="rounded-3xl border border-white/80 bg-white/85 p-6"
           >
-            <p className="text-sm font-semibold text-orange-400 mb-2">The Roast 🔥</p>
-            <p className="text-white leading-relaxed">{result.roast}</p>
+            <p className="mb-2 text-sm font-semibold text-tertiary-dark">The Roast 🔥</p>
+            <p className="leading-relaxed text-foreground">{result.roast}</p>
           </motion.div>
 
           {/* Encouragement */}
@@ -173,10 +392,10 @@ export function ConversationalOnboarding() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.65 }}
-            className="bg-emerald-900/40 border border-emerald-700/50 rounded-3xl p-6"
+            className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6"
           >
-            <p className="text-sm font-semibold text-emerald-400 mb-2">But here&apos;s the thing...</p>
-            <p className="text-emerald-100 leading-relaxed">{result.encouragement}</p>
+            <p className="mb-2 text-sm font-semibold text-emerald-700">But here&apos;s the thing...</p>
+            <p className="leading-relaxed text-emerald-900">{result.encouragement}</p>
           </motion.div>
 
           {/* Stats */}
@@ -186,13 +405,13 @@ export function ConversationalOnboarding() {
             transition={{ delay: 0.8 }}
             className="grid grid-cols-2 gap-3"
           >
-            <div className="bg-zinc-900 rounded-2xl p-4">
-              <p className="text-xs text-zinc-400 mb-1">Monthly waste estimate</p>
-              <p className="text-lg font-bold text-red-400">{result.estimated_monthly_waste}</p>
+            <div className="rounded-2xl border border-white/80 bg-white/85 p-4">
+              <p className="mb-1 text-xs text-muted">Monthly waste estimate</p>
+              <p className="text-lg font-bold text-red-500">{result.estimated_monthly_waste}</p>
             </div>
-            <div className="bg-zinc-900 rounded-2xl p-4">
-              <p className="text-xs text-zinc-400 mb-1">Top weakness</p>
-              <p className="text-sm font-semibold text-white">{result.top_weakness}</p>
+            <div className="rounded-2xl border border-white/80 bg-white/85 p-4">
+              <p className="mb-1 text-xs text-muted">Top weakness</p>
+              <p className="text-sm font-semibold text-foreground">{result.top_weakness}</p>
             </div>
           </motion.div>
 
@@ -201,10 +420,10 @@ export function ConversationalOnboarding() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.95 }}
-            className="bg-blue-900/40 border border-blue-700/50 rounded-2xl p-4"
+            className="rounded-2xl border border-secondary/20 bg-secondary-light p-4"
           >
-            <p className="text-xs font-semibold text-blue-400 mb-1">💡 BajetBuddy&apos;s Tip</p>
-            <p className="text-blue-100 text-sm leading-relaxed">{result.ai_tip}</p>
+            <p className="mb-1 text-xs font-semibold text-secondary-dark">💡 BajetBuddy&apos;s Tip</p>
+            <p className="text-sm leading-relaxed text-secondary-dark">{result.ai_tip}</p>
           </motion.div>
 
           {/* CTA */}
@@ -215,7 +434,7 @@ export function ConversationalOnboarding() {
           >
             <a
               href="/dashboard"
-              className="block w-full text-center bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-4 rounded-2xl transition-colors"
+              className="block w-full rounded-2xl bg-primary py-4 text-center font-bold text-white transition-colors hover:brightness-105"
             >
               Let&apos;s fix this together →
             </a>
@@ -226,7 +445,7 @@ export function ConversationalOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-foreground">
       <div className="w-full max-w-md space-y-8">
         {/* Progress dots */}
         <div className="flex justify-center gap-2">
@@ -234,7 +453,7 @@ export function ConversationalOnboarding() {
             <div
               key={i}
               className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                i === step ? "bg-emerald-400" : i < step ? "bg-emerald-700" : "bg-zinc-700"
+                  i === step ? "bg-primary" : i < step ? "bg-secondary" : "bg-border"
               }`}
             />
           ))}
@@ -250,7 +469,7 @@ export function ConversationalOnboarding() {
             transition={{ duration: 0.25 }}
             className="space-y-6"
           >
-            <h2 className="text-xl font-semibold text-white leading-snug">
+            <h2 className="text-xl font-semibold leading-snug text-foreground">
               {currentQuestion.text}
             </h2>
 
@@ -262,13 +481,13 @@ export function ConversationalOnboarding() {
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleNext()}
                   placeholder="Type your answer..."
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl border border-white/80 bg-white/85 px-4 py-3 text-foreground placeholder:text-muted focus:outline-none focus:border-primary"
                   autoFocus
                 />
                 <button
                   onClick={handleNext}
-                  disabled={!inputValue.trim()}
-                  className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-black font-semibold py-3 rounded-xl transition-colors"
+                  disabled={!mounted || !inputValue.trim()}
+                  className="w-full rounded-xl bg-primary py-3 font-semibold text-white transition-colors hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Next →
                 </button>
@@ -279,7 +498,7 @@ export function ConversationalOnboarding() {
                   <button
                     key={option}
                     onClick={() => handleOption(option)}
-                    className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-emerald-500 text-white text-sm font-medium py-4 px-3 rounded-xl transition-all text-left"
+                    className="rounded-xl border border-white/80 bg-white/85 px-3 py-4 text-left text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-white"
                   >
                     {option}
                   </button>

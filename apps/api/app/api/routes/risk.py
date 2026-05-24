@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.core.auth import AuthenticatedUser, get_current_user
+from app.core.auth import AuthenticatedUser, get_optional_user
 
 from app.risk_engine import RiskEvaluationInput, evaluate_risk
 from app.schemas.risk import AINudgeContext, RiskEvaluateRequest, RiskEvaluateResponse
@@ -10,7 +10,7 @@ router = APIRouter()
 @router.post("/evaluate", response_model=RiskEvaluateResponse)
 async def evaluate_purchase_risk(
     payload: RiskEvaluateRequest,
-    current_user: AuthenticatedUser = Depends(get_current_user),
+    current_user: AuthenticatedUser | None = Depends(get_optional_user),
 ) -> RiskEvaluateResponse:
     result = evaluate_risk(
         RiskEvaluationInput(

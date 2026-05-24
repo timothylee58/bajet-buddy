@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import type { PersonaType } from "@/types";
 
 const PERSONA_MASCOTS: Partial<Record<PersonaType, string>> = {
-  midnight_shopee_queen: "/personas/midnight-queen.png",
+  midnight_shopee_queen: "/pets/Shopee Queen.png",
 };
 
 const PERSONA_GRADIENTS: Partial<Record<PersonaType, string>> = {

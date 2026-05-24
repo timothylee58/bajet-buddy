@@ -3,6 +3,9 @@ import { createClient } from "./supabase/client";
 import type {
   AwardXPRequest,
   AwardXPResponse,
+  BudgetSummary,
+  ChatCheckRequest,
+  ChatCheckResponse,
   CheckRequest,
   CheckResponse,
   FOMONegotiateRequest,
@@ -60,14 +63,36 @@ export async function checkSpend(payload: CheckRequest): Promise<CheckResponse> 
   });
 }
 
-/** GET /api/budget/summary */
-export async function getBudgetSummary() {
-  return apiFetch("/api/budget/summary");
+/** POST /api/check/chat — natural language pre-purchase check */
+export async function chatCheckSpend(payload: ChatCheckRequest): Promise<ChatCheckResponse> {
+  return apiFetch<ChatCheckResponse>("/api/check/chat", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** GET /api/transactions/summary */
+export async function getBudgetSummary(): Promise<BudgetSummary> {
+  return apiFetch<BudgetSummary>("/api/transactions/summary");
 }
 
 /** GET /api/transactions */
 export async function getTransactions() {
   return apiFetch("/api/transactions");
+}
+
+/** POST /api/transactions — manual transaction entry */
+export async function createTransaction(payload: {
+  merchant: string;
+  amount: number;
+  category: string;
+  note?: string;
+  verdict?: string;
+}): Promise<{ status: string; transaction: any }> {
+  return apiFetch("/api/transactions", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 /** GET /api/persona */
@@ -80,6 +105,13 @@ export async function analyzePersona(payload: unknown) {
   return apiFetch("/api/persona/analyze", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+/** POST /api/persona/reroll */
+export async function rerollPersona() {
+  return apiFetch("/api/persona/reroll", {
+    method: "POST",
   });
 }
 
@@ -119,6 +151,11 @@ export async function getGamificationStatus(): Promise<GamificationStatus> {
   return apiFetch<GamificationStatus>("/api/gamification/status");
 }
 
+/** GET /api/gamification/agents */
+export async function getAgentRoster(): Promise<{ id: string; name: string; emoji: string; description: string; unlock_condition: string; unlocked: boolean }[]> {
+  return apiFetch("/api/gamification/agents");
+}
+
 /** GET /api/profiling/summary */
 export async function getProfilingSummary(): Promise<ProgressiveProfilingSummary> {
   return apiFetch<ProgressiveProfilingSummary>("/api/profiling/summary");
@@ -139,13 +176,41 @@ export async function activateProfilingGoal(
   return response.summary;
 }
 
-/** POST /api/ocr/scan — Agent 4: Receipt Scanner */
+/** POST /api/ocr/scan — Agent 4: Receipt Scanner (base64 JSON path) */
 export async function scanReceipt(imageBase64: string): Promise<OCRScanResponse> {
   return apiFetch<OCRScanResponse>("/api/ocr/scan", {
     method: "POST",
     body: JSON.stringify({ image_base64: imageBase64 }),
   });
 }
+
+/**
+ * POST /api/receipts/scan — multipart file upload path.
+ *
+ * Preferred over scanReceipt() because:
+ *  - Sends the raw File (no base64 encoding, 33% smaller)
+ *  - Correct MIME type preserved automatically
+ *  - Supports PDF (backend renders first page → PNG)
+ *  - Avoids Next.js proxy body-size limits on large files
+ */
+export async function scanReceiptFile(file: File): Promise<OCRScanResponse> {
+  const authHeaders = await getAuthHeaders();
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await fetch(`${API_URL}/api/receipts/scan`, {
+    method: "POST",
+    headers: authHeaders, // no Content-Type — browser sets multipart boundary automatically
+    body: form,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API ${res.status}: ${text}`);
+  }
+  return res.json() as Promise<OCRScanResponse>;
+}
+
 /** POST /api/fomo/negotiate */
 export async function fomoNegotiate(payload: FOMONegotiateRequest): Promise<FOMONegotiateResponse> {
   return apiFetch<FOMONegotiateResponse>("/api/fomo/negotiate", {
@@ -165,6 +230,42 @@ export async function fomoResolve(payload: FOMOResolveRequest): Promise<FOMOReso
 /** GET /api/fomo/state */
 export async function getFOMOState(): Promise<FOMOState> {
   return apiFetch<FOMOState>("/api/fomo/state");
+}
+
+// ─── FOMO PWA Monitor ──────────────────────────────────────────────────────
+
+export interface PwaMonitorState {
+  active: boolean;
+  amount_rm: number;
+  category: string;
+  lockdown_triggered: boolean;
+  lockdown_message: string;
+}
+
+export interface PwaReportResponse {
+  lockdown: boolean;
+  message: string;
+  locked_until?: string;
+}
+
+/** GET /api/fomo/pwa-monitor */
+export async function getPwaMonitorState(): Promise<PwaMonitorState> {
+  return apiFetch<PwaMonitorState>("/api/fomo/pwa-monitor");
+}
+
+/** POST /api/fomo/pwa-monitor/report */
+export async function reportPwaAppOpened(domain: string): Promise<PwaReportResponse> {
+  return apiFetch<PwaReportResponse>("/api/fomo/pwa-monitor/report", {
+    method: "POST",
+    body: JSON.stringify({ domain }),
+  });
+}
+
+/** POST /api/fomo/pwa-monitor/clear */
+export async function clearPwaLockdown(): Promise<{ lockdown: boolean; message: string }> {
+  return apiFetch<{ lockdown: boolean; message: string }>("/api/fomo/pwa-monitor/clear", {
+    method: "POST",
+  });
 }
 
 /** GET /api/sentinel/dashboard */

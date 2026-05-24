@@ -15,3 +15,11 @@ export function formatRM(amount: number) {
     maximumFractionDigits: 0,
   })}`;
 }
+
+export function formatSignedRM(amount: number) {
+  const abs = Math.abs(amount);
+  if (amount < 0) {
+    return `-${formatRM(abs)}`;
+  }
+  return formatRM(abs);
+}

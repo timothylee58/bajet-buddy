@@ -7,6 +7,7 @@ import { VerdictOverlay } from "./VerdictOverlay";
 import { BudgetImpactBar } from "./BudgetImpactBar";
 import { VoiceInput } from "./VoiceInput";
 import { checkSpend } from "@/lib/api";
+import { useToast } from "@/components/ui/ToastProvider";
 import type { CheckResponse, Verdict } from "@/types";
 import { CATEGORIES } from "@/lib/constants";
 import type { CategoryId } from "@/lib/constants";
@@ -110,6 +111,7 @@ export function CheckScreen({ isSarahDemo = false }: CheckScreenProps) {
   const [result, setResult] = useState<CheckResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { success: toastSuccess, error: toastError } = useToast();
 
   function onVoiceParsed(parsed: { amount: string; merchant: string; category: string }) {
     if (parsed.amount) setAmount(parsed.amount);
@@ -143,9 +145,12 @@ export function CheckScreen({ isSarahDemo = false }: CheckScreenProps) {
       });
       setResult(res);
       setStep("result");
+      const vLabel = res.verdict === "boleh" ? "Boleh!" : res.verdict === "fikir_dulu" ? "Fikir Dulu" : "Jangan Dulu";
+      toastSuccess(`${vLabel} · Risk: ${res.risk_score}/100 · Impact: ${res.budget_impact_pct.toFixed(0)}%`);
     } catch {
       setResult(buildDemoResult(parseFloat(amount), category, merchant || "Unknown"));
       setStep("result");
+      toastError(`API unavailable — showing demo result`, "API_OFFLINE");
     } finally {
       setLoading(false);
     }
@@ -187,8 +192,8 @@ export function CheckScreen({ isSarahDemo = false }: CheckScreenProps) {
 
           {/* Amount display */}
           <div className="text-center" data-testid="amount-display">
-            <p className="text-sm text-zinc-400 mb-1">How much are you spending?</p>
-            <div className="text-5xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">
+            <p className="font-sans text-sm font-bold text-muted mb-1">How much are you spending?</p>
+            <div className="font-headline text-5xl font-bold text-foreground tracking-tight">
               RM{amount || "0"}
             </div>
           </div>
@@ -200,7 +205,7 @@ export function CheckScreen({ isSarahDemo = false }: CheckScreenProps) {
             value={merchant}
             onChange={(e) => setMerchant(e.target.value)}
             data-testid="merchant-input"
-            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full rounded-xl border border-border bg-white px-4 py-3 font-sans text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
           />
 
           {/* Category picker */}
