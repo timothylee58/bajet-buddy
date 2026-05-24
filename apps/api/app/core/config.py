@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     ilmu_api_key: str = ""
     ilmu_anthropic_base_url: str = "https://api.ilmu.ai/anthropic"
     ilmu_model: str = "nemo-super"
+    ilmu_vision_model: str = "claude-sonnet-4-6"
     anthropic_api_key: str = ""
     openai_api_key: str = ""
     deepseek_api_key: str = ""
