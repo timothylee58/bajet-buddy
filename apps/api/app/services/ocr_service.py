@@ -122,7 +122,7 @@ async def scan_receipt(
             scan_result.document_type,
         )
     except Exception as e:
-        logger.exception("OCR failed")
+        logger.exception("OCR vision call failed: %s", e)
         return OCRScanResponse(status="error", error=f"OCR failed: {e}")
 
     # ── Step 2: AI Spending Summary via DeepSeek ───────────────────────────
@@ -212,7 +212,8 @@ async def _call_claude_vision(image_data_url: str, settings: Any) -> OCRScanResu
         api_key=settings.ilmu_api_key or settings.anthropic_api_key,
         base_url=settings.ilmu_anthropic_base_url if settings.ilmu_api_key else None,
     )
-    model = settings.ilmu_model if settings.ilmu_api_key else "claude-opus-4-5-20251101"
+    # Use the dedicated vision model — ilmu_model ("nemo-super") is text-only
+    model = settings.ilmu_vision_model if settings.ilmu_api_key else "claude-sonnet-4-6"
 
     # Extract mime type and raw base64 from data URL
     if "," in image_data_url:
