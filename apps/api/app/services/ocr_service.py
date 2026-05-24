@@ -340,8 +340,11 @@ def _parse_vision_response(raw_text: str) -> OCRScanResult:
             )
         )
 
+    raw_doc_type = str(data.get("document_type") or "receipt").lower()
+    doc_type = "bank_statement" if "bank" in raw_doc_type or "statement" in raw_doc_type else "receipt"
+
     return OCRScanResult(
-        document_type=str(data.get("document_type") or "receipt"),
+        document_type=doc_type,
         store_name=str(data.get("store_name") or ""),
         total_amount=float(data.get("total_amount") or 0),
         line_items=list(transactions),

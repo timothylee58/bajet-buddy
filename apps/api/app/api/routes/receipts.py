@@ -98,4 +98,8 @@ async def scan_receipt_image(
         else "00000000-0000-0000-0000-000000000001"
     )
     request = OCRScanRequest(image_base64=data_url)
-    return await scan_receipt(request, user_id=user_id)
+    try:
+        return await scan_receipt(request, user_id=user_id)
+    except Exception as exc:
+        logger.exception("Unhandled error in scan_receipt: %s", exc)
+        return OCRScanResponse(status="error", error=f"Scan failed: {exc}")
