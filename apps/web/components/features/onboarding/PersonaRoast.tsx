@@ -86,7 +86,7 @@ export function PersonaRoast({
               <span className="absolute -top-3 left-6 rounded-full border border-white/80 bg-white px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-primary-dark">
                 The Roast
               </span>
-              <p className="text-lg leading-relaxed font-medium">"{persona.roast}"</p>
+              <p className="text-lg leading-relaxed font-medium">&quot;{persona.roast}&quot;</p>
             </div>
 
             {/* Estimated Budget */}
@@ -144,7 +144,7 @@ export function PersonaRoast({
                   <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/25 to-transparent opacity-0 group-hover:opacity-100" />
                   <span className="relative z-10 flex items-center justify-center">
                     <Rocket className="mr-3 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1 text-white" size={24} />
-                    I Accept My Fate — Let's Go!
+                    Haiya! I Accept My Fate — Let's Go!
                   </span>
                 </Button>
               </div>
