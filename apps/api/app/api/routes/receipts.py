@@ -100,6 +100,6 @@ async def scan_receipt_image(
     request = OCRScanRequest(image_base64=data_url)
     try:
         return await scan_receipt(request, user_id=user_id)
-    except Exception as exc:
-        logger.exception("Unhandled error in scan_receipt: %s", exc)
-        return OCRScanResponse(status="error", error=f"Scan failed: {exc}")
+    except Exception:
+        logger.exception("Unhandled error in scan_receipt")
+        return OCRScanResponse(status="error", error="Scan failed due to an internal error.")

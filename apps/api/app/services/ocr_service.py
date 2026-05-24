@@ -121,9 +121,9 @@ async def scan_receipt(
             len(scan_result.transactions),
             scan_result.document_type,
         )
-    except Exception as e:
-        logger.exception("OCR vision call failed: %s", e)
-        return OCRScanResponse(status="error", error=f"OCR failed: {e}")
+    except Exception:
+        logger.exception("OCR vision call failed")
+        return OCRScanResponse(status="error", error="OCR failed due to an internal error.")
 
     # ── Step 2: AI Spending Summary via DeepSeek ───────────────────────────
     summary: OCRSpendingSummary | None = None
