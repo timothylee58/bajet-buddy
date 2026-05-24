@@ -252,9 +252,9 @@ async def _generate_with_ai(payload: NudgeRequestModel) -> NudgeResponseModel:
     anthropic_key = settings.ilmu_api_key or settings.anthropic_api_key
     deepseek_key = settings.deepseek_api_key
 
-    if anthropic_key and anthropic_key.startswith("sk-"):
+    if anthropic_key:
         return await _generate_with_anthropic(payload, anthropic_key, settings)
-    if deepseek_key and deepseek_key.startswith("sk-"):
+    if deepseek_key:
         return await _generate_with_deepseek(payload, deepseek_key)
     raise RuntimeError("No supported AI API key configured")
 
