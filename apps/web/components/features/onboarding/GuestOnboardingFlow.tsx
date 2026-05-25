@@ -15,10 +15,10 @@ export function GuestOnboardingFlow({ onComplete }: GuestOnboardingFlowProps) {
   const { guestData, updateGuestData } = useGuestMode();
   const [step, setStep] = useState<"questions" | "statement" | "analyzing" | "roast">("questions");
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [persona, setPersona] = useState<any>(null);
-  const [budget, setBudget] = useState<any>(null);
+  const [persona, setPersona] = useState<Record<string, unknown> | null>(null);
+  const [budget, setBudget] = useState<{ category: string; amount: number; color: string; percentage: number }[] | null>(null);
   const [totalXP, setTotalXP] = useState(0);
-  const [scannedTxns, setScannedTxns] = useState<any[]>([]);
+  const [scannedTxns, setScannedTxns] = useState<OCRTransaction[]>([]);
 
   useEffect(() => {
     if (guestData.onboarding?.questions_answered) {
@@ -68,7 +68,7 @@ export function GuestOnboardingFlow({ onComplete }: GuestOnboardingFlowProps) {
       ...prev,
       xp: prev.xp + xpEarned,
       transactions: [
-        ...txns.map((txn: any, i: number) => ({
+        ...txns.map((txn, i) => ({
           id: response.insert_results?.[i]?.transaction_id || Math.random().toString(36).substring(7),
           amount: txn.amount,
           category: txn.category,
@@ -94,16 +94,18 @@ export function GuestOnboardingFlow({ onComplete }: GuestOnboardingFlowProps) {
 
   // ── Shared: call DeepSeek with Q&A [+ transactions] ──
 
+  type BudgetItem = { category: string; amount: number; color: string; percentage: number };
+
   const runCombinedAnalysis = async (
     qa: Record<string, string>,
-    txns: any[],
+    txns: OCRTransaction[],
     extraXP: number,
     hasRealData: boolean
   ) => {
-    let personaData: any = null;
-    let budgetData: any = null;
+    let personaData: Record<string, unknown> | null = null;
+    let budgetData: BudgetItem[] | null = null;
 
-    const apiPayload: any = {
+    const apiPayload: Record<string, unknown> = {
       coffee_boba_weekly_estimate: qa.coffee_boba_weekly_estimate || "",
       impulse_category_lean: qa.impulse_category_lean || "",
       balance_check_behavior: qa.balance_check_behavior || "",
@@ -149,8 +151,8 @@ export function GuestOnboardingFlow({ onComplete }: GuestOnboardingFlowProps) {
           }
         }
       }
-    } catch (err: any) {
-      console.error("[AGENT 1] API call failed:", err?.message || err);
+    } catch (err: unknown) {
+      console.error("[AGENT 1] API call failed:", err instanceof Error ? err.message : err);
       // API down or network error — use local fallback
     }
 
@@ -323,7 +325,14 @@ function AnalyzingAnimation() {
 
 // ── Final persona summary — tap anywhere to continue to dashboard ──
 
-function PersonaSummary({ persona, estimatedBudget, xpEarned, hasRealData }: any) {
+interface PersonaSummaryProps {
+  persona: Record<string, unknown>;
+  estimatedBudget: { category: string; amount: number; color: string; percentage: number }[] | null;
+  xpEarned: number;
+  hasRealData: boolean;
+}
+
+function PersonaSummary({ persona, estimatedBudget, xpEarned, hasRealData }: PersonaSummaryProps) {
   const [countdown, setCountdown] = React.useState(5);
 
   React.useEffect(() => {
@@ -347,7 +356,7 @@ function PersonaSummary({ persona, estimatedBudget, xpEarned, hasRealData }: any
     >
       <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-6">
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
-          className="text-7xl">{persona.emoji}</motion.div>
+          className="text-7xl">{persona.emoji as string}</motion.div>
         <div>
           <h2 className="text-3xl font-bold">{persona.name}</h2>
           <p className="mt-1 text-sm text-muted">

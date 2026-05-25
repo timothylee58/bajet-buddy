@@ -29,3 +29,52 @@ where g.user_id = (select id from public.profiles order by created_at asc limit 
 update public.profiles
 set monthly_income = 3200, full_name = 'Sarah (Dev Seed)'
 where id = (select id from public.profiles order by created_at asc limit 1);
+
+insert into public.bnpl_commitments (
+  user_id, merchant, provider, item_name,
+  total_amount, outstanding_amount, monthly_payment,
+  installments_total, installments_remaining, next_due_date, status
+)
+select
+  p.id,
+  v.merchant,
+  v.provider,
+  v.item_name,
+  v.total_amount,
+  v.outstanding_amount,
+  v.monthly_payment,
+  v.installments_total,
+  v.installments_remaining,
+  (date_trunc('month', now()) + v.due_offset::interval)::date,
+  v.status
+from public.profiles p
+cross join (
+  values
+    ('Shopee', 'Atome', 'Samsung Galaxy Buds2 Pro', 600.00::numeric, 400.00::numeric, 200.00::numeric, 3, 2, '15 days', 'active'),
+    ('Zalora', 'Split', 'Nike Air Max 270', 459.00::numeric, 153.00::numeric, 153.00::numeric, 3, 1, '22 days', 'active'),
+    ('Harvey Norman', 'Grab PayLater', 'Dyson V15 Vacuum', 2199.00::numeric, 1099.50::numeric, 366.50::numeric, 6, 3, '8 days', 'active'),
+    ('Lazada', 'Atome', 'Xiaomi Smart Air Purifier', 399.00::numeric, 0.00::numeric, 133.00::numeric, 3, 0, '0 days', 'completed'),
+    ('AEON', 'Split', 'Casio G-Shock Watch', 348.00::numeric, 116.00::numeric, 116.00::numeric, 3, 1, '30 days', 'late')
+) as v(merchant, provider, item_name, total_amount, outstanding_amount, monthly_payment, installments_total, installments_remaining, due_offset, status)
+where p.id = (select id from public.profiles order by created_at asc limit 1);
+
+-- Multi-month category_budgets: 50 random rows across the past 5 months for all profiles.
+WITH ids AS (
+  SELECT gen_random_uuid() AS id,
+         (SELECT "id" FROM public.profiles ORDER BY random() LIMIT 1) AS user_id,
+         (ARRAY['groceries','rent','transport','shopping','bills'])[1 + floor(random()*5)::int]::text AS category_id,
+         (date_trunc('month', now() - floor(random()*5)::int * interval '1 month'))::date AS month
+  FROM generate_series(1,50)
+)
+INSERT INTO public.category_budgets (id, user_id, category_id, allocated, spent, month)
+SELECT id,
+       user_id,
+       category_id,
+       (random()*500)::numeric(12,2),
+       (random()*500)::numeric(12,2),
+       month
+FROM ids
+ON CONFLICT (user_id, category_id, month)
+DO UPDATE SET
+  allocated = EXCLUDED.allocated,
+  spent     = EXCLUDED.spent;
