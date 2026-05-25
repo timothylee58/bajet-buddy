@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { BottomNav } from "@/components/layout/BottomNav";
 import { TopBar } from "@/components/layout/TopBar";
 import { CloudSyncBanner } from "@/components/features/onboarding/CloudSyncBanner";
