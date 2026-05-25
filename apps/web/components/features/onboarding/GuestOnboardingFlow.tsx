@@ -218,40 +218,42 @@ export function GuestOnboardingFlow({ onComplete }: GuestOnboardingFlowProps) {
   // ── Render ──
 
   return (
-    <AnimatePresence mode="wait">
-      {step === "questions" && (
-        <motion.div key="questions" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }}
-          className="fixed inset-0 z-50 bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)]">
-          <OnboardingChat onComplete={handleQuestionsComplete} />
-        </motion.div>
-      )}
+    <div className="fixed inset-0 z-50 bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)]">
+      <AnimatePresence mode="wait">
+        {step === "questions" && (
+          <motion.div key="questions" initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }}
+            className="absolute inset-0">
+            <OnboardingChat onComplete={handleQuestionsComplete} />
+          </motion.div>
+        )}
 
-      {step === "analyzing" && (
-        <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)]">
-          <AnalyzingAnimation />
-        </motion.div>
-      )}
+        {step === "analyzing" && (
+          <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center">
+            <AnalyzingAnimation />
+          </motion.div>
+        )}
 
-      {step === "statement" && (
-        <motion.div key="statement" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }}
-          className="fixed inset-0 z-50 bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)]">
-          <BankStatementUpload onComplete={handleStatementComplete} onSkip={handleStatementSkip} />
-        </motion.div>
-      )}
+        {step === "statement" && (
+          <motion.div key="statement" initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }}
+            className="absolute inset-0">
+            <BankStatementUpload onComplete={handleStatementComplete} onSkip={handleStatementSkip} />
+          </motion.div>
+        )}
 
-      {step === "roast" && persona && (
-        <motion.div key="roast" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, y: 50 }}
-          className="fixed inset-0 z-50 bg-[radial-gradient(circle_at_top_left,_rgba(124,92,255,0.16),_transparent_28rem),linear-gradient(180deg,_#fffefc,_#f7f2ff)]">
-          <PersonaSummary
-            persona={persona}
-            estimatedBudget={budget}
-            xpEarned={totalXP}
-            hasRealData={!!scannedTxns.length}
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
+        {step === "roast" && persona && (
+          <motion.div key="roast" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, y: 50 }}
+            className="absolute inset-0">
+            <PersonaSummary
+              persona={persona}
+              estimatedBudget={budget}
+              xpEarned={totalXP}
+              hasRealData={!!scannedTxns.length}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 

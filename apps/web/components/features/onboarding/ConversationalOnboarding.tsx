@@ -169,7 +169,7 @@ export function ConversationalOnboarding() {
 
   if (phase === "scan") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-foreground">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-y-auto bg-background p-6 text-foreground">
         <div className="w-full max-w-md space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -262,7 +262,7 @@ export function ConversationalOnboarding() {
   if (phase === "pet") {
     const SPECIES_ORDER: PetSpecies[] = ["squirrel", "fox", "raccoon", "rabbit"];
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-foreground">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-y-auto bg-background p-6 text-foreground">
         <div className="w-full max-w-md space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -327,7 +327,7 @@ export function ConversationalOnboarding() {
 
   if (phase === "loading") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 text-foreground">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background p-6 text-foreground">
         <motion.div
           animate={{ scale: [1, 1.1, 1] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
@@ -354,7 +354,7 @@ export function ConversationalOnboarding() {
 
   if (phase === "result" && result) {
     return (
-      <div className="flex min-h-screen flex-col items-center bg-background p-6 text-foreground">
+      <div className="fixed inset-0 z-50 flex flex-col items-center overflow-y-auto bg-background p-6 text-foreground">
         <div className="w-full max-w-md space-y-6 py-10">
           {/* Persona emoji */}
           <motion.div
@@ -445,7 +445,7 @@ export function ConversationalOnboarding() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-foreground">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background p-6 text-foreground">
       <div className="w-full max-w-md space-y-8">
         {/* Progress dots */}
         <div className="flex justify-center gap-2">
