@@ -109,11 +109,15 @@ async def scan_receipt(
             error="No AI API key configured — set OPENAI_API_KEY, ILMU_API_KEY, or ANTHROPIC_API_KEY",
         )
 
-    # ── Step 1: OCR — GPT-4o preferred, Claude fallback ───────────────────
+    # ── Step 1: OCR — GPT-4o preferred, Claude fallback on any failure ───────
     scan_result: OCRScanResult | None = None
     try:
         if settings.openai_api_key:
-            scan_result = await _call_openai_vision(image_data_url, settings)
+            try:
+                scan_result = await _call_openai_vision(image_data_url, settings)
+            except Exception:
+                logger.warning("OpenAI vision failed, falling back to Claude")
+                scan_result = await _call_claude_vision(image_data_url, settings)
         else:
             scan_result = await _call_claude_vision(image_data_url, settings)
         logger.info(
