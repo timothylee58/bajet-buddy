@@ -358,15 +358,15 @@ function PersonaSummary({ persona, estimatedBudget, xpEarned, hasRealData }: Per
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
           className="text-7xl">{persona.emoji as string}</motion.div>
         <div>
-          <h2 className="text-3xl font-bold">{persona.name}</h2>
+          <h2 className="text-3xl font-bold">{persona.name as string}</h2>
           <p className="mt-1 text-sm text-muted">
             {hasRealData ? "Analyzed from your real spending data" : "Estimated from your answers"}
           </p>
-          {persona.confidence && (
+          {typeof persona.confidence === "number" && (
             <p className="mt-1 text-xs text-neutral">Confidence: {persona.confidence}%</p>
           )}
         </div>
-        <p className="max-w-sm text-lg italic text-foreground">"{persona.roast}"</p>
+        <p className="max-w-sm text-lg italic text-foreground">&ldquo;{persona.roast as string}&rdquo;</p>
 
         {estimatedBudget && (
           <div className="w-full max-w-xs space-y-2">

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Upload,
@@ -129,11 +130,13 @@ export function BankStatementUpload({
             <div className="space-y-3">
               {preview ? (
                 <div className="relative overflow-hidden rounded-2xl border border-white/10">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={preview}
-                    className="w-full max-h-[200px] object-contain bg-zinc-800"
                     alt="Statement preview"
+                    width={400}
+                    height={200}
+                    className="w-full max-h-[200px] object-contain bg-zinc-800"
+                    unoptimized
                   />
                 </div>
               ) : (

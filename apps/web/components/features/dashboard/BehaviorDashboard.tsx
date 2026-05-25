@@ -72,18 +72,8 @@ const CATEGORY_CARDS = [
 ] as const;
 
 export function BehaviorDashboard() {
-  const [locale, setLocale] = useState<Locale>("en");
   const [purchaseTriggered, setPurchaseTriggered] = useState(true);
   const pulse = useDashboardPulse();
-  const { guestData } = useGuestMode();
-  const ocrTransactions = guestData.transactions.filter((t) => t.source === "ocr");
-  const chartsReady = useSyncExternalStore(
-    () => () => undefined,
-    () => true,
-    () => false
-  );
-
-  const copy = dashboardCopy[locale];
   const name = useUserName();
   const { budget, gamification, loading: pulseLoading } = useDashboardPulse();
   const { transactions: recentTx, loading: txLoading } =
