@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NumPad } from "./NumPad";
 import { CategoryPicker } from "./CategoryPicker";
 import { VerdictOverlay } from "./VerdictOverlay";
@@ -11,6 +11,45 @@ import { useToast } from "@/components/ui/ToastProvider";
 import type { CheckResponse, Verdict } from "@/types";
 import { CATEGORIES } from "@/lib/constants";
 import type { CategoryId } from "@/lib/constants";
+
+const MERCHANT_CATEGORY_RULES: [RegExp, CategoryId][] = [
+  [/grab(food|express|car)?|foodpanda|airasia\s*food|beepit|shopeefood/i, "food"],
+  [/mcdonald|kfc|burger\s*king|subway|pizza\s*hut|domino|starbucks|tealive|chatime|gong\s*cha|old\s*town|nando|secret\s*recipe|marrybrown|texas\s*chicken|a&w|jollibee|popeyes|rotiboy|breadtalk/i, "food"],
+  [/tesco|mydin|giant|aeon|jaya\s*grocer|village\s*grocer|cold\s*storage|lotus|99\s*speedmart|kk\s*mart|econsave|guardian|watson|caring/i, "food"],
+  [/shopee|lazada|zalora|shein|taobao|amazon|ikea|mr\s*diy|daiso|miniso|uniqlo|h&m|zara|cotton\s*on/i, "shopping"],
+  [/grab(car|taxi|bike)?|mrt|lrt|ktm|rapidkl|bus|parking|petronas|shell|caltex|bpetrol|myeg\s*toll|plus\s*toll/i, "transport"],
+  [/tng\s*ewallet|touch\s*n\s*go|boost|grabpay|maybank\s*pay|duit\s*now|fpx|transfer/i, "utilities"],
+  [/celcom|maxis|digi|unifi|astro|time\s*fibre|yes\s*4g|streamyx/i, "utilities"],
+  [/tnb|syabas|indah\s*water|gas\s*malaysia|sewa|rental/i, "utilities"],
+  [/clinic|hospital|pharmacy|klinik|farmasi|guardian\s*health|watson\s*health|dentist|doctor|ubat/i, "health"],
+  [/movie|cinema|gsc|tgv|mbo|netflix|spotify|steam|playstation|xbox|gaming/i, "entertainment"],
+  [/tutor|class|course|udemy|coursera|school|university|kolej|buku|book\s*store/i, "education"],
+];
+
+function autoDetectCategory(merchantName: string): CategoryId | null {
+  for (const [pattern, cat] of MERCHANT_CATEGORY_RULES) {
+    if (pattern.test(merchantName)) return cat;
+  }
+  return null;
+}
+
+function getTimeBasedDefault(): CategoryId {
+  const hour = new Date().getHours();
+  if ((hour >= 7 && hour < 10) || (hour >= 12 && hour < 14) || (hour >= 18 && hour < 21)) {
+    return "food";
+  }
+  return "shopping";
+}
+
+function formatAmount(raw: string): string {
+  if (!raw || raw === "0") return "0";
+  const num = parseFloat(raw);
+  if (isNaN(num)) return raw;
+  return new Intl.NumberFormat("en-MY", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(num);
+}
 
 type Step = "amount" | "category" | "result";
 
@@ -106,12 +145,20 @@ interface CheckScreenProps {
 export function CheckScreen({ isSarahDemo = false }: CheckScreenProps) {
   const [step, setStep] = useState<Step>("amount");
   const [amount, setAmount] = useState(isSarahDemo ? SARAH_DEMO.amount : "");
-  const [category, setCategory] = useState<CategoryId>(isSarahDemo ? SARAH_DEMO.category : "shopping");
+  const [category, setCategory] = useState<CategoryId>(isSarahDemo ? SARAH_DEMO.category : getTimeBasedDefault());
   const [merchant, setMerchant] = useState(isSarahDemo ? SARAH_DEMO.merchant : "");
+  const [categoryAutoSet, setCategoryAutoSet] = useState(false);
   const [result, setResult] = useState<CheckResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { success: toastSuccess, error: toastError } = useToast();
+
+  useEffect(() => {
+    if (!merchant.trim()) { setCategoryAutoSet(false); return; }
+    const detected = autoDetectCategory(merchant);
+    if (detected) { setCategory(detected); setCategoryAutoSet(true); }
+    else setCategoryAutoSet(false);
+  }, [merchant]);
 
   function onVoiceParsed(parsed: { amount: string; merchant: string; category: string }) {
     if (parsed.amount) setAmount(parsed.amount);
@@ -160,6 +207,8 @@ export function CheckScreen({ isSarahDemo = false }: CheckScreenProps) {
     setStep("amount");
     setAmount("");
     setMerchant("");
+    setCategory(getTimeBasedDefault());
+    setCategoryAutoSet(false);
     setResult(null);
     setError(null);
   }
@@ -194,22 +243,29 @@ export function CheckScreen({ isSarahDemo = false }: CheckScreenProps) {
           <div className="text-center" data-testid="amount-display">
             <p className="font-sans text-sm font-bold text-muted mb-1">How much are you spending?</p>
             <div className="font-headline text-5xl font-bold text-foreground tracking-tight">
-              RM{amount || "0"}
+              RM {formatAmount(amount || "0")}
             </div>
           </div>
 
           {/* Merchant input */}
-          <input
-            type="text"
-            placeholder="Where? (e.g. Shopee, McDonald's)"
-            value={merchant}
-            onChange={(e) => setMerchant(e.target.value)}
-            data-testid="merchant-input"
-            className="w-full rounded-xl border border-border bg-white px-4 py-3 font-sans text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Where? (e.g. Shopee, McDonald's)"
+              value={merchant}
+              onChange={(e) => setMerchant(e.target.value)}
+              data-testid="merchant-input"
+              className="w-full rounded-xl border border-border bg-white px-4 py-3 font-sans text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+            />
+            {categoryAutoSet && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                auto
+              </span>
+            )}
+          </div>
 
           {/* Category picker */}
-          <CategoryPicker selected={category} onChange={setCategory} />
+          <CategoryPicker selected={category} onChange={(c) => { setCategory(c); setCategoryAutoSet(false); }} />
 
           {/* Budget impact preview */}
           {amount && parseFloat(amount) > 0 && (
