@@ -257,6 +257,7 @@ npm run dev
 Private — portfolio project.
 
 Built during #seKodlah Techive hackathon with judges from Seedlab MY, CIMB, and Cradle Fund. (May 16th 2026 - May 18th 2026) 
+Team Name: Bajet Buddies
 - Timothy Lee (https://www.linkedin.com/in/lee-yung-yau-timothy-01a650158/)
 - Naufal Hafiz (https://www.linkedin.com/in/naufal-hafiz-011b5a346/)
 - Aiman Mohd Hisham (https://www.linkedin.com/in/aiman-mohd-hisham-206296287/) 
