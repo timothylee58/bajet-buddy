@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, Save, Pencil, Check } from "lucide-react";
+import { ArrowLeft, Pencil, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { CATEGORIES } from "@/lib/constants";
 import { formatRM, cn } from "@/lib/utils";
+import { DataError } from "@/components/ui/DataError";
 
 const CATEGORY_ICONS: Record<string, string> = {
   food: "🍜",
@@ -30,30 +31,38 @@ export default function BudgetPage() {
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const sb = createClient();
-    const { data: { user } } = await sb.auth.getUser();
-    if (!user) { setLoading(false); return; }
-    setUserId(user.id);
+    setLoading(true);
+    setError(null);
+    try {
+      const sb = createClient();
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) { setLoading(false); return; }
+      setUserId(user.id);
 
-    const { data } = await sb
-      .from("category_budgets")
-      .select("category_id, allocated, spent")
-      .eq("user_id", user.id);
+      const { data, error: dbError } = await sb
+        .from("category_budgets")
+        .select("category_id, allocated, spent")
+        .eq("user_id", user.id);
 
-    // Merge DB data with all known categories (fill missing with 0)
-    const merged: CategoryBudget[] = CATEGORIES.map((cat) => {
-      const found = (data ?? []).find((r: CategoryBudget) => r.category_id === cat.id);
-      return found ?? { category_id: cat.id, allocated: 0, spent: 0 };
-    });
-    setBudgets(merged);
-    // Initialize input values
-    const vals: Record<string, string> = {};
-    merged.forEach((b) => { vals[b.category_id] = String(b.allocated || ""); });
-    setInputValues(vals);
-    setLoading(false);
+      if (dbError) throw new Error(dbError.message);
+
+      const merged: CategoryBudget[] = CATEGORIES.map((cat) => {
+        const found = (data ?? []).find((r: CategoryBudget) => r.category_id === cat.id);
+        return found ?? { category_id: cat.id, allocated: 0, spent: 0 };
+      });
+      setBudgets(merged);
+      const vals: Record<string, string> = {};
+      merged.forEach((b) => { vals[b.category_id] = String(b.allocated || ""); });
+      setInputValues(vals);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load budget data");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { void load(); }, [load]);
@@ -118,6 +127,10 @@ export default function BudgetPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {error && (
+        <DataError message={error} onRetry={() => void load()} className="mb-4" />
       )}
 
       {loading ? (

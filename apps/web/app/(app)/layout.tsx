@@ -9,6 +9,7 @@ import { PwaMonitorProvider } from "@/components/features/fomo/PwaMonitorProvide
 import { TextSizeProvider } from "@/components/ui/TextSizeProvider";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { ToastContainer } from "@/components/ui/ToastContainer";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,7 +20,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex min-h-screen flex-col bg-background">
             <TopBar />
             <CloudSyncBanner />
-            <main className="flex-1 overflow-y-auto pb-24">{children}</main>
+            <main className="flex-1 overflow-y-auto pb-24">
+              <ErrorBoundary>{children}</ErrorBoundary>
+            </main>
             <BottomNav />
             <FloatingPet />
             <ToastContainer />

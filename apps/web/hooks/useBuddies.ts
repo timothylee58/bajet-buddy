@@ -14,19 +14,23 @@ const MOCK_LEADERBOARD: BuddyEntry[] = [
 export function useBuddies() {
   const [leaderboard, setLeaderboard] = useState<BuddyEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { isGuest } = useGuestMode();
 
   const refresh = useCallback(async () => {
     if (isGuest) {
       setLeaderboard(MOCK_LEADERBOARD);
       setLoading(false);
+      setError(null);
       return;
     }
     setLoading(true);
+    setError(null);
     try {
       const data = await getLeaderboard();
       setLeaderboard(data as BuddyEntry[]);
-    } catch {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load leaderboard");
       setLeaderboard(MOCK_LEADERBOARD);
     } finally {
       setLoading(false);
@@ -40,5 +44,5 @@ export function useBuddies() {
     return () => window.clearTimeout(timeoutId);
   }, [refresh]);
 
-  return { leaderboard, loading };
+  return { leaderboard, loading, error, refresh };
 }
