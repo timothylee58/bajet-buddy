@@ -74,7 +74,6 @@ const CATEGORY_CARDS = [
 
 export function BehaviorDashboard() {
   const [purchaseTriggered, setPurchaseTriggered] = useState(true);
-  const pulse = useDashboardPulse();
   const name = useUserName();
   const { budget, gamification, loading: pulseLoading, errors: pulseErrors } = useDashboardPulse();
   const { transactions: recentTx, loading: txLoading, error: txError } =
@@ -120,7 +119,7 @@ export function BehaviorDashboard() {
       </div>
 
       {/* API error banner — shown when budget/freeze/gamification fetches fail */}
-      {pulseErrors.length > 0 && (
+      {pulseErrors && pulseErrors.length > 0 && (
         <DataError
           message={pulseErrors[0]}
           compact

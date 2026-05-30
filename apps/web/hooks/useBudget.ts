@@ -42,14 +42,24 @@ export function useBudget() {
   useEffect(() => {
     if (guestSummary) return;
 
+    let active = true;
     setFetchError(null);
     getBudgetSummary()
-      .then((data) => setFetchedSummary(data as BudgetSummary))
+      .then((data) => {
+        if (!active) return;
+        setFetchedSummary(data as BudgetSummary);
+      })
       .catch((err) => {
+        if (!active) return;
         setFetchError(err instanceof Error ? err.message : "Unable to load budget");
         setFetchedSummary(MOCK_SUMMARY);
       })
-      .finally(() => setFetchLoading(false));
+      .finally(() => {
+        if (!active) return;
+        setFetchLoading(false);
+      });
+
+    return () => { active = false; };
   }, [guestSummary]);
 
   const summary = guestSummary ?? fetchedSummary;
