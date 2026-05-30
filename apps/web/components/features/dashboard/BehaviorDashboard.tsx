@@ -18,6 +18,7 @@ import { useRecentTransactions } from "@/hooks/useRecentTransactions";
 import { createClient } from "@/lib/supabase/client";
 import { formatRM, formatSignedRM } from "@/lib/utils";
 import { CATEGORIES, VERDICT_CONFIG } from "@/lib/constants";
+import { DataError } from "@/components/ui/DataError";
 
 function useUserName() {
   const [name, setName] = useState<string>("there");
@@ -75,8 +76,8 @@ export function BehaviorDashboard() {
   const [purchaseTriggered, setPurchaseTriggered] = useState(true);
   const pulse = useDashboardPulse();
   const name = useUserName();
-  const { budget, gamification, loading: pulseLoading } = useDashboardPulse();
-  const { transactions: recentTx, loading: txLoading } =
+  const { budget, gamification, loading: pulseLoading, errors: pulseErrors } = useDashboardPulse();
+  const { transactions: recentTx, loading: txLoading, error: txError } =
     useRecentTransactions(3);
 
   const spentPct = budget
@@ -117,6 +118,15 @@ export function BehaviorDashboard() {
           </Link>
         </div>
       </div>
+
+      {/* API error banner — shown when budget/freeze/gamification fetches fail */}
+      {pulseErrors.length > 0 && (
+        <DataError
+          message={pulseErrors[0]}
+          compact
+          className="mb-4"
+        />
+      )}
 
       {/* Financial Heartbeat Card — clicking balance links to /transactions */}
       <Link href="/transactions" className="block mb-6">
@@ -367,6 +377,11 @@ export function BehaviorDashboard() {
                 <div className="h-4 w-16 bg-surface-muted rounded" />
               </div>
             ))
+          ) : txError ? (
+            <DataError
+              message="Could not load recent transactions"
+              compact
+            />
           ) : recentTx.length === 0 ? (
             // Empty state — prompt to add first transaction
             <Link href="/check" className="block">

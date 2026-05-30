@@ -37,12 +37,16 @@ export function useBudget() {
     };
   }, [isGuest, guestData.estimated_budget, guestData.transactions]);
 
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   useEffect(() => {
     if (guestSummary) return;
 
+    setFetchError(null);
     getBudgetSummary()
       .then((data) => setFetchedSummary(data as BudgetSummary))
-      .catch(() => {
+      .catch((err) => {
+        setFetchError(err instanceof Error ? err.message : "Unable to load budget");
         setFetchedSummary(MOCK_SUMMARY);
       })
       .finally(() => setFetchLoading(false));
@@ -50,6 +54,7 @@ export function useBudget() {
 
   const summary = guestSummary ?? fetchedSummary;
   const loading = guestSummary ? false : fetchLoading;
+  const error = guestSummary ? null : fetchError;
 
-  return { summary, loading, error: null };
+  return { summary, loading, error };
 }
