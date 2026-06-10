@@ -5,9 +5,9 @@ STANDARD_WORK_HOURS_PER_MONTH = 176.0  # 22 days × 8h
 
 
 def compute_real_hourly_rate(
-    monthly_salary: float,
-    commute_hours_per_day: float = 0.0,
-    overtime_hours_per_week: float = 0.0,
+    monthly_salary: float | None,
+    commute_hours_per_day: float | None = 0.0,
+    overtime_hours_per_week: float | None = 0.0,
 ) -> float:
     """
     Real hourly rate = salary / (standard + commute + overtime hours).
@@ -16,10 +16,11 @@ def compute_real_hourly_rate(
     Commute:  commute_hours_per_day × 22 days
     Overtime: overtime_hours_per_week × 4.33 weeks
     """
-    commute_hours = commute_hours_per_day * 22
-    overtime_hours = overtime_hours_per_week * 4.33
+    salary = monthly_salary or 0.0
+    commute_hours = (commute_hours_per_day or 0.0) * 22
+    overtime_hours = (overtime_hours_per_week or 0.0) * 4.33
     total_hours = STANDARD_WORK_HOURS_PER_MONTH + commute_hours + overtime_hours
-    return round(monthly_salary / max(total_hours, 1), 2)
+    return round(salary / max(total_hours, 1.0), 2)
 
 
 def amount_to_life_hours(amount: float, real_hourly_rate: float) -> float:

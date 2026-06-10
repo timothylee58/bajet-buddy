@@ -123,7 +123,7 @@ async def _load_context(state: GraphState) -> GraphState:
 
     # Life-hours framing
     commute, overtime = await fetch_work_hours_profile(state.user_id)
-    monthly_income = profile.get("monthly_income", 3200)
+    monthly_income = state.budget_summary.get("total_income") or profile.get("monthly_income", 3200)
     state.real_hourly_rate = compute_real_hourly_rate(monthly_income, commute, overtime)
     state.life_hours_cost = amount_to_life_hours(state.payload.amount, state.real_hourly_rate)
     state.life_hours_str = format_life_hours_my(state.life_hours_cost)

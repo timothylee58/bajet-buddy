@@ -110,7 +110,7 @@ export default function IncomePage() {
         .update({ monthly_income: gross, commute_hours_per_day: commute, overtime_hours_per_week: overtime })
         .eq("id", user.id);
       if (dbErr) throw dbErr;
-      setIncome((prev) => ({ ...prev, monthly_income: gross }));
+      setIncome((prev) => ({ ...prev, monthly_income: gross, commute_hours_per_day: commute, overtime_hours_per_week: overtime }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
