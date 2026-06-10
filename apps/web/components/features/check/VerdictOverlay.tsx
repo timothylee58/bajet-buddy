@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { VERDICT_CONFIG } from "@/lib/constants";
-import { formatRM } from "@/lib/utils";
+import { formatRM, formatLifeHours } from "@/lib/utils";
 import type { CheckResponse } from "@/types";
 import { FOMONegotiatorModal } from "@/components/features/fomo/FOMONegotiatorModal";
 import { usePet } from "@/components/features/pet/PetCompanionProvider";
@@ -74,6 +74,20 @@ export function VerdictOverlay({ result, amount, onReset }: VerdictOverlayProps)
           {result.nudge_en}
         </p>
       </div>
+
+      {/* Life-hours pill */}
+      {result.life_hours_cost != null && result.life_hours_cost > 0 && (
+        <div className="flex justify-center">
+          <motion.div
+            className="inline-flex items-center gap-1.5 bg-zinc-100 rounded-full px-3 py-1 text-[12px] text-zinc-600"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            ⏱ {formatLifeHours(result.life_hours_cost)} of your working life
+          </motion.div>
+        </div>
+      )}
 
       {/* Stats row */}
       <div className="flex justify-around text-center">

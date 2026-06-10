@@ -69,6 +69,8 @@ class NudgeRequestModel:
     language_preference: LanguagePreference
     tone_mode: ToneMode
     reason_codes: list[str]
+    life_hours_str: str = ""
+    real_hourly_rate: float = 0.0
 
 
 @dataclass(slots=True)
@@ -398,6 +400,17 @@ BNPL / DEBT CONTEXT:
         for code in p.reason_codes
     ) if p.reason_codes else "  - No specific risk factors"
 
+    # Life-hours framing
+    life_hours_context = ""
+    if p.life_hours_str and p.real_hourly_rate > 0:
+        life_hours_context = f"""
+LIFE-HOURS FRAMING:
+- This purchase costs {p.life_hours_str} of the user's working life
+- Based on real hourly rate of RM{p.real_hourly_rate:.2f}/hour (after commute + overtime)
+- Include this in the nudge if it adds impact — e.g. "tu bersamaan {p.life_hours_str} kerja"
+- Don't force it if it makes the sentence awkward. Keep nudge under 60 words total.
+"""
+
     verdict_guidance = {
         "JANGAN_DULU": "Block this purchase. The user's financial health is at risk. Be firm but empathetic. Acknowledge the temptation, then clearly explain the consequences. Offer a concrete alternative.",
         "FIKIR_DULU": "Caution the user. This purchase is borderline — possible but risky. Encourage a 24-hour pause. Help them weigh the pros and cons objectively.",
@@ -411,6 +424,7 @@ Your tone is like a caring but firm friend — not a bank teller.
 {habit_context}
 {budget_context}
 {bnpl_context}
+{life_hours_context}
 
 RISK ASSESSMENT:
 - Risk score: {p.risk_score}/100

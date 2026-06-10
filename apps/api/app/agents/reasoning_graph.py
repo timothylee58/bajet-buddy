@@ -14,8 +14,9 @@ from app.nudge_agent.service import (
     generate_nudge_package,
 )
 from app.risk_engine import RiskEvaluationInput, evaluate_risk
-from app.services.budget_service import get_budget_summary, get_category_budgets
+from app.services.budget_service import fetch_work_hours_profile, get_budget_summary, get_category_budgets
 from app.services.freeze_service import maybe_trigger_auto_freeze
+from app.services.hourly_rate_service import amount_to_life_hours, compute_real_hourly_rate, format_life_hours_my
 from app.services.persona_service import learn_persona_from_transaction_signals
 
 
@@ -34,6 +35,9 @@ class GraphState:
     risk_result: Any | None = None
     nudge_result: Any | None = None
     freeze_status: dict[str, Any] | None = None
+    real_hourly_rate: float = 0.0
+    life_hours_cost: float = 0.0
+    life_hours_str: str = ""
 
 
 def _demo_transaction_signals(now: datetime, category: str) -> list[dict[str, Any]]:
@@ -116,6 +120,14 @@ async def _load_context(state: GraphState) -> GraphState:
     )
     state.proactive_alert = proactive_alert
     state.proactive_reason = proactive_reason
+
+    # Life-hours framing
+    commute, overtime = await fetch_work_hours_profile(state.user_id)
+    monthly_income = profile.get("monthly_income", 3200)
+    state.real_hourly_rate = compute_real_hourly_rate(monthly_income, commute, overtime)
+    state.life_hours_cost = amount_to_life_hours(state.payload.amount, state.real_hourly_rate)
+    state.life_hours_str = format_life_hours_my(state.life_hours_cost)
+
     return state
 
 
@@ -196,6 +208,8 @@ async def _generate_nudge_node(state: GraphState) -> GraphState:
             language_preference=state.payload.language_preference,
             tone_mode=state.payload.tone_mode,
             reason_codes=risk.reason_codes,
+            life_hours_str=state.life_hours_str,
+            real_hourly_rate=state.real_hourly_rate,
         )
     )
     return state

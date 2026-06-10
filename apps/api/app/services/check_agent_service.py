@@ -48,4 +48,6 @@ async def run_manual_prepurchase_check(payload: CheckRequest, user_id: str = "00
         ),
         freeze_status=FreezeSnapshot(**state.freeze_status) if state.freeze_status else None,
         pipeline_trace=state.trace,
+        real_hourly_rate=state.real_hourly_rate if state.real_hourly_rate > 0 else None,
+        life_hours_cost=state.life_hours_cost if state.life_hours_cost > 0 else None,
     )
