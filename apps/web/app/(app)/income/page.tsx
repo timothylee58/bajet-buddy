@@ -45,11 +45,15 @@ function calcMonthlyTax(annualChargeable: number): number {
 interface IncomeData {
   monthly_income: number;
   full_name: string;
+  commute_hours_per_day: number;
+  overtime_hours_per_week: number;
 }
 
 export default function IncomePage() {
-  const [income, setIncome] = useState<IncomeData>({ monthly_income: 0, full_name: "" });
+  const [income, setIncome] = useState<IncomeData>({ monthly_income: 0, full_name: "", commute_hours_per_day: 0, overtime_hours_per_week: 0 });
   const [inputVal, setInputVal] = useState("");
+  const [commute, setCommute] = useState(0);
+  const [overtime, setOvertime] = useState(0);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -61,12 +65,14 @@ export default function IncomePage() {
       if (!data.user) { setLoading(false); return; }
       const { data: profile } = await sb
         .from("profiles")
-        .select("monthly_income, full_name")
+        .select("monthly_income, full_name, commute_hours_per_day, overtime_hours_per_week")
         .eq("id", data.user.id)
         .single();
       if (profile) {
         setIncome(profile as IncomeData);
         setInputVal(String(profile.monthly_income || ""));
+        setCommute(profile.commute_hours_per_day ?? 0);
+        setOvertime(profile.overtime_hours_per_week ?? 0);
       }
       setLoading(false);
     });
@@ -74,6 +80,9 @@ export default function IncomePage() {
 
   const gross = parseFloat(inputVal) || 0;
   const annualGross = gross * 12;
+  const apparentHourlyRate = gross > 0 ? gross / 176 : 0;
+  const totalHoursPerMonth = 176 + commute * 22 + overtime * 4.33;
+  const realHourlyRate = gross > 0 ? gross / totalHoursPerMonth : 0;
 
   // Standard reliefs estimate (individual + EPF)
   const epfMonthly = Math.min(gross * EPF_RATE, 740); // EPF cap RM740/month
@@ -98,10 +107,10 @@ export default function IncomePage() {
       if (!user) throw new Error("Not logged in");
       const { error: dbErr } = await sb
         .from("profiles")
-        .update({ monthly_income: gross })
+        .update({ monthly_income: gross, commute_hours_per_day: commute, overtime_hours_per_week: overtime })
         .eq("id", user.id);
       if (dbErr) throw dbErr;
-      setIncome((prev) => ({ ...prev, monthly_income: gross }));
+      setIncome((prev) => ({ ...prev, monthly_income: gross, commute_hours_per_day: commute, overtime_hours_per_week: overtime }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
@@ -224,6 +233,83 @@ export default function IncomePage() {
                     Tax estimate uses standard reliefs only (individual RM9,000 + EPF). Actual tax may differ. Consult LHDN or a tax agent for accurate filing.
                   </p>
                 </div>
+              </section>
+
+              {/* Real Hourly Rate */}
+              <section className="bg-white rounded-2xl border-b-4 border-border/30 p-5 chunky-shadow">
+                <div className="flex items-center gap-2 mb-1">
+                  <Calculator className="w-5 h-5 text-tertiary" />
+                  <h2 className="font-headline text-lg font-bold">Real Hourly Rate</h2>
+                </div>
+                <p className="font-sans text-xs text-muted mb-4">
+                  Your RM {gross.toLocaleString()} salary is actually less per hour after commute &amp; overtime
+                </p>
+
+                {/* Commute slider */}
+                <div className="mb-4">
+                  <div className="flex justify-between mb-1">
+                    <label className="font-sans text-sm text-foreground">Daily commute</label>
+                    <span className="font-headline text-sm font-bold text-tertiary">{commute}h/day</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={4}
+                    step={0.5}
+                    value={commute}
+                    onChange={(e) => setCommute(parseFloat(e.target.value))}
+                    className="w-full accent-tertiary"
+                  />
+                  <div className="flex justify-between font-sans text-[10px] text-muted mt-0.5">
+                    <span>0h</span><span>4h</span>
+                  </div>
+                </div>
+
+                {/* Overtime slider */}
+                <div className="mb-5">
+                  <div className="flex justify-between mb-1">
+                    <label className="font-sans text-sm text-foreground">Weekly overtime</label>
+                    <span className="font-headline text-sm font-bold text-tertiary">{overtime}h/week</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={20}
+                    step={1}
+                    value={overtime}
+                    onChange={(e) => setOvertime(parseFloat(e.target.value))}
+                    className="w-full accent-tertiary"
+                  />
+                  <div className="flex justify-between font-sans text-[10px] text-muted mt-0.5">
+                    <span>0h</span><span>20h</span>
+                  </div>
+                </div>
+
+                {/* Rate comparison card */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-surface-muted rounded-xl p-3 text-center">
+                    <p className="font-sans text-[10px] text-muted uppercase tracking-wide">Apparent rate</p>
+                    <p className="font-headline text-xl font-bold text-foreground">
+                      RM{apparentHourlyRate.toFixed(2)}
+                    </p>
+                    <p className="font-sans text-[10px] text-muted">per hour</p>
+                  </div>
+                  <div className="bg-tertiary/10 rounded-xl p-3 text-center border border-tertiary/20">
+                    <p className="font-sans text-[10px] text-tertiary uppercase tracking-wide font-bold">Real rate</p>
+                    <p className="font-headline text-xl font-bold text-tertiary">
+                      RM{realHourlyRate.toFixed(2)}
+                    </p>
+                    <p className="font-sans text-[10px] text-tertiary/70">per hour</p>
+                  </div>
+                </div>
+
+                {realHourlyRate > 0 && (
+                  <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                    <p className="font-sans text-xs text-amber-800 text-center">
+                      Every <strong>RM100</strong> you spend = <strong>{(100 / realHourlyRate).toFixed(1)} hours</strong> of your working life
+                    </p>
+                  </div>
+                )}
               </section>
             </>
           )}

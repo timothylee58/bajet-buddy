@@ -42,6 +42,28 @@ async def _fetch_monthly_income(user_id: str) -> float:
     return 3200.0
 
 
+async def fetch_work_hours_profile(user_id: str) -> tuple[float, float]:
+    """Return (commute_hours_per_day, overtime_hours_per_week) from profiles."""
+    supabase = get_supabase()
+    if supabase is None:
+        return 0.0, 0.0
+    try:
+        res = (
+            supabase.table("profiles")
+            .select("commute_hours_per_day, overtime_hours_per_week")
+            .eq("id", user_id)
+            .maybe_single()
+            .execute()
+        )
+        if hasattr(res, "data") and res.data:
+            commute = float(res.data.get("commute_hours_per_day") or 0)
+            overtime = float(res.data.get("overtime_hours_per_week") or 0)
+            return commute, overtime
+    except Exception as e:
+        logger.warning("Failed to fetch work hours profile for %s: %s", user_id, e)
+    return 0.0, 0.0
+
+
 async def get_budget_summary(user_id: str | None = None) -> dict:
     """Return budget summary computed from real transactions and profile."""
     if not user_id:

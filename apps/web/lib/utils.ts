@@ -23,3 +23,9 @@ export function formatSignedRM(amount: number) {
   }
   return formatRM(abs);
 }
+
+export function formatLifeHours(hours: number): string {
+  if (hours >= 8) return `${(hours / 8).toFixed(1)} working days`;
+  if (hours < 1) return `${Math.round(hours * 60)} minutes`;
+  return `${hours.toFixed(1)} hours`;
+}

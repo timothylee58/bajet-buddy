@@ -54,6 +54,8 @@ class CheckResponse(BaseModel):
     persona: PersonaSnapshot | None = None
     freeze_status: FreezeSnapshot | None = None
     pipeline_trace: list[str] = Field(default_factory=list)
+    real_hourly_rate: float | None = None
+    life_hours_cost: float | None = None
 
 
 class ChatCheckRequest(BaseModel):

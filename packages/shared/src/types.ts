@@ -81,6 +81,8 @@ export interface CheckResponse {
   } | null;
   freeze_status?: FreezeStatus | null;
   pipeline_trace?: string[];
+  real_hourly_rate?: number | null;
+  life_hours_cost?: number | null;
 }
 
 // ─── Chat Check ───────────────────────────────────────────────────────────────
