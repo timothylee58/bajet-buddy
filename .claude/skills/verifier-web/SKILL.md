@@ -51,9 +51,12 @@ const { chromium } = require("playwright");
 
 (async () => {
   const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  // ... drive, screenshot, assert ...
-  await browser.close();
+  try {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    // ... drive, screenshot, assert ...
+  } finally {
+    await browser.close();
+  }
 })();
 ```
 
