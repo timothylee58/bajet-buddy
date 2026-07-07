@@ -41,7 +41,7 @@ Substitute `<feature>` with a short snake_case name throughout.
       api_key=settings.ilmu_api_key or settings.anthropic_api_key,
       base_url=settings.ilmu_anthropic_base_url,
   )
-  model = settings.ilmu_model or "claude-opus-4-5"
+  model = settings.ilmu_model if settings.ilmu_api_key else "claude-sonnet-4-5"
   ```
   Parse responses by slicing first `{` to last `}` before `json.loads` —
   never parse raw model text.
@@ -75,7 +75,8 @@ Substitute `<feature>` with a short snake_case name throughout.
 - Mirror every Pydantic response model in TypeScript. New fields optional:
   `x?: number | null`.
 - This package is source-imported — no build step needed. The web app imports
-  it via `@/types`, never via a relative path.
+  types via `@/types` and non-type exports (constants, engines) via
+  `@bajetbuddy/shared` — never via a relative path into `packages/`.
 
 ## 7. Frontend
 

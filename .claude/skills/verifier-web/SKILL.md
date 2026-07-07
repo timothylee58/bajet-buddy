@@ -44,17 +44,23 @@ before driving.
 
 ## 3. Drive with Playwright
 
-Write a script in the scratchpad (never in the repo). In managed
-environments use the pre-installed browser:
+Write a script in the scratchpad (never in the repo):
 
 ```js
 const { chromium } = require("playwright");
-const browser = await chromium.launch({
-  executablePath: process.env.PLAYWRIGHT_BROWSERS_PATH
-    ? "/opt/pw-browsers/chromium" : undefined,
-});
-const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+
+(async () => {
+  const browser = await chromium.launch();
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  // ... drive, screenshot, assert ...
+  await browser.close();
+})();
 ```
+
+Playwright resolves the browser from `PLAYWRIGHT_BROWSERS_PATH` automatically
+in managed environments. Only if launch fails with "browser not found" (e.g.
+a pinned @playwright/test version), pass
+`executablePath: "/opt/pw-browsers/chromium"` explicitly.
 
 **Mobile viewport (390×844) is mandatory** — this is a mobile-first app;
 desktop-only verification misses the layout bugs that matter.
