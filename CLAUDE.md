@@ -76,7 +76,7 @@ Other repo facts:
   fails at build/prerender, not in the editor.
   **Rule: `"use client"` on the first line of every component that touches
   `useState`/`useEffect`/handlers/`window`/`localStorage`. All files in
-  `hooks/` carry it.**
+  `apps/web/hooks/` carry it.**
 - **"The hydration flash."** `useGuestMode` reads `localStorage`; on the server
   it returns `isGuest: false`, so SSR HTML and first client render disagree →
   two screens stacked / flash of wrong page (this bug shipped once already).
@@ -93,7 +93,7 @@ Other repo facts:
   are fine — see `VerdictOverlay.tsx`).**
 - **"The bare img."** **Rule: `next/image` `<Image>` only; never `<img>`.**
 - **"Inventing colors."** **Rule: style with the design tokens from
-  `globals.css` only** — `primary` (#BA6200 orange), `tertiary` (#7C5CFF
+  `apps/web/app/globals.css` only** — `primary` (#BA6200 orange), `tertiary` (#7C5CFF
   violet), `surface-muted`, `text-muted`, `border-border`, `font-headline`
   (Fredoka), `font-sans` (Nunito Sans), `chunky-shadow`, `active-press`.
   Tailwind 4, no config file, no custom CSS files.
@@ -103,10 +103,12 @@ Other repo facts:
   `BehaviorDashboard.tsx`. **Rule: new hooks/components follow that triple;
   wrap new page sections in `ErrorBoundary` if they can throw.**
 - Data fetching: Server Components use `fetch()` directly; Client Components
-  use hooks in `/hooks/` or the typed wrappers in `lib/api.ts`. No React Query.
-- `lib/api.ts` `apiFetch` already attaches the Supabase bearer token and
-  strips trailing slashes from `API_URL`. **Rule: new backend calls get a
-  typed wrapper in `lib/api.ts`; never `fetch(API_URL + ...)` inline.**
+  use hooks in `apps/web/hooks/` or the typed wrappers in
+  `apps/web/lib/api.ts`. No React Query.
+- `apps/web/lib/api.ts` `apiFetch` already attaches the Supabase bearer token
+  and strips trailing slashes from `API_URL`. **Rule: new backend calls get a
+  typed wrapper in `apps/web/lib/api.ts`; never `fetch(API_URL + ...)`
+  inline.**
 - TypeScript is `strict`. Use `interface` for objects, `type` for unions.
 
 ---
@@ -117,7 +119,7 @@ Other repo facts:
 
 Route (thin) → service (all logic, plain async functions) → Supabase/Claude.
 The pre-purchase check runs a 5-node pipeline in
-`app/agents/reasoning_graph.py`: `observe → load_context → evaluate_risk →
+`apps/api/app/agents/reasoning_graph.py`: `observe → load_context → evaluate_risk →
 generate_nudge → finalize`. **It is a plain `GraphState` dataclass walked by a
 for-loop — not LangGraph. Do not add a `langgraph` dependency or rewrite it
 with one.**
@@ -125,15 +127,15 @@ with one.**
 ### Named mistakes → rules
 
 - **"The unregistered router."** A new route file that isn't imported and
-  `include_router`-ed in `app/main.py` produces 404s with zero errors.
-  **Rule: every new router is registered in `main.py` with prefix
+  `include_router`-ed in `apps/api/app/main.py` produces 404s with zero errors.
+  **Rule: every new router is registered in `apps/api/app/main.py` with prefix
   `/api/<domain>` in the same commit that creates it.**
 - **"Fat routes."** **Rule: route handlers are `async def`, validate with a
-  Pydantic model from `app/schemas/`, call one service function, return. No
-  business logic in `app/api/routes/`. Services are plain async functions —
-  no classes.**
+  Pydantic model from `apps/api/app/schemas/`, call one service function,
+  return. No business logic in `apps/api/app/api/routes/`. Services are plain
+  async functions — no classes.**
 - **"Trusting the mock profile."** `_observe_transaction_intent` hardcodes a
-  demo profile ("Sarah", income 3200). `core/auth.py` has
+  demo profile ("Sarah", income 3200). `apps/api/app/core/auth.py` has
   `FORCE_DEMO_USER = True` mapping everyone to
   `00000000-0000-0000-0000-000000000001`.
   **Rules: (a) for real user attributes, fetch from the `profiles` table (see
@@ -155,8 +157,8 @@ with one.**
   )
   model = settings.ilmu_model or "claude-opus-4-5"
   ```
-  DeepSeek is the fallback provider in `nudge_agent/service.py`; keep that
-  path working.
+  DeepSeek is the fallback provider in `apps/api/app/nudge_agent/service.py`;
+  keep that path working.
 - **"json.loads on raw Claude output."** Models wrap JSON in ``` fences and
   prose. **Rule: parse by slicing first `{` to last `}` (see
   `_parse_ai_response`) or strip fences explicitly — never `json.loads(text)`
@@ -219,7 +221,8 @@ for its type passes.
 - [ ] New fetches: loading skeleton + error state + retry exist
 
 **Backend change (additionally):**
-- [ ] New router registered in `main.py`; new deps in `requirements.txt`
+- [ ] New router registered in `apps/api/app/main.py`; new deps in
+      `apps/api/requirements.txt`
 - [ ] `python -c "from app.main import app; assert app.title"` passes (CI's
       smoke test)
 - [ ] Nullable inputs guarded before arithmetic; Claude JSON parsed via
@@ -232,9 +235,10 @@ for its type passes.
 - [ ] PR body says the migration must be applied
 
 **Feature (full-stack) — the 8-step order is mandatory:**
-schema → service → route → register in `main.py` → shared TS types →
-`lib/api.ts` wrapper → component(s) under `components/features/<feature>/` →
-page under `app/(app)/<feature>/page.tsx`, then all checks above.
+schema → service → route → register in `apps/api/app/main.py` → shared TS
+types → `apps/web/lib/api.ts` wrapper → component(s) under
+`apps/web/components/features/<feature>/` → page under
+`apps/web/app/(app)/<feature>/page.tsx`, then all checks above.
 
 ---
 
@@ -276,8 +280,8 @@ on `profiles` because income already lives there.)
 **Stop and ask first** — no exceptions:
 1. Applying anything to the **live Supabase project** (migrations, SQL,
    RLS changes).
-2. Touching auth semantics: `FORCE_DEMO_USER`, `proxy.ts` public-route list,
-   token handling.
+2. Touching auth semantics: `FORCE_DEMO_USER`, the `apps/web/proxy.ts`
+   public-route list, token handling.
 3. Deleting user-facing routes/pages, or renaming API paths the deployed
    frontend calls.
 4. Adding a paid dependency/service or any credential.

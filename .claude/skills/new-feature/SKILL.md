@@ -97,8 +97,8 @@ b. **Components** — `apps/web/components/features/<feature>/`:
      tsc). Springs are fine.
 
 c. **Page** — `apps/web/app/(app)/<feature>/page.tsx` (authed) or under
-   `app/` root (public — then also add the path to the public list in
-   `proxy.ts`). Copy tone: Manglish where the product is playful.
+   `apps/web/app/` root (public — then also add the path to the public list
+   in `apps/web/proxy.ts`). Copy tone: Manglish where the product is playful.
 
 ## 8. Verify (all must pass before you claim done)
 

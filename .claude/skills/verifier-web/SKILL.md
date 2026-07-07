@@ -31,9 +31,10 @@ cd apps/api && uvicorn app.main:app --port 8000
 ```
 
 Facts that make this work without secrets:
-- `proxy.ts` skips session refresh when Supabase env is missing → all routes
-  reachable.
-- The API forces the demo user (`FORCE_DEMO_USER` in `core/auth.py`) and
+- `apps/web/proxy.ts` skips session refresh when Supabase env is missing →
+  all routes reachable.
+- The API forces the demo user (`FORCE_DEMO_USER` in
+  `apps/api/app/core/auth.py`) and
   falls back to demo data when Supabase is absent.
 - AI endpoints without an `ILMU_API_KEY`/`DEEPSEEK_API_KEY` use fallback
   responses — verdict flows still complete.
