@@ -44,7 +44,8 @@ before driving.
 
 ## 3. Drive with Playwright
 
-Write a script in the scratchpad (never in the repo):
+Write a script in the scratchpad (never in the repo). Fill in the driving,
+screenshot, and assertion steps between launch and close:
 
 ```js
 const { chromium } = require("playwright");
@@ -53,7 +54,6 @@ const { chromium } = require("playwright");
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
-    // ... drive, screenshot, assert ...
   } finally {
     await browser.close();
   }

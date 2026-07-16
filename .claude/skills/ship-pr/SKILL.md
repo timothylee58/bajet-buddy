@@ -14,7 +14,7 @@ npm run lint -w @bajetbuddy/web
 npm run build -w @bajetbuddy/web
 ```
 
-Zero errors on all three or you don't commit. `tsc` often touches
+Zero errors on all four or you don't commit. `tsc` often touches
 `apps/web/tsconfig.tsbuildinfo` — stage it. Never stage `.env`,
 `__pycache__/`, `.next/`.
 
