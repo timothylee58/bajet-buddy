@@ -10,10 +10,11 @@ description: Commit, push, open a draft PR, and babysit it to merge for Bajet Bu
 ```bash
 cd apps/api && ruff check app && python -c "from app.main import app; assert app.title"; cd ../..
 cd apps/web && npx tsc --noEmit; cd ../..
+npm run lint -w @bajetbuddy/web
 npm run build -w @bajetbuddy/web
 ```
 
-Zero errors on all three or you don't commit. `tsc` often touches
+Zero errors on all four or you don't commit. `tsc` often touches
 `apps/web/tsconfig.tsbuildinfo` — stage it. Never stage `.env`,
 `__pycache__/`, `.next/`.
 

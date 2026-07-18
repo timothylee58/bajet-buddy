@@ -155,7 +155,7 @@ with one.**
       api_key=settings.ilmu_api_key or settings.anthropic_api_key,
       base_url=settings.ilmu_anthropic_base_url,
   )
-  model = settings.ilmu_model or "claude-opus-4-5"
+  model = settings.ilmu_model if settings.ilmu_api_key else "claude-sonnet-4-5"
   ```
   DeepSeek is the fallback provider in `apps/api/app/nudge_agent/service.py`;
   keep that path working.
