@@ -69,7 +69,17 @@ Money2Time, Spnding, and BayarAsing on the App Store.
 
 | # | Item | Rationale | Hooks into |
 |---|------|-----------|------------|
-| 34 | **Split-with-Buddy** — item-level bill splitting on a transaction | Mamak/food-delivery group splitting is a frequent, high-intent moment Bajet Buddy has no answer for. BayarAsing (Malaysian-built, SST/service-charge/rounding aware) and Spnding (AI OCR + item-level split) both own this moment, but neither ties the split back into an ongoing budget or social relationship — BayarAsing is explicitly a one-off calculator with no persistence. A version built on the existing Buddies layer would keep persistent groups, post each person's share straight into their own category budget/risk score, and award XP — a habit loop neither competitor's single-purpose tool can match. | `Buddies` (existing social layer) — add a "Split" action on a transaction: assign line items to buddies, auto-calc who-owes-who, each buddy's share posts to their own budget on settle. Not a pivot; scope as a bolt-on, not a rebuild. |
+| 34 | ~~**Split-with-Buddy** — item-level bill splitting on a transaction~~ **Superseded, see note below.** | Mamak/food-delivery group splitting is a frequent, high-intent moment Bajet Buddy has no answer for. BayarAsing (Malaysian-built, SST/service-charge/rounding aware) and Spnding (AI OCR + item-level split) both own this moment, but neither ties the split back into an ongoing budget or social relationship — BayarAsing is explicitly a one-off calculator with no persistence. A version built on the existing Buddies layer would keep persistent groups, post each person's share straight into their own category budget/risk score, and award XP — a habit loop neither competitor's single-purpose tool can match. | `Buddies` (existing social layer) — add a "Split" action on a transaction: assign line items to buddies, auto-calc who-owes-who, each buddy's share posts to their own budget on settle. Not a pivot; scope as a bolt-on, not a rebuild. |
+
+> **Update, 21 Jul 2026:** confirmed the user already has a dedicated app for
+> this job — **Bayar.lah** (`timothylee58/bayarlah`), a gamified group
+> bill-settlement app (ladder-draw/roulette payer randomizer, no-login
+> real-time sharing, WhatsApp nudges). It's a more sophisticated answer to
+> "split with buddy" than anything item #34 proposed. **Recommend dropping
+> the native rebuild** in favor of a lightweight deep-link from a Bajet Buddy
+> transaction into Bayar.lah — building a weaker in-app version would
+> duplicate existing work and fragment Bayar.lah's own no-login viral growth
+> loop across two products.
 
 ---
 
