@@ -62,6 +62,17 @@ From Notion docs — not yet started.
 
 ---
 
+## 💡 Future Ideas (from competitive analysis, 21 Jul 2026)
+
+Not in the original Notion spec — surfaced from comparing Bajet Buddy against
+Money2Time, Spnding, and BayarAsing on the App Store.
+
+| # | Item | Rationale | Hooks into |
+|---|------|-----------|------------|
+| 34 | **Split-with-Buddy** — item-level bill splitting on a transaction | Mamak/food-delivery group splitting is a frequent, high-intent moment Bajet Buddy has no answer for. BayarAsing (Malaysian-built, SST/service-charge/rounding aware) and Spnding (AI OCR + item-level split) both own this moment, but neither ties the split back into an ongoing budget or social relationship — BayarAsing is explicitly a one-off calculator with no persistence. A version built on the existing Buddies layer would keep persistent groups, post each person's share straight into their own category budget/risk score, and award XP — a habit loop neither competitor's single-purpose tool can match. | `Buddies` (existing social layer) — add a "Split" action on a transaction: assign line items to buddies, auto-calc who-owes-who, each buddy's share posts to their own budget on settle. Not a pivot; scope as a bolt-on, not a rebuild. |
+
+---
+
 ## Summary
 
 | Status | Count |
