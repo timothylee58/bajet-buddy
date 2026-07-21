@@ -80,8 +80,9 @@ Money2Time, Spnding, and BayarAsing on the App Store.
 | ✅ Done | 16 |
 | 🔨 In Progress | 7 |
 | ⬜ To Do | 10 |
-| **Total** | **33** |
-| **Completion** | **~48%** |
+| 💡 Future Ideas | 1 |
+| **Total** | **34** |
+| **Completion** | **~48%** (of the 33 spec'd items; Future Ideas are not yet scoped work) |
 
 ### Highest-estimate remaining work
 
