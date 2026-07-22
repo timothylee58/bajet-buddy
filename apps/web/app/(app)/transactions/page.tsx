@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { motion } from "framer-motion";
 import { formatRM, formatSignedRM, cn } from "@/lib/utils";
-import { CATEGORIES, VERDICT_CONFIG } from "@/lib/constants";
+import { CATEGORIES, VERDICT_CONFIG, BAYARLAH_URL } from "@/lib/constants";
 import { getTransactions } from "@/lib/api";
-import { RefreshCw, AlertCircle, ArrowLeft, Filter, Plus } from "lucide-react";
+import { RefreshCw, AlertCircle, ArrowLeft, Filter, Plus, Users } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { Transaction } from "@/types";
 import { AddTransactionModal } from "@/components/features/transactions/AddTransactionModal";
+import { useToast } from "@/components/ui/ToastProvider";
 
 // ─── Inner component that uses useSearchParams ────────────────────────────────
 
@@ -24,6 +25,18 @@ function TransactionsList() {
     categoryFilter
   );
   const [showAddModal, setShowAddModal] = useState(false);
+  const { success } = useToast();
+
+  async function handleSplitWithBayarlah(tx: Transaction) {
+    const summary = `${formatRM(Math.abs(tx.amount))} — ${tx.merchant}`;
+    try {
+      await navigator.clipboard.writeText(summary);
+      success(`Copied "${summary}" — paste it when you create the bill in Bayar.lah`);
+    } catch {
+      // clipboard permission denied — still open Bayar.lah, just skip the toast
+    }
+    window.open(BAYARLAH_URL, "_blank", "noopener,noreferrer");
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -258,6 +271,16 @@ function TransactionsList() {
                   <p className="font-sans text-xs text-muted mt-2 pl-15 italic">
                     {tx.note}
                   </p>
+                )}
+                {BAYARLAH_URL && (
+                  <button
+                    onClick={() => void handleSplitWithBayarlah(tx)}
+                    data-testid="split-with-bayarlah-button"
+                    className="mt-3 flex items-center gap-1.5 rounded-full bg-surface-muted px-3 py-1.5 font-sans text-xs font-semibold text-foreground hover:bg-border/30 transition-colors active-press"
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    Split with Bayar.lah
+                  </button>
                 )}
               </motion.div>
             );

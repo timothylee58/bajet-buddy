@@ -2,6 +2,8 @@ export const API_URL = (
   process.env.NEXT_PUBLIC_API_URL ?? (process.env.NODE_ENV === "development" ? "http://localhost:8000" : "")
 ).replace(/\/+$/, "");
 
+export const BAYARLAH_URL = (process.env.NEXT_PUBLIC_BAYARLAH_URL ?? "").replace(/\/+$/, "");
+
 export {
   CATEGORIES,
   VERDICT_CONFIG,
