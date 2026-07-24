@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     cognito_discovery_url: str = ""
     agentcore_runtime_arn: str = ""
     agentcore_bearer_token: str = ""
+    sentry_dsn: str = ""
 
     class Config:
         env_file = ".env"
