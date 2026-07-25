@@ -6,11 +6,14 @@ from app.api.routes import check, transactions, persona, buddies, freeze, gamifi
 from app.core.config import get_settings
 from app.core.database import init_db
 from app.core.logging_config import setup_logging
+from app.core.sentry import init_sentry
+
+settings = get_settings()
+init_sentry(settings)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    settings = get_settings()
     setup_logging(settings.environment)
     await init_db()
     yield
@@ -24,7 +27,6 @@ app = FastAPI(
 )
 
 # CORS — allow the Next.js frontend; in production set ALLOWED_ORIGINS env var
-settings = get_settings()
 try:
     origins = json.loads(settings.allowed_origins)
 except Exception:
