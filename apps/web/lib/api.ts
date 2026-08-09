@@ -20,6 +20,10 @@ import type {
   GamificationStatus,
   OCRScanResponse,
   InflationQuest,
+  InsurancePolicy,
+  InsurancePurchaseRequest,
+  InsuranceQuote,
+  InsuranceQuoteRequest,
   LoanApplication,
   LoanOffer,
   MacroEventType,
@@ -364,4 +368,27 @@ export async function applyForLoan(payload: ApplyForLoanRequest): Promise<LoanAp
 /** GET /api/lending/applications/{id} */
 export async function getLoanApplication(applicationId: string): Promise<LoanApplication> {
   return apiFetch<LoanApplication>(`/api/lending/applications/${applicationId}`);
+}
+
+// ─── Insurance (embedded finance) ──────────────────────────────────────────
+
+/** POST /api/insurance/quote — fired non-blocking after a verdict renders */
+export async function getInsuranceQuote(payload: InsuranceQuoteRequest): Promise<InsuranceQuote | null> {
+  return apiFetch<InsuranceQuote | null>("/api/insurance/quote", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** POST /api/insurance/purchase */
+export async function purchaseInsurance(payload: InsurancePurchaseRequest): Promise<InsurancePolicy> {
+  return apiFetch<InsurancePolicy>("/api/insurance/purchase", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** GET /api/insurance/policies */
+export async function getInsurancePolicies(): Promise<InsurancePolicy[]> {
+  return apiFetch<InsurancePolicy[]>("/api/insurance/policies");
 }

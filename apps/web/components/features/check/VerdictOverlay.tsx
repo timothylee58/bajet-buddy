@@ -7,6 +7,7 @@ import { VERDICT_CONFIG } from "@/lib/constants";
 import { formatRM, formatLifeHours } from "@/lib/utils";
 import type { CheckResponse } from "@/types";
 import { FOMONegotiatorModal } from "@/components/features/fomo/FOMONegotiatorModal";
+import { InsuranceNudge } from "@/components/features/check/InsuranceNudge";
 import { usePet } from "@/components/features/pet/PetCompanionProvider";
 
 interface VerdictOverlayProps {
@@ -149,6 +150,8 @@ export function VerdictOverlay({ result, amount, onReset }: VerdictOverlayProps)
           </button>
         </div>
       </div>
+
+      <InsuranceNudge verdict={result.verdict} amount={amount} />
 
       <FOMONegotiatorModal
         open={fomoOpen}

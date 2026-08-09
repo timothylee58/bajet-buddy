@@ -188,6 +188,42 @@ export interface ApplyForLoanRequest {
   offer_id: string;
 }
 
+// ─── Insurance (embedded finance — P13) ───────────────────────────────────────
+export type InsuranceProductType = "bnpl_default_protection" | "purchase_protection";
+export type InsurancePolicyStatus = "active" | "expired" | "claimed" | "cancelled";
+
+export interface InsuranceQuoteRequest {
+  verdict: Verdict;
+  amount: number;
+  category?: string;
+}
+
+export interface InsuranceQuote {
+  product_type: InsuranceProductType;
+  partner_name: string;
+  premium: number;
+  coverage_amount: number;
+  pitch: string;
+}
+
+export interface InsurancePurchaseRequest {
+  product_type: InsuranceProductType;
+  premium: number;
+  coverage_amount: number;
+  linked_transaction_id?: string | null;
+}
+
+export interface InsurancePolicy {
+  id: string;
+  product_type: InsuranceProductType;
+  partner_name: string;
+  premium: number;
+  coverage_amount: number;
+  status: InsurancePolicyStatus;
+  starts_at: string;
+  ends_at: string;
+}
+
 // ─── Persona ──────────────────────────────────────────────────────────────────
 export type PersonaType =
   | "midnight_shopee_queen"
