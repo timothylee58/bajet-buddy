@@ -31,6 +31,17 @@ logger = logging.getLogger(__name__)
 
 SCORE_CACHE_TTL_SECONDS = 24 * 60 * 60
 
+
+def _parse_datetime(value: object) -> datetime | None:
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    return None
+
 # Swapping the mock for a real partner later is changing this one line.
 _adapter: LendingPartnerAdapter = MockCimbAdapter()
 
@@ -104,8 +115,25 @@ async def get_offers_for_user(user_id: str) -> list[LoanOfferOut]:
     offers = await _adapter.get_offers(user_id, score_response.score, factors, context)
 
     supabase = get_supabase()
-    if supabase is not None:
+    # Offer ids are deterministic (same user+context -> same id), so a
+    # recompute must not clobber an offer that's already been applied to —
+    # only ever upsert rows that are still in the "offered" state.
+    already_applied: set[str] = set()
+    if supabase is not None and offers:
+        try:
+            existing = (
+                supabase.table("loan_offers")
+                .select("id, status")
+                .in_("id", [o.id for o in offers])
+                .execute()
+            )
+            already_applied = {row["id"] for row in (existing.data or []) if row.get("status") != "offered"}
+        except Exception as e:
+            logger.warning("Failed to check existing loan offer statuses for %s: %s", user_id, e)
+
         for offer in offers:
+            if offer.id in already_applied:
+                continue
             try:
                 supabase.table("loan_offers").upsert(
                     {
@@ -139,6 +167,7 @@ async def get_offers_for_user(user_id: str) -> list[LoanOfferOut]:
             expires_at=offer.expires_at,
         )
         for offer in offers
+        if offer.id not in already_applied
     ]
 
 
@@ -153,6 +182,42 @@ def _build_repayment_schedule(total_repayable: float, tenure_months: int, start:
             amount = round(total_repayable - (installment * (tenure_months - 1)), 2)
         schedule.append({"due_date": due.isoformat(), "amount": amount, "status": "upcoming"})
     return schedule
+
+
+async def _fetch_application_by_idempotency_key(
+    supabase, offer_id: str, idempotency_key: str
+) -> dict | None:
+    try:
+        res = (
+            supabase.table("loan_applications")
+            .select("*")
+            .eq("offer_id", offer_id)
+            .eq("idempotency_key", idempotency_key)
+            .maybe_single()
+            .execute()
+        )
+        return res.data if res else None
+    except Exception as e:
+        logger.warning("Failed to check existing application for offer %s: %s", offer_id, e)
+        return None
+
+
+async def _fetch_repayments(supabase, application_id: str) -> list[RepaymentOut]:
+    try:
+        res = (
+            supabase.table("repayments")
+            .select("*")
+            .eq("application_id", application_id)
+            .order("due_date")
+            .execute()
+        )
+        return [
+            RepaymentOut(id=r["id"], due_date=r["due_date"], amount=r["amount"], status=r["status"])
+            for r in (res.data or [])
+        ]
+    except Exception as e:
+        logger.warning("Failed to fetch repayments for %s: %s", application_id, e)
+        return []
 
 
 async def apply_for_offer(user_id: str, offer_id: str, *, idempotency_key: str) -> LoanApplicationOut:
@@ -175,6 +240,27 @@ async def apply_for_offer(user_id: str, offer_id: str, *, idempotency_key: str) 
     if offer_row is None:
         raise ValueError("Offer not found or expired")
 
+    # Retrying with the same idempotency key must return the existing
+    # application, not mint a duplicate with a fresh id + repayment set.
+    if supabase is not None:
+        existing = await _fetch_application_by_idempotency_key(supabase, offer_id, idempotency_key)
+        if existing is not None:
+            return await get_application(user_id, existing["id"]) or LoanApplicationOut(
+                id=existing["id"],
+                offer_id=offer_id,
+                status=existing["status"],
+                partner_reference=existing["partner_reference"],
+                submitted_at=existing["submitted_at"],
+                decision_at=existing.get("decision_at"),
+                repayments=await _fetch_repayments(supabase, existing["id"]),
+            )
+
+    if offer_row.get("status") != "offered":
+        raise ValueError("Offer is no longer available")
+    expires_at = _parse_datetime(offer_row.get("expires_at"))
+    if expires_at is not None and expires_at < datetime.now(timezone.utc):
+        raise ValueError("Offer has expired")
+
     result = await _adapter.submit_application(offer_id, user_id, idempotency_key=idempotency_key)
     now = datetime.now(timezone.utc)
 
@@ -183,8 +269,12 @@ async def apply_for_offer(user_id: str, offer_id: str, *, idempotency_key: str) 
     )
     repayments = _build_repayment_schedule(total_repayable, int(offer_row["tenure_months"]), now.date())
 
+    # Sync the live decision immediately so the caller doesn't see a stale
+    # "submitted" status when the mock partner has already auto-approved.
+    live_status = await _adapter.get_application_status(result.partner_reference)
+    status: ApplicationStatus = live_status  # type: ignore[assignment]
+
     application_id = str(uuid.uuid4())
-    status: ApplicationStatus = "submitted"
 
     if supabase is not None:
         try:
@@ -197,6 +287,7 @@ async def apply_for_offer(user_id: str, offer_id: str, *, idempotency_key: str) 
                     "idempotency_key": idempotency_key,
                     "partner_reference": result.partner_reference,
                     "submitted_at": now.isoformat(),
+                    "decision_at": now.isoformat() if status != "submitted" else None,
                 },
                 on_conflict="offer_id,idempotency_key",
             ).execute()
@@ -204,7 +295,8 @@ async def apply_for_offer(user_id: str, offer_id: str, *, idempotency_key: str) 
             for r in repayments:
                 supabase.table("repayments").insert({**r, "application_id": application_id}).execute()
         except Exception as e:
-            logger.warning("Failed to persist loan application for %s: %s", user_id, e)
+            logger.error("Failed to persist loan application for %s: %s", user_id, e)
+            raise RuntimeError("Could not save the application — please try again") from e
 
     return LoanApplicationOut(
         id=application_id,
@@ -212,6 +304,7 @@ async def apply_for_offer(user_id: str, offer_id: str, *, idempotency_key: str) 
         status=status,
         partner_reference=result.partner_reference,
         submitted_at=now,
+        decision_at=now if status != "submitted" else None,
         repayments=[RepaymentOut(id=f"{application_id}-{i}", **r) for i, r in enumerate(repayments)],
     )
 
@@ -240,13 +333,7 @@ async def get_application(user_id: str, application_id: str) -> LoanApplicationO
             ).eq("id", application_id).execute()
             row["status"] = live_status
 
-        repay_res = (
-            supabase.table("repayments").select("*").eq("application_id", application_id).order("due_date").execute()
-        )
-        repayments = [
-            RepaymentOut(id=r["id"], due_date=r["due_date"], amount=r["amount"], status=r["status"])
-            for r in (repay_res.data or [])
-        ]
+        repayments = await _fetch_repayments(supabase, application_id)
 
         return LoanApplicationOut(
             id=row["id"],

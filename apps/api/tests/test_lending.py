@@ -14,7 +14,7 @@ if str(API_ROOT) not in sys.path:
 
 from app.lending.partner_adapters.base import LendingContext
 from app.lending.partner_adapters.mock_cimb_adapter import MockCimbAdapter
-from app.lending.services import _build_repayment_schedule, _total_repayable
+from app.lending.services import _build_repayment_schedule, _parse_datetime, _total_repayable
 from app.main import app
 from apps.api.tests.auth_override import install_auth_override
 
@@ -102,6 +102,30 @@ class MockCimbAdapterTests(unittest.TestCase):
         first = asyncio.run(self.adapter.submit_application("offer-1", "u1", idempotency_key="u1:offer-1"))
         second = asyncio.run(self.adapter.submit_application("offer-1", "u1", idempotency_key="u1:offer-1"))
         self.assertEqual(first.partner_reference, second.partner_reference)
+
+    def test_application_auto_approves_in_mock_status_check(self) -> None:
+        # apply_for_offer syncs this immediately so callers never see a
+        # stale "submitted" status when the mock partner already decided.
+        submitted = asyncio.run(self.adapter.submit_application("offer-1", "u1", idempotency_key="u1:offer-1"))
+        status = asyncio.run(self.adapter.get_application_status(submitted.partner_reference))
+        self.assertEqual(status, "approved")
+
+
+class ParseDatetimeTests(unittest.TestCase):
+    def test_parses_iso_string_with_z_suffix(self) -> None:
+        parsed = _parse_datetime("2026-01-01T00:00:00Z")
+        self.assertIsNotNone(parsed)
+        self.assertEqual(parsed.year, 2026)
+
+    def test_passthrough_for_datetime_instances(self) -> None:
+        from datetime import datetime, timezone
+
+        dt = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        self.assertIs(_parse_datetime(dt), dt)
+
+    def test_returns_none_for_garbage(self) -> None:
+        self.assertIsNone(_parse_datetime("not-a-date"))
+        self.assertIsNone(_parse_datetime(None))
 
 
 class RepaymentScheduleTests(unittest.TestCase):
