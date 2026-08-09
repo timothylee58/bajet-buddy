@@ -127,6 +127,67 @@ export interface BNPLItem {
   risk_weight: number;
 }
 
+// ─── Lending (embedded finance — P11/P12) ─────────────────────────────────────
+// BajetBuddy is a decisioning/referral layer, never the lender itself —
+// every offer here hands off to a partner institution (mocked for demo).
+export type ScoreBand = "Poor" | "Fair" | "Good" | "Very Good" | "Excellent";
+
+export interface ScoreFactor {
+  name: string;
+  value: number;
+  weight: number;
+  contribution: number;
+}
+
+export interface CreditScoreResponse {
+  score: number | null;
+  band: ScoreBand | null;
+  insufficient_history: boolean;
+  factors: ScoreFactor[];
+  computed_at: string;
+  model_version: string;
+}
+
+export type LendingProductType = "salary_advance" | "bnpl_consolidation" | "micro_personal";
+export type LoanOfferStatus = "offered" | "expired" | "applied" | "withdrawn";
+export type LoanApplicationStatus = "submitted" | "approved" | "rejected" | "disbursed" | "closed";
+export type RepaymentStatus = "upcoming" | "paid" | "missed";
+
+export interface LoanOffer {
+  id: string;
+  partner_name: string;
+  product_type: LendingProductType;
+  amount: number;
+  apr: number;
+  tenure_months: number;
+  total_repayable: number;
+  min_score_required: number;
+  status: LoanOfferStatus;
+  reason: string;
+  expires_at: string;
+}
+
+export interface Repayment {
+  id: string;
+  due_date: string;
+  amount: number;
+  status: RepaymentStatus;
+}
+
+export interface LoanApplication {
+  id: string;
+  offer_id: string;
+  status: LoanApplicationStatus;
+  partner_reference: string;
+  submitted_at: string;
+  decision_at?: string | null;
+  repayments: Repayment[];
+}
+
+export interface ApplyForLoanRequest {
+  offer_id: string;
+}
+
 // ─── Persona ──────────────────────────────────────────────────────────────────
 export type PersonaType =
   | "midnight_shopee_queen"

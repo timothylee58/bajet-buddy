@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { VERDICT_CONFIG } from "@/lib/constants";
 import { formatRM, formatLifeHours } from "@/lib/utils";
 import type { CheckResponse } from "@/types";
@@ -118,6 +119,17 @@ export function VerdictOverlay({ result, amount, onReset }: VerdictOverlayProps)
           >
             🧠 Negotiate with FOMO Negotiator
           </button>
+        )}
+        {/* Only when actually frozen — showing this on every red verdict
+            would undermine the core "just don't spend" message. */}
+        {result.verdict === "jangan_dulu" && result.freeze_status?.active && result.freeze_status?.reason === "auto" && (
+          <Link
+            href="/lending"
+            data-testid="lending-referral-cta"
+            className="w-full rounded-2xl bg-tertiary-light border border-tertiary/20 py-3 text-sm font-semibold text-tertiary-dark hover:bg-tertiary/10 transition-colors text-center"
+          >
+            💳 See if you qualify for a lower-cost way to clear this
+          </Link>
         )}
         <div className="flex gap-2">
           {result.verdict === "jangan_dulu" && (
