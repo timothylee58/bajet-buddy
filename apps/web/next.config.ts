@@ -21,7 +21,11 @@ const nextConfig: NextConfig = {
     },
   },
   async rewrites() {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const rawApiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    // Netlify's build has been seen with NEXT_PUBLIC_API_URL set to a bare
+    // host (no scheme), which Next.js rejects as an invalid rewrite
+    // destination — default to https:// rather than fail the whole build.
+    const apiBase = /^https?:\/\//.test(rawApiBase) ? rawApiBase : `https://${rawApiBase}`;
     return [
       {
         source: "/api/:path*",
