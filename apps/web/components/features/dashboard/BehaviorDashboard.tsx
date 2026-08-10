@@ -19,6 +19,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatRM, formatSignedRM } from "@/lib/utils";
 import { CATEGORIES, VERDICT_CONFIG } from "@/lib/constants";
 import { DataError } from "@/components/ui/DataError";
+import { ScoreBandBadge } from "@/components/features/lending/ScoreBandBadge";
 
 function useUserName() {
   const [name, setName] = useState<string>("there");
@@ -214,6 +215,8 @@ export function BehaviorDashboard() {
           </div>
         </Link>
       </section>
+
+      <ScoreBandBadge />
 
       {/* Mascot Companion Card — links to profiles */}
       <Link href="/profiles" className="block mb-8">

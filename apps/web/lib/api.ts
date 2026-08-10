@@ -1,6 +1,7 @@
 import { API_URL } from "./constants";
 import { createClient } from "./supabase/client";
 import type {
+  ApplyForLoanRequest,
   AwardXPRequest,
   AwardXPResponse,
   BudgetSummary,
@@ -8,6 +9,7 @@ import type {
   ChatCheckResponse,
   CheckRequest,
   CheckResponse,
+  CreditScoreResponse,
   FOMONegotiateRequest,
   FOMONegotiateResponse,
   FOMOResolveRequest,
@@ -18,6 +20,12 @@ import type {
   GamificationStatus,
   OCRScanResponse,
   InflationQuest,
+  InsurancePolicy,
+  InsurancePurchaseRequest,
+  InsuranceQuote,
+  InsuranceQuoteRequest,
+  LoanApplication,
+  LoanOffer,
   MacroEventType,
   PetNudge,
   PetNudgeRequest,
@@ -335,4 +343,52 @@ export async function getPetStatus(
   if (amount_rm !== undefined) params.set("amount_rm", String(amount_rm));
   if (category) params.set("category", category);
   return apiFetch<PetStatusResponse>(`/api/pet/status?${params.toString()}`);
+}
+
+// ─── Lending (embedded finance) ────────────────────────────────────────────
+
+/** GET /api/lending/score */
+export async function getCreditScore(): Promise<CreditScoreResponse> {
+  return apiFetch<CreditScoreResponse>("/api/lending/score");
+}
+
+/** GET /api/lending/offers */
+export async function getLendingOffers(): Promise<LoanOffer[]> {
+  return apiFetch<LoanOffer[]>("/api/lending/offers");
+}
+
+/** POST /api/lending/apply */
+export async function applyForLoan(payload: ApplyForLoanRequest): Promise<LoanApplication> {
+  return apiFetch<LoanApplication>("/api/lending/apply", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** GET /api/lending/applications/{id} */
+export async function getLoanApplication(applicationId: string): Promise<LoanApplication> {
+  return apiFetch<LoanApplication>(`/api/lending/applications/${applicationId}`);
+}
+
+// ─── Insurance (embedded finance) ──────────────────────────────────────────
+
+/** POST /api/insurance/quote — fired non-blocking after a verdict renders */
+export async function getInsuranceQuote(payload: InsuranceQuoteRequest): Promise<InsuranceQuote | null> {
+  return apiFetch<InsuranceQuote | null>("/api/insurance/quote", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** POST /api/insurance/purchase */
+export async function purchaseInsurance(payload: InsurancePurchaseRequest): Promise<InsurancePolicy> {
+  return apiFetch<InsurancePolicy>("/api/insurance/purchase", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+/** GET /api/insurance/policies */
+export async function getInsurancePolicies(): Promise<InsurancePolicy[]> {
+  return apiFetch<InsurancePolicy[]>("/api/insurance/policies");
 }
