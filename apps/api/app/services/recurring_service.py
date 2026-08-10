@@ -84,10 +84,13 @@ def _detect_from_group(rows: list[dict], today: date) -> RecurringSubscription |
     dated = []
     for row in rows:
         charged_on = _parse_timestamp(row.get("created_at"))
-        amount = float(row.get("amount") or 0.0)
-        if charged_on is None or amount <= 0:
+        raw_amount = float(row.get("amount") or 0.0)
+        # Spending is stored negative (see transactions route and ocr_service); positive
+        # non-income rows are refunds/credits and are excluded the same way budget_service
+        # excludes them.
+        if charged_on is None or raw_amount >= 0:
             continue
-        dated.append((charged_on, amount, row))
+        dated.append((charged_on, abs(raw_amount), row))
 
     if len(dated) < MIN_OCCURRENCES:
         return None
@@ -134,6 +137,8 @@ def _detect_from_group(rows: list[dict], today: date) -> RecurringSubscription |
 def detect_subscriptions(transactions: list[dict], today: date) -> list[RecurringSubscription]:
     groups: dict[str, list[dict]] = {}
     for row in transactions:
+        if str(row.get("category") or "").lower() == "income":
+            continue
         merchant = str(row.get("merchant") or "").strip()
         if not merchant:
             continue
@@ -193,7 +198,7 @@ async def _generate_insight(
     try:
         client = anthropic.AsyncAnthropic(
             api_key=api_key,
-            base_url=settings.ilmu_anthropic_base_url,
+            base_url=settings.ilmu_anthropic_base_url if settings.ilmu_api_key else None,
         )
         model = settings.ilmu_model if settings.ilmu_api_key else "claude-sonnet-4-5"
         message = await client.messages.create(
