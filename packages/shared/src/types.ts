@@ -784,3 +784,32 @@ export interface PokaiForecast {
   messageBm: string;
   messageEn: string;
 }
+
+export type RecurringCadence =
+  | "weekly"
+  | "fortnightly"
+  | "monthly"
+  | "quarterly"
+  | "yearly";
+
+export interface RecurringSubscription {
+  merchant: string;
+  category: string;
+  cadence: RecurringCadence;
+  average_amount_rm: number;
+  monthly_cost_rm: number;
+  annual_cost_rm: number;
+  occurrences: number;
+  last_charged_at: string;
+  next_expected_at: string;
+  confidence: number;
+  is_overdue: boolean;
+}
+
+export interface RecurringSummary {
+  subscriptions: RecurringSubscription[];
+  total_monthly_rm: number;
+  total_annual_rm: number;
+  pct_of_income?: number | null;
+  insight: string;
+}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Mic, MicOff } from "lucide-react";
-import { API_URL } from "@/lib/constants";
+import { parseVoiceTranscript } from "@/lib/api";
 
 interface VoiceInputProps {
   onParsed: (result: { amount: string; merchant: string; category: string }) => void;
@@ -87,13 +87,7 @@ export function VoiceInput({ onParsed }: VoiceInputProps) {
 
       setParsing(true);
       try {
-        const res = await fetch(`${API_URL}/api/voice/parse`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ transcript: captured }),
-        });
-        if (!res.ok) throw new Error("Parse failed");
-        const data = await res.json();
+        const data = await parseVoiceTranscript(captured);
         if (data.confidence >= 50) {
           onParsed({
             amount: data.amount != null ? String(data.amount.toFixed(2)) : "",

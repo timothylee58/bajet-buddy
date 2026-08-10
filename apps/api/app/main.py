@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import json
-from app.api.routes import check, transactions, persona, buddies, freeze, gamification, risk, nudges, simulations, profiling, ocr, agent1, receipts, voice, onboarding_roast, fomo, sentinel, pet_companion, agentcore
+from app.api.routes import check, transactions, persona, buddies, freeze, gamification, risk, nudges, simulations, profiling, ocr, agent1, receipts, voice, onboarding_roast, fomo, sentinel, pet_companion, agentcore, recurring
 from app.insurance import routes as insurance
 from app.lending import routes as lending
 from app.core.config import get_settings
@@ -67,6 +67,7 @@ app.include_router(pet_companion.router, prefix="/api/pet", tags=["pet-companion
 app.include_router(agentcore.router, prefix="/api/agentcore", tags=["agentcore"])
 app.include_router(lending.router, prefix="/api/lending", tags=["lending"])
 app.include_router(insurance.router, prefix="/api/insurance", tags=["insurance"])
+app.include_router(recurring.router, prefix="/api/recurring", tags=["recurring"])
 
 
 @app.get("/health")
