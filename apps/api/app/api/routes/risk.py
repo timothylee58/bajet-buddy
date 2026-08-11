@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
-from app.core.auth import AuthenticatedUser, get_optional_user
 
+from app.core.auth import AuthenticatedUser, get_optional_user
 from app.risk_engine import RiskEvaluationInput, evaluate_risk
 from app.schemas.risk import AINudgeContext, RiskEvaluateRequest, RiskEvaluateResponse
 

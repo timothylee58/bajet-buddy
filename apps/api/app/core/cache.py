@@ -1,6 +1,8 @@
-import redis.asyncio as aioredis
-from app.core.config import get_settings
 import logging
+
+import redis.asyncio as aioredis
+
+from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 

@@ -157,13 +157,14 @@ async def run_agent1_profile(user_id: str = "00000000-0000-0000-0000-00000000000
             )
 
     # 5. Parse and return
-    signals = []
-    for s in analysis.get("signals", []) or []:
-        signals.append(SpendingSignal(
+    signals = [
+        SpendingSignal(
             signal=str(s.get("signal", "")),
             severity=str(s.get("severity", "medium")),
             evidence=str(s.get("evidence", "")),
-        ))
+        )
+        for s in analysis.get("signals", []) or []
+    ]
 
     return Agent1ProfileResponse(
         status="ok",

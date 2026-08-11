@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pydantic import BaseModel
 from fastapi import APIRouter, Query
+from pydantic import BaseModel
 
 from app.schemas.fomo import (
     FOMONegotiateRequest,
@@ -16,11 +16,11 @@ from app.schemas.fomo import (
 )
 from app.services import fomo_service
 from app.services.fomo_actions import (
+    clear_lockdown,
     get_bnpl_monitor_state,
     get_fomo_journal,
     get_user_journal,
     report_app_opened,
-    clear_lockdown,
 )
 from app.services.pattern_detection_service import TransactionSummary, detect_patterns
 

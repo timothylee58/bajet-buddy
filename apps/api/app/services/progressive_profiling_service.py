@@ -3,15 +3,14 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from app.schemas.profiling import (
-    GoalType,
     GoalProfileOut,
+    GoalType,
     ProfilingLayerOut,
     ProgressiveProfilingSummaryOut,
     UnlockableAgentOut,
 )
 from app.services.gamification_service import get_gamification_status
 from app.services.persona_analyzer import analyze_persona
-
 
 _goal_store: dict[str, dict[str, int | str]] = {}
 

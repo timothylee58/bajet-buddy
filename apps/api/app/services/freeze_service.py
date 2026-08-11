@@ -1,9 +1,9 @@
 """Freeze service — persists to Supabase freeze_events table."""
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from typing import Literal
-import logging
 
 from app.core.database import get_supabase
 from app.services.gamification_service import spend_xp

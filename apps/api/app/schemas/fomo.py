@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
 from typing import Literal
 
+from pydantic import BaseModel, Field
 
 PersonaCode = Literal["pak_cik_audit", "kak_therapist", "meme_goblin", "ice_cfo", "hype_man"]
 

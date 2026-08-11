@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 STANDARD_WORK_HOURS_PER_MONTH = 176.0  # 22 days × 8h
 
 

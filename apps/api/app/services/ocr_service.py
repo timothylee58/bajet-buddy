@@ -10,8 +10,8 @@ from typing import Any
 import anthropic
 from openai import AsyncOpenAI
 
-from app.core.config import get_settings
 from app.core.auth import DEMO_USER_ID
+from app.core.config import get_settings
 from app.core.database import get_supabase
 from app.schemas.ocr import (
     OCRInsertResult,
@@ -331,18 +331,17 @@ def _parse_vision_response(raw_text: str) -> OCRScanResult:
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to parse OCR response as JSON: {e}. Raw: {clean[:500]}")
 
-    transactions: list[OCRTransaction] = []
-    for t in data.get("transactions", []) or []:
-        transactions.append(
-            OCRTransaction(
-                merchant=str(t.get("merchant") or ""),
-                amount=float(t.get("amount") or 0),
-                category=str(t.get("category") or "other"),
-                date=str(t.get("date") or ""),
-                note=str(t.get("note") or ""),
-                transaction_type=str(t.get("transaction_type") or "debit"),
-            )
+    transactions: list[OCRTransaction] = [
+        OCRTransaction(
+            merchant=str(t.get("merchant") or ""),
+            amount=float(t.get("amount") or 0),
+            category=str(t.get("category") or "other"),
+            date=str(t.get("date") or ""),
+            note=str(t.get("note") or ""),
+            transaction_type=str(t.get("transaction_type") or "debit"),
         )
+        for t in data.get("transactions", []) or []
+    ]
 
     raw_doc_type = str(data.get("document_type") or "receipt").lower()
     doc_type = "bank_statement" if "bank" in raw_doc_type or "statement" in raw_doc_type else "receipt"

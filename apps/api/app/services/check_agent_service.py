@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from app.agents import run_prepurchase_reasoning_graph
-from app.schemas.check import CheckRequest, CheckResponse, FreezeSnapshot, PersonaSnapshot
+from app.schemas.check import (
+    CheckRequest,
+    CheckResponse,
+    FreezeSnapshot,
+    PersonaSnapshot,
+)
 from app.services.gamification_service import award_xp_for_verdict
-
 
 VERDICT_MAP = {
     "BOLEH": "boleh",

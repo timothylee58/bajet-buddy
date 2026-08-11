@@ -1,10 +1,12 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+
 from app.core.auth import AuthenticatedUser, get_optional_user
 from app.core.database import get_supabase
 from app.services.budget_service import get_budget_summary, get_category_budgets
 from app.services.transaction_service import get_user_transactions
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -66,5 +68,5 @@ async def create_transaction(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to create transaction: {e}")
+        logger.exception("Failed to create transaction")
         raise HTTPException(status_code=500, detail=str(e)[:200])

@@ -9,7 +9,7 @@ from app.schemas.agent1 import (
     OnboardingAnalysisResponse,
     OnboardingAnswersRequest,
 )
-from app.services.agent1_service import run_agent1_profile, analyze_onboarding_answers
+from app.services.agent1_service import analyze_onboarding_answers, run_agent1_profile
 
 router = APIRouter()
 

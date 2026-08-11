@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone, timedelta
 import logging
+from datetime import datetime, timedelta, timezone
 
 from app.core.database import get_supabase
 from app.schemas.persona import PersonaOut
-from app.services.budget_service import get_budget_summary, _current_month_days
+from app.services.budget_service import _current_month_days, get_budget_summary
 from app.services.persona_analyzer import PERSONAS, analyze_persona
 from app.services.transaction_service import get_user_transactions
 

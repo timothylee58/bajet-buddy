@@ -48,9 +48,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Ruff
-        # Pinned: an unpinned ruff silently picks up new default rules on release,
-        # which is what turned main red on 2026-07-25 with 161 findings in files
-        # nobody had touched.
-        run: pip install ruff==0.15.8 && ruff check app
+        # The rule set lives in apps/api/ruff.toml, so a new ruff release can no
+        # longer expand it silently — the pin this replaces is no longer needed.
+        run: pip install ruff && ruff check app
       - name: Import smoke test
         run: python -c "from app.main import app; assert app.title"

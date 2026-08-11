@@ -175,7 +175,7 @@ async def award_xp(user_id: str, event: str, amount_rm: float | None) -> AwardXP
     )
 
 
-def compute_mood(user_id: str, context: str, amount_rm: float | None, category: str | None) -> PetMood:  # noqa: ARG001
+def compute_mood(user_id: str, context: str, amount_rm: float | None, category: str | None) -> PetMood:
     data = get_or_create_profile(user_id)
     if context == "over_budget":
         return "worried"

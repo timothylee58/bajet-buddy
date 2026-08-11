@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
-
 from datetime import datetime, timedelta, timezone
 from typing import TypedDict
 
@@ -22,6 +22,11 @@ from app.schemas.fomo import (
 )
 
 logger = logging.getLogger("fomo_service")
+
+# The event loop only holds weak references to tasks, so a fire-and-forget
+# dispatch can be garbage-collected before it finishes. Keep a strong reference
+# until it completes.
+_background_tasks: set[asyncio.Task] = set()
 
 _SAFE_DAILY_FLOOR = 20.0
 _BNPL_DANGER = 200.0
@@ -461,7 +466,7 @@ async def resolve(request: FOMOResolveRequest, user_id: str) -> FOMOResolveRespo
         message += " 🎁 LOOT BOX UNLOCKED — collect from Agents page!"
 
     persona_code_for_history = _resolve_persona("pak_cik_audit", request.emotional_state, state)
-    state["interaction_history"] = (state.get("interaction_history", []) + [{
+    state["interaction_history"] = ([*state.get("interaction_history", []), {
         "choice": request.choice,
         "category": request.category,
         "amount": request.amount,
@@ -471,14 +476,16 @@ async def resolve(request: FOMOResolveRequest, user_id: str) -> FOMOResolveRespo
 
     # ── Cross-agent dispatch: fan out the decision to every AI agent ──────
     from app.services.fomo_actions import dispatch_fomo_outcome
-    import asyncio
-    asyncio.create_task(dispatch_fomo_outcome(
+
+    dispatch = asyncio.create_task(dispatch_fomo_outcome(
         user_id=user_id,
         choice=request.choice,
         amount=request.amount,
         category=request.category,
         emotional_state=request.emotional_state.value if hasattr(request.emotional_state, "value") else request.emotional_state,
     ))
+    _background_tasks.add(dispatch)
+    dispatch.add_done_callback(_background_tasks.discard)
 
     return FOMOResolveResponse(
         heat_level=state["heat_level"],

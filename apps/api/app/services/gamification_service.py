@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import date, datetime, timezone
 from typing import TypedDict
-import logging
+
 from app.core.database import get_supabase
 
 logger = logging.getLogger(__name__)

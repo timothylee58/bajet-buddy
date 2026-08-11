@@ -186,7 +186,10 @@ async def dispatch_fomo_outcome(
 
     # ── 5. Pattern Detection: log the impulse event ──────────────────────
     try:
-        from app.services.pattern_detection_service import detect_patterns, TransactionSummary
+        from app.services.pattern_detection_service import (
+            TransactionSummary,
+            detect_patterns,
+        )
         tx = TransactionSummary(
             category=category,
             amount=amount,
