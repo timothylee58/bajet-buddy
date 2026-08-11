@@ -90,7 +90,7 @@ async def agentcore_chat(
             ):
                 yield f"data: {chunk}\n\n"
         except httpx.HTTPStatusError as exc:
-            logger.error("AgentCore invocation failed: %s", exc)
+            logger.exception("AgentCore invocation failed")
             yield f"data: {json.dumps({'error': str(exc)})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")

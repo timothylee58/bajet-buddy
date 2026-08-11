@@ -196,10 +196,11 @@ async def _fetch_application_by_idempotency_key(
             .maybe_single()
             .execute()
         )
-        return res.data if res else None
     except Exception as e:
         logger.warning("Failed to check existing application for offer %s: %s", offer_id, e)
         return None
+    else:
+        return res.data if res else None
 
 
 async def _fetch_repayments(supabase, application_id: str) -> list[RepaymentOut]:
@@ -295,7 +296,7 @@ async def apply_for_offer(user_id: str, offer_id: str, *, idempotency_key: str) 
             for r in repayments:
                 supabase.table("repayments").insert({**r, "application_id": application_id}).execute()
         except Exception as e:
-            logger.error("Failed to persist loan application for %s: %s", user_id, e)
+            logger.exception("Failed to persist loan application for %s", user_id)
             raise RuntimeError("Could not save the application — please try again") from e
 
     return LoanApplicationOut(

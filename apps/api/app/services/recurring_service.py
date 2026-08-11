@@ -221,10 +221,11 @@ async def _generate_insight(
         )
         parts = [block.text for block in message.content if getattr(block, "type", None) == "text"]
         text = " ".join(parts).strip().strip('"')
-        return text or fallback
     except Exception as exc:
         logger.warning("Recurring insight generation failed, using fallback: %s", exc)
         return fallback
+    else:
+        return text or fallback
 
 
 async def get_recurring_summary(user_id: str) -> RecurringSummary:

@@ -1,7 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
+
 from app.core.auth import AuthenticatedUser, get_optional_user
 from app.schemas.freeze import FreezeActivateRequest, FreezeStatusOut
-from app.services.freeze_service import get_freeze_status, activate_freeze, override_freeze
+from app.services.freeze_service import (
+    activate_freeze,
+    get_freeze_status,
+    override_freeze,
+)
 
 router = APIRouter()
 

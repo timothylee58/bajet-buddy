@@ -9,7 +9,6 @@ from app.schemas.simulation import (
     FutureYouResponse,
 )
 
-
 MONTH_LABELS = ["Month 1", "Month 2", "Month 3", "Month 4", "Month 5", "Month 6"]
 
 

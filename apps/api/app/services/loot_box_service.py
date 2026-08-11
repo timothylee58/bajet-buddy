@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import random
 
-from app.services.gamification_service import _get_state, award_xp, get_gamification_status
+from app.services.gamification_service import (
+    _get_state,
+    award_xp,
+    get_gamification_status,
+)
 
 REWARDS = [
     {"rarity": "common",    "weight": 60, "coins": 10,  "label": "Syiling Jimat",    "emoji": "🪙"},

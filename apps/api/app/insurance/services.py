@@ -119,7 +119,7 @@ async def purchase_policy(
             # the read-path graceful degradation used elsewhere in this
             # codebase, silently returning an unsaved policy here would lie
             # about coverage actually existing.
-            logger.error("Failed to persist insurance policy for %s: %s", user_id, e)
+            logger.exception("Failed to persist insurance policy for %s", user_id)
             raise RuntimeError("Could not save the policy — please try again") from e
 
     return InsurancePolicyOut(

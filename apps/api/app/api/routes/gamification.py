@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
+
 from app.core.auth import AuthenticatedUser, get_optional_user
+from app.services.agent_roster_service import get_agent_roster
 from app.services.gamification_service import get_gamification_status
 from app.services.loot_box_service import pull_loot_box
-from app.services.agent_roster_service import get_agent_roster
 
 router = APIRouter()
 

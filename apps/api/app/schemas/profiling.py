@@ -4,7 +4,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-
 LayerStatus = Literal["available", "active", "locked", "complete"]
 GoalType = Literal["emergency_fund", "debt_reduction", "home_savings", "no_spend"]
 AgentStatus = Literal["locked", "ready", "unlocked"]

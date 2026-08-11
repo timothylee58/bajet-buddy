@@ -1,0 +1,29 @@
+# Pin the rule set explicitly rather than inheriting ruff's defaults. An
+# unpinned default set silently grows on each ruff release, which is what turned
+# CI red in July with 161 findings in files nobody had touched.
+target-version = "py311"
+
+[lint]
+select = ["E4", "E7", "E9", "F", "I", "BLE", "PERF", "TRY", "RUF"]
+
+ignore = [
+  # Services deliberately catch broadly so a Claude, Supabase or partner-API
+  # failure degrades into a fallback instead of 500ing the request. Narrowing
+  # these would trade a documented design rule for a lint score.
+  "BLE001",
+  # Would require a custom exception hierarchy to pass messages to HTTPException
+  # and ValueError. Churn with no behavioural benefit at this size.
+  "TRY003",
+  # The flagged raises are HTTPExceptions inside request handlers; hoisting them
+  # into inner functions makes the handlers harder to read, not safer.
+  "TRY301",
+  # Typographic characters (×, –, →) are intentional in comments, docstrings and
+  # the Manglish product copy.
+  "RUF001",
+  "RUF002",
+  "RUF003",
+]
+
+[lint.per-file-ignores]
+# Re-exports are the point of a package __init__.
+"__init__.py" = ["F401"]

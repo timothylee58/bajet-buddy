@@ -14,9 +14,17 @@ from app.nudge_agent.service import (
     generate_nudge_package,
 )
 from app.risk_engine import RiskEvaluationInput, evaluate_risk
-from app.services.budget_service import fetch_work_hours_profile, get_budget_summary, get_category_budgets
+from app.services.budget_service import (
+    fetch_work_hours_profile,
+    get_budget_summary,
+    get_category_budgets,
+)
 from app.services.freeze_service import maybe_trigger_auto_freeze
-from app.services.hourly_rate_service import amount_to_life_hours, compute_real_hourly_rate, format_life_hours_my
+from app.services.hourly_rate_service import (
+    amount_to_life_hours,
+    compute_real_hourly_rate,
+    format_life_hours_my,
+)
 from app.services.persona_service import learn_persona_from_transaction_signals
 
 

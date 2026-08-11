@@ -2,6 +2,7 @@
 Nudge generation — uses Claude API when available, falls back to rule-based templates.
 """
 import logging
+
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)

@@ -8,8 +8,8 @@ from __future__ import annotations
 import uuid
 
 from app.insurance.partner_adapters.base import (
-    InsuranceQuote,
     InsurancePartnerAdapter,
+    InsuranceQuote,
     PolicyResult,
 )
 

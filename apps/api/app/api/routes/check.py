@@ -1,6 +1,12 @@
 from fastapi import APIRouter, Depends
+
 from app.core.auth import AuthenticatedUser, get_optional_user
-from app.schemas.check import ChatCheckRequest, ChatCheckResponse, CheckRequest, CheckResponse
+from app.schemas.check import (
+    ChatCheckRequest,
+    ChatCheckResponse,
+    CheckRequest,
+    CheckResponse,
+)
 from app.services.chat_check_service import run_chat_check
 from app.services.check_agent_service import run_manual_prepurchase_check
 

@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal
 
-
 Verdict = Literal["BOLEH", "FIKIR_DULU", "JANGAN_DULU"]
 MerchantType = Literal["essential", "discretionary", "mixed"]
 

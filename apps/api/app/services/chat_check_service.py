@@ -166,23 +166,20 @@ Rules:
 - paraphrased should sound like a friendly Malaysian confirming the spend, e.g. "OK, you nak beli Nike Air Max for RM450 from JD Sports, category shopping. BNPL: no."
 - If bnpl=true, paraphrased should warn: "ALERT: you're considering BNPL for this purchase" """
 
-    try:
-        resp = await client.messages.create(
-            model=settings.ilmu_model if settings.ilmu_api_key else "claude-sonnet-4-5",
-            max_tokens=300,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        text = resp.content[0].text.strip()
-        start = text.find("{")
-        end = text.rfind("}") + 1
-        if start < 0 or end <= start:
-            raise ValueError("No JSON in AI response")
-        data = json.loads(text[start:end])
-        if data.get("amount", 0) <= 0:
-            raise ValueError("AI could not extract amount")
-        return ParsedSpendIntent(**data)
-    except Exception:
-        raise
+    resp = await client.messages.create(
+        model=settings.ilmu_model if settings.ilmu_api_key else "claude-sonnet-4-5",
+        max_tokens=300,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    text = resp.content[0].text.strip()
+    start = text.find("{")
+    end = text.rfind("}") + 1
+    if start < 0 or end <= start:
+        raise ValueError("No JSON in AI response")
+    data = json.loads(text[start:end])
+    if data.get("amount", 0) <= 0:
+        raise ValueError("AI could not extract amount")
+    return ParsedSpendIntent(**data)
 
 
 async def parse_spend_intent(message: str) -> ParsedSpendIntent:

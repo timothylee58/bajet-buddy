@@ -13,21 +13,28 @@ logger = logging.getLogger(__name__)
 
 def _import_agentcore() -> Any:
     try:
-        from bedrock_agentcore import BedrockAgentCoreApp  # type: ignore[import-untyped]
-        return BedrockAgentCoreApp
+        from bedrock_agentcore import (
+            BedrockAgentCoreApp,  # type: ignore[import-untyped]
+        )
     except ImportError as exc:
         raise ImportError("bedrock-agentcore is not installed. Run: pip install bedrock-agentcore") from exc
+    else:
+        return BedrockAgentCoreApp
 
 
 def _import_strands() -> tuple[Any, Any, Any, Any]:
     try:
         from strands import Agent, tool  # type: ignore[import-untyped]
-        from strands.models import BedrockModel  # type: ignore[import-untyped]
+
         # Fix 2: correct import path (strands, not bedrock_agentcore.memory)
-        from strands.agent.conversation_manager import SummarizingConversationManager  # type: ignore[import-untyped]
-        return Agent, tool, BedrockModel, SummarizingConversationManager
+        from strands.agent.conversation_manager import (
+            SummarizingConversationManager,  # type: ignore[import-untyped]
+        )
+        from strands.models import BedrockModel  # type: ignore[import-untyped]
     except ImportError as exc:
         raise ImportError("strands-agents is not installed. Run: pip install strands-agents") from exc
+    else:
+        return Agent, tool, BedrockModel, SummarizingConversationManager
 
 
 # ---------------------------------------------------------------------------
@@ -45,6 +52,7 @@ async def _evaluate_purchase_impl(
     tone: str = "friendly",
 ) -> dict[str, Any]:
     from app.agents.reasoning_graph import run_prepurchase_reasoning_graph
+
     # Fix 5: correct schema class name
     from app.schemas.check import CheckRequest
 

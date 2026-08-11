@@ -1,14 +1,37 @@
+import json
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-import json
-from app.api.routes import check, transactions, persona, buddies, freeze, gamification, risk, nudges, simulations, profiling, ocr, agent1, receipts, voice, onboarding_roast, fomo, sentinel, pet_companion, agentcore, recurring
-from app.insurance import routes as insurance
-from app.lending import routes as lending
+
+from app.api.routes import (
+    agent1,
+    agentcore,
+    buddies,
+    check,
+    fomo,
+    freeze,
+    gamification,
+    nudges,
+    ocr,
+    onboarding_roast,
+    persona,
+    pet_companion,
+    profiling,
+    receipts,
+    recurring,
+    risk,
+    sentinel,
+    simulations,
+    transactions,
+    voice,
+)
 from app.core.config import get_settings
 from app.core.database import init_db
 from app.core.logging_config import setup_logging
 from app.core.sentry import init_sentry
+from app.insurance import routes as insurance
+from app.lending import routes as lending
 
 settings = get_settings()
 init_sentry(settings)

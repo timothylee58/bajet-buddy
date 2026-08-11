@@ -5,7 +5,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-
 Verdict = Literal["BOLEH", "FIKIR_DULU", "JANGAN_DULU"]
 MerchantType = Literal["essential", "discretionary", "mixed"]
 

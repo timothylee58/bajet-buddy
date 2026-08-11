@@ -1,7 +1,13 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends
-from datetime import datetime, timezone, timedelta
+
 from app.core.auth import AuthenticatedUser, get_optional_user
-from app.schemas.persona import PersonaAnalyzeRequest, PersonaAnalyzeResponse, PersonaRerollResponse
+from app.schemas.persona import (
+    PersonaAnalyzeRequest,
+    PersonaAnalyzeResponse,
+    PersonaRerollResponse,
+)
 from app.services.persona_analyzer import analyze_persona
 from app.services.persona_service import get_persona_for_user, reroll_persona_for_user
 

@@ -1,7 +1,9 @@
+import logging
+
 from fastapi import APIRouter, Depends
+
 from app.core.auth import AuthenticatedUser, get_optional_user
 from app.core.database import get_supabase
-import logging
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -41,10 +43,11 @@ async def leaderboard(current_user: AuthenticatedUser | None = Depends(get_optio
                 "streak": row["streak_days"],
                 "is_me": row["user_id"] == current_user.user_id
             })
-        return leaderboard_data
-    except Exception as e:
-        logger.error(f"Failed to fetch leaderboard from Supabase: {e}")
+    except Exception:
+        logger.exception("Failed to fetch leaderboard from Supabase")
         return MOCK_LEADERBOARD
+    else:
+        return leaderboard_data
 
 MOCK_CHALLENGES = [
     {
