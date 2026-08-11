@@ -103,9 +103,9 @@ export function BehaviorDashboard() {
           <p className="font-sans text-xs text-muted mt-0.5">{monthName} · Day {new Date().getDate()} of {budget?.total_days ?? 30}</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Streak badge — links to /streak */}
+          {/* Streak badge — links to /badges */}
           <Link
-            href="/streak"
+            href="/badges"
             className="bg-tertiary text-white px-3 py-1 rounded-full flex items-center gap-1 font-sans text-sm font-bold chunky-shadow active-press"
           >
             <Zap className="w-4 h-4 fill-current" />

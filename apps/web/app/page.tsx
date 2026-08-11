@@ -129,8 +129,17 @@ export default function LandingPage() {
 function Nav() {
   return (
     <nav className="sticky top-0 z-50 flex items-center justify-between px-5 sm:px-8 py-4 bg-background/85 backdrop-blur-xl border-b border-border/30">
-      <Link href="/" className="flex items-center gap-2">
-        <span className="text-2xl">🤑</span>
+      <Link href="/" className="flex items-center gap-2.5">
+        <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl bg-primary shadow-sm">
+          <Image
+            src="/logo.ico"
+            alt=""
+            width={40}
+            height={40}
+            className="h-10 w-10 object-cover"
+            priority
+          />
+        </span>
         <span className="font-headline text-xl font-bold text-primary">BajetBuddy</span>
       </Link>
 
@@ -391,7 +400,15 @@ function CTASection() {
           </div>
 
           <div className="relative z-10">
-            <div className="text-5xl mb-5">🤑</div>
+            <span className="mb-5 inline-flex h-20 w-20 items-center justify-center overflow-hidden rounded-[1.5rem] bg-white/15 shadow-sm">
+              <Image
+                src="/logo.ico"
+                alt=""
+                width={80}
+                height={80}
+                className="h-20 w-20 object-cover"
+              />
+            </span>
             <h2 className="font-headline text-4xl sm:text-5xl font-bold mb-4">
               Ready to spend smarter?
             </h2>
@@ -419,8 +436,16 @@ function Footer() {
     <footer className="px-5 sm:px-8 py-10 border-t border-border/30">
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl">🤑</span>
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl bg-primary shadow-sm">
+              <Image
+                src="/logo.ico"
+                alt=""
+                width={40}
+                height={40}
+                className="h-10 w-10 object-cover"
+              />
+            </span>
             <span className="font-headline text-xl font-bold text-primary">BajetBuddy</span>
           </Link>
 
