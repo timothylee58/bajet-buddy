@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Wallet,
   Receipt,
+  Repeat,
 } from "lucide-react";
 import { useDashboardPulse } from "@/hooks/useDashboardPulse";
 import { useRecentTransactions } from "@/hooks/useRecentTransactions";
@@ -468,6 +469,13 @@ export function BehaviorDashboard() {
           >
             <Wallet className="w-5 h-5" />
             Scan Receipt
+          </Link>
+          <Link
+            href="/recurring"
+            className="col-span-2 flex items-center justify-center gap-2 p-4 bg-tertiary-light text-tertiary-dark rounded-2xl font-sans font-bold text-sm border-b-4 border-tertiary/40 active-press"
+          >
+            <Repeat className="w-5 h-5" />
+            Langganan Radar
           </Link>
         </div>
       </section>

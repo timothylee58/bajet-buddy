@@ -34,6 +34,7 @@ import type {
   PetStatusResponse,
   ProgressiveProfilingSummary,
   ProfilingGoalType,
+  RecurringSummary,
   SentinelDashboardResponse,
   SimulateEventResponse,
 } from "@/types";
@@ -391,4 +392,30 @@ export async function purchaseInsurance(payload: InsurancePurchaseRequest): Prom
 /** GET /api/insurance/policies */
 export async function getInsurancePolicies(): Promise<InsurancePolicy[]> {
   return apiFetch<InsurancePolicy[]>("/api/insurance/policies");
+}
+
+// ─── Recurring subscriptions ───────────────────────────────────────────────
+
+/** GET /api/recurring */
+export async function getRecurringSummary(): Promise<RecurringSummary> {
+  return apiFetch<RecurringSummary>("/api/recurring");
+}
+
+// ─── Voice ─────────────────────────────────────────────────────────────────
+
+export interface VoiceParseResponse {
+  amount: number | null;
+  merchant: string | null;
+  category: string;
+  item_name: string | null;
+  confidence: number;
+  raw_transcript: string;
+}
+
+/** POST /api/voice/parse */
+export async function parseVoiceTranscript(transcript: string): Promise<VoiceParseResponse> {
+  return apiFetch<VoiceParseResponse>("/api/voice/parse", {
+    method: "POST",
+    body: JSON.stringify({ transcript }),
+  });
 }
