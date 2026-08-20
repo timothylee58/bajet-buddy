@@ -23,6 +23,9 @@ jobs:
       - name: Lint
         run: npm run lint -w @bajetbuddy/web
         working-directory: .
+      - name: Test
+        run: npm run test -w @bajetbuddy/web
+        working-directory: .
       - name: Build
         run: npm run build -w @bajetbuddy/web
         working-directory: .
