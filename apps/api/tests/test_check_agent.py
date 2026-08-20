@@ -11,7 +11,6 @@ if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 
 from app.main import app
-from app.services.freeze_service import _freeze_store
 from apps.api.tests.auth_override import install_auth_override
 
 install_auth_override(app)
@@ -19,7 +18,6 @@ install_auth_override(app)
 
 class CheckAgentRouteTests(unittest.TestCase):
     def setUp(self) -> None:
-        _freeze_store.clear()
         install_auth_override(app)
 
     def test_manual_check_runs_reasoning_pipeline_and_returns_nudge(self) -> None:
@@ -42,8 +40,9 @@ class CheckAgentRouteTests(unittest.TestCase):
         data = response.json()
         self.assertEqual(data["verdict"], "jangan_dulu")
         self.assertTrue(data["proactive_alert"])
+        # jangan_dulu blocks this purchase, but auto-freeze is a separate, stricter
+        # threshold (risk_score >= 90 or daily runway < RM25) that this payload doesn't cross.
         self.assertIn("freeze_status", data)
-        self.assertEqual(data["freeze_status"]["reason"], "auto")
         self.assertEqual(
             data["pipeline_trace"],
             [

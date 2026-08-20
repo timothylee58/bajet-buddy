@@ -69,8 +69,10 @@ class RiskEngineUnitTests(unittest.TestCase):
         self.assertIn("CATEGORY_BUDGET_ABOVE_85", result.reason_codes)
 
     def test_bnpl_due_soon_and_discretionary_forces_jangan_dulu(self) -> None:
+        # Amount-tier scaling only forces a block for medium+ purchases (tier >= 0.8,
+        # i.e. amount >= RM80) — a micro/small BNPL purchase shouldn't trip this alarm.
         result = evaluate_risk(
-            make_payload(amount=60, bnpl_due_within_7_days=120, merchant_type="discretionary")
+            make_payload(amount=90, bnpl_due_within_7_days=120, merchant_type="discretionary")
         )
 
         self.assertEqual(result.verdict, "JANGAN_DULU")

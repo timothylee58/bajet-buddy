@@ -10,8 +10,8 @@ API_ROOT = Path(__file__).resolve().parents[1]
 if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 
+from app.core.auth import DEMO_USER_ID
 from app.main import app
-from app.services.freeze_service import _freeze_store
 from app.services.gamification_service import _gamification_store
 from apps.api.tests.auth_override import install_auth_override
 
@@ -20,7 +20,6 @@ install_auth_override(app)
 
 class FreezeGamificationTests(unittest.TestCase):
     def setUp(self) -> None:
-        _freeze_store.clear()
         _gamification_store.clear()
         install_auth_override(app)
 
@@ -65,7 +64,9 @@ class FreezeGamificationTests(unittest.TestCase):
         self.assertEqual(gamification.json()["xp"], 370)
 
     def test_override_fails_when_xp_is_insufficient(self) -> None:
-        _gamification_store["demo-user"] = {
+        # FORCE_DEMO_USER short-circuits get_optional_user to DEMO_USER_ID regardless
+        # of the get_current_user override above, so routes key off DEMO_USER_ID.
+        _gamification_store[DEMO_USER_ID] = {
             "xp": 20,
             "streak": 1,
             "last_active_date": None,
