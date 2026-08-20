@@ -323,6 +323,13 @@ def _parse_vision_response(raw_text: str) -> OCRScanResult:
     clean = re.sub(r"^```(?:json)?\s*\n?", "", clean)
     clean = re.sub(r"\n?\s*```$", "", clean)
     clean = clean.strip()
+    # Vision models sometimes preface the JSON with a sentence of prose even
+    # without fences — slice to the outermost braces rather than trusting the
+    # whole string is valid JSON.
+    start = clean.find("{")
+    end = clean.rfind("}") + 1
+    if start >= 0 and end > start:
+        clean = clean[start:end]
 
     logger.debug("OCR cleaned response (first 500 chars): %s", clean[:500])
 
