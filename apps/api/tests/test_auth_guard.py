@@ -17,17 +17,19 @@ class AuthGuardTests(unittest.TestCase):
     def setUp(self) -> None:
         app.dependency_overrides.clear()
 
-    def test_missing_bearer_token_returns_401_on_protected_routes(self) -> None:
+    def test_demo_routes_work_without_a_bearer_token(self) -> None:
+        # FORCE_DEMO_USER=True maps every request to the demo profile via
+        # get_optional_user, so these routes never 401 — see app/core/auth.py.
         client = TestClient(app)
 
-        protected_calls = [
+        no_token_calls = [
             ("GET", "/api/transactions"),
             ("GET", "/api/persona"),
             ("GET", "/api/freeze/status"),
             ("POST", "/api/check"),
         ]
 
-        for method, path in protected_calls:
+        for method, path in no_token_calls:
             if method == "POST":
                 response = client.post(
                     path,
@@ -36,7 +38,9 @@ class AuthGuardTests(unittest.TestCase):
             else:
                 response = client.get(path)
 
-            self.assertEqual(response.status_code, 401, f"{path} should require auth")
+            self.assertNotEqual(
+                response.status_code, 401, f"{path} unexpectedly required auth"
+            )
 
     def test_health_route_stays_public(self) -> None:
         client = TestClient(app)

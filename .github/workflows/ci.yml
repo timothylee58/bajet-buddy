@@ -53,3 +53,7 @@ jobs:
         run: pip install ruff && ruff check app
       - name: Import smoke test
         run: python -c "from app.main import app; assert app.title"
+      - name: Test
+        # Run from the repo root — tests import their helpers as apps.api.tests.*.
+        working-directory: .
+        run: python -m pytest apps/api/tests -q
