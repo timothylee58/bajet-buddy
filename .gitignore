@@ -40,6 +40,13 @@ __pycache__/
 venv/
 
 # ============================
+# Playwright
+# ============================
+test-results/
+playwright-report/
+blob-report/
+
+# ============================
 # OS / Editor junk
 # ============================
 *.swp
