@@ -13,16 +13,30 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from datetime import datetime, timedelta, timezone
 
 from app.core.database import get_supabase
-from app.services.ingestion import bnm_fx, fuel_price
+from app.services.ingestion import (
+    bnm_fx,
+    fuel_price,
+    kpdn_prices,
+    macro_event_classifier,
+    news_rss,
+)
 
 logger = logging.getLogger(__name__)
 
 INGESTION_SOURCES = {
     "fuel_price": fuel_price.fetch_fuel_prices,
     "bnm_fx": bnm_fx.fetch_usd_myr_rate,
+    "kpdn_prices": kpdn_prices.fetch_kpdn_prices,
 }
+
+# How far back to look before treating a detected event as a duplicate of one
+# already stored — news classification runs every refresh, so without this a
+# still-unfolding story (e.g. a multi-day fuel subsidy debate) would insert a
+# near-identical row on every run.
+EVENT_DEDUPE_WINDOW = timedelta(hours=24)
 
 
 def _previous_price(supabase, source: str, symbol: str, before_date: str) -> float | None:
@@ -72,6 +86,60 @@ def _with_trend(supabase, row: dict) -> dict:
     return row
 
 
+async def _refresh_macro_events(supabase) -> dict:
+    try:
+        headlines = await news_rss.fetch_headlines()
+    except Exception:
+        logger.exception("news_rss ingestion raised unexpectedly")
+        return {"status": "error", "rows": 0}
+
+    if not headlines:
+        return {"status": "empty", "rows": 0}
+
+    try:
+        candidates = await macro_event_classifier.classify_headlines(headlines)
+    except Exception:
+        logger.exception("macro_event_classifier raised unexpectedly")
+        return {"status": "error", "rows": 0}
+
+    if not candidates:
+        return {"status": "empty", "rows": 0}
+
+    cutoff = (datetime.now(timezone.utc) - EVENT_DEDUPE_WINDOW).isoformat()
+    inserted = 0
+    for candidate in candidates:
+        try:
+            existing = (
+                supabase.table("sentinel_macro_events")
+                .select("id")
+                .eq("event_type", candidate["event_type"])
+                .gte("triggered_at", cutoff)
+                .limit(1)
+                .execute()
+            )
+            if existing.data:
+                continue  # already have a recent event of this type — skip
+
+            supabase.table("sentinel_macro_events").insert(
+                {
+                    "event_type": candidate["event_type"],
+                    "title": candidate["source_title"],
+                    "title_bm": candidate["source_title"],
+                    "severity": candidate["severity"],
+                    "description": candidate["source_title"],
+                    "icon": "📰",
+                    "source": candidate["source_name"] or "news_rss",
+                    "triggered_at": datetime.now(timezone.utc).isoformat(),
+                    "raw_payload": candidate,
+                }
+            ).execute()
+            inserted += 1
+        except Exception:
+            logger.exception("Failed to upsert macro event candidate: %s", candidate)
+
+    return {"status": "ok", "rows": inserted}
+
+
 async def refresh_sentinel_data() -> dict:
     supabase = get_supabase()
     if supabase is None:
@@ -100,6 +168,8 @@ async def refresh_sentinel_data() -> dict:
         except Exception as e:
             logger.exception("Failed to upsert rows for source %s", name)
             results[name] = {"status": "error", "error": str(e), "rows": 0}
+
+    results["macro_events"] = await _refresh_macro_events(supabase)
 
     return {"status": "completed", "sources": results}
 

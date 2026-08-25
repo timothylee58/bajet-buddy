@@ -433,6 +433,47 @@ def _market_mood(sentinel_heat: float) -> str:
     return "Calm"
 
 
+def _fetch_latest_detected_event() -> MacroEvent | None:
+    """Most recent auto-detected event from sentinel_macro_events (news_rss +
+    macro_event_classifier), used when the user hasn't manually simulated one.
+
+    Tolerates no Supabase, an unapplied migration, or an empty table — all
+    just mean "nothing detected yet", never an error surfaced to the user.
+    """
+    supabase = get_supabase()
+    if supabase is None:
+        return None
+    try:
+        res = (
+            supabase.table("sentinel_macro_events")
+            .select("event_type, title, title_bm, severity, description, icon, triggered_at")
+            .order("triggered_at", desc=True)
+            .limit(1)
+            .maybe_single()
+            .execute()
+        )
+    except Exception as e:
+        logger.warning("Failed to fetch latest detected macro event: %s", e)
+        return None
+
+    if not hasattr(res, "data") or not res.data:
+        return None
+    row = res.data
+    try:
+        return MacroEvent(
+            event_type=row["event_type"],
+            title=row["title"],
+            title_bm=row.get("title_bm") or row["title"],
+            severity=float(row.get("severity") or 0.0),
+            description=row.get("description") or row["title"],
+            icon=row.get("icon") or "📰",
+            triggered_at=row["triggered_at"],
+        )
+    except Exception as e:
+        logger.warning("Malformed macro event row, skipping: %s", e)
+        return None
+
+
 async def get_dashboard(user_id: str) -> SentinelDashboardResponse:
     state = _get_state(user_id)
     active_event_type: str | None = None
@@ -442,6 +483,10 @@ async def get_dashboard(user_id: str) -> SentinelDashboardResponse:
         ev = state["active_event"]
         active_event_type = ev["event_type"]
         active_event = MacroEvent(**ev)
+    else:
+        active_event = _fetch_latest_detected_event()
+        if active_event:
+            active_event_type = active_event.event_type
 
     snapshots = _compute_spending_snapshots(active_event_type)
     risk_profile = _compute_risk_profile(snapshots)
