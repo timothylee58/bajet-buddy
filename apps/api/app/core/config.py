@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     agentcore_runtime_arn: str = ""
     agentcore_bearer_token: str = ""
     sentry_dsn: str = ""
+    kpdn_catalog_url: str = ""
+    sentinel_news_feeds: str = "https://www.freemalaysiatoday.com/feed/"
 
     class Config:
         env_file = ".env"

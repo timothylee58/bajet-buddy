@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 
+from app.core.config import get_settings
+from app.jobs.refresh_sentinel_data import refresh_sentinel_data
 from app.schemas.sentinel import (
     InflationQuest,
     SentinelDashboardResponse,
@@ -42,3 +44,16 @@ async def complete_quest(quest_id: str) -> dict:
 async def scan_commodities() -> dict:
     """Agent 5: Scan user transactions → correlate with market news → predict price impact."""
     return await sentinel_service.scan_commodities(_DEMO_USER)
+
+
+@router.post("/internal/refresh-data")
+async def refresh_data(x_internal_token: str | None = Header(default=None)) -> dict:
+    """Triggers the live commodity/FX ingestion job (data.gov.my fuel prices, BNM FX).
+
+    Intended for a Railway cron job or GH Actions workflow to call on a schedule —
+    not exposed to the frontend. Guarded by a shared secret, not user auth.
+    """
+    settings = get_settings()
+    if not x_internal_token or x_internal_token != settings.secret_key:
+        raise HTTPException(status_code=401, detail="Invalid internal token")
+    return await refresh_sentinel_data()

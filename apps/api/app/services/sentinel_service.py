@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from typing import TypedDict
 
+from app.core.database import get_supabase
 from app.schemas.sentinel import (
     CategoryImpact,
     InflationQuest,
@@ -15,6 +17,8 @@ from app.schemas.sentinel import (
     SpendingSnapshot,
 )
 from app.services import gamification_service
+
+logger = logging.getLogger(__name__)
 
 MOCK_TRANSACTIONS = [
     {"id": "t01", "merchant": "Mydin", "merchant_tag": "mydin", "category": "groceries", "amount": 45.0, "date": "2026-05-01"},
@@ -429,6 +433,47 @@ def _market_mood(sentinel_heat: float) -> str:
     return "Calm"
 
 
+def _fetch_latest_detected_event() -> MacroEvent | None:
+    """Most recent auto-detected event from sentinel_macro_events (news_rss +
+    macro_event_classifier), used when the user hasn't manually simulated one.
+
+    Tolerates no Supabase, an unapplied migration, or an empty table — all
+    just mean "nothing detected yet", never an error surfaced to the user.
+    """
+    supabase = get_supabase()
+    if supabase is None:
+        return None
+    try:
+        res = (
+            supabase.table("sentinel_macro_events")
+            .select("event_type, title, title_bm, severity, description, icon, triggered_at")
+            .order("triggered_at", desc=True)
+            .limit(1)
+            .maybe_single()
+            .execute()
+        )
+    except Exception as e:
+        logger.warning("Failed to fetch latest detected macro event: %s", e)
+        return None
+
+    if not hasattr(res, "data") or not res.data:
+        return None
+    row = res.data
+    try:
+        return MacroEvent(
+            event_type=row["event_type"],
+            title=row["title"],
+            title_bm=row.get("title_bm") or row["title"],
+            severity=float(row.get("severity") or 0.0),
+            description=row.get("description") or row["title"],
+            icon=row.get("icon") or "📰",
+            triggered_at=row["triggered_at"],
+        )
+    except Exception as e:
+        logger.warning("Malformed macro event row, skipping: %s", e)
+        return None
+
+
 async def get_dashboard(user_id: str) -> SentinelDashboardResponse:
     state = _get_state(user_id)
     active_event_type: str | None = None
@@ -438,6 +483,10 @@ async def get_dashboard(user_id: str) -> SentinelDashboardResponse:
         ev = state["active_event"]
         active_event_type = ev["event_type"]
         active_event = MacroEvent(**ev)
+    else:
+        active_event = _fetch_latest_detected_event()
+        if active_event:
+            active_event_type = active_event.event_type
 
     snapshots = _compute_spending_snapshots(active_event_type)
     risk_profile = _compute_risk_profile(snapshots)
@@ -587,6 +636,54 @@ COMMODITY_CATALOG = [
 ]
 
 
+def _fetch_live_commodity_overrides() -> dict[str, dict]:
+    """Latest live-ingested price per symbol (data.gov.my fuel, BNM FX), keyed to
+    match COMMODITY_CATALOG's `symbol` field (e.g. "$RON95" -> "RON95").
+
+    Falls back to an empty dict — meaning every symbol stays on its mocked
+    catalog entry — if Supabase isn't configured, the migration hasn't been
+    applied yet, or the ingestion job hasn't run yet.
+    """
+    supabase = get_supabase()
+    if supabase is None:
+        return {}
+    try:
+        res = (
+            supabase.table("sentinel_commodity_prices")
+            .select("symbol, current_price_display, trend, change_pct, news_headline, news_source, fetched_at")
+            .order("price_date", desc=True)
+            .limit(50)
+            .execute()
+        )
+    except Exception as e:
+        logger.warning("Failed to fetch live commodity overrides (migration may not be applied yet): %s", e)
+        return {}
+
+    rows = res.data if hasattr(res, "data") and res.data else []
+    overrides: dict[str, dict] = {}
+    for row in rows:
+        symbol = row.get("symbol")
+        if symbol and symbol not in overrides:
+            overrides[symbol] = row
+    return overrides
+
+
+def _humanize_fetched_at(fetched_at: str | None) -> str | None:
+    if not fetched_at:
+        return None
+    try:
+        fetched = datetime.fromisoformat(fetched_at.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    delta = datetime.now(timezone.utc) - fetched
+    hours = delta.total_seconds() / 3600
+    if hours < 1:
+        return "just now"
+    if hours < 24:
+        return f"{int(hours)} hours ago"
+    return f"{int(hours // 24)} days ago"
+
+
 async def scan_commodities(user_id: str) -> dict:
     """Agent 5 steps:
     1. Check user's recent transactions for affected categories
@@ -609,6 +706,8 @@ async def scan_commodities(user_id: str) -> dict:
         cat = tx["category"]
         category_totals[cat] = category_totals.get(cat, 0) + tx["amount"]
 
+    live_overrides = _fetch_live_commodity_overrides()
+
     commodities = []
     total_impact = 0.0
     affected_count = 0
@@ -616,19 +715,30 @@ async def scan_commodities(user_id: str) -> dict:
     for c in COMMODITY_CATALOG:
         if c["category"] not in user_categories:
             continue
+
+        live = live_overrides.get(c["symbol"].lstrip("$"))
+        merged = dict(c)
+        if live:
+            merged["currentPrice"] = live.get("current_price_display") or c["currentPrice"]
+            merged["trend"] = live.get("trend") or c["trend"]
+            merged["changePct"] = live.get("change_pct") if live.get("change_pct") is not None else c["changePct"]
+            merged["newsHeadline"] = live.get("news_headline") or c["newsHeadline"]
+            merged["newsSource"] = live.get("news_source") or c["newsSource"]
+            merged["lastUpdated"] = _humanize_fetched_at(live.get("fetched_at")) or c["lastUpdated"]
+
         # Scale the predicted impact based on user's actual spending in that category
-        user_spend = category_totals.get(c["category"], 100)
+        user_spend = category_totals.get(merged["category"], 100)
         scale = min(user_spend / 200, 2.5)
-        personalized_impact = round(c["predictedImpactRm"] * scale, 2)
+        personalized_impact = round(merged["predictedImpactRm"] * scale, 2)
         total_impact += personalized_impact
-        if c["trend"] == "up":
+        if merged["trend"] == "up":
             affected_count += 1
-            
+
         # Get matched transactions for this commodity's category
-        matches = category_merchants.get(c["category"], [])[:2]
-        
+        matches = category_merchants.get(merged["category"], [])[:2]
+
         commodities.append({
-            **c, 
+            **merged,
             "predictedImpactRm": personalized_impact,
             "matchedTransactions": matches
         })
