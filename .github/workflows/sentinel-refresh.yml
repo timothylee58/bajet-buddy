@@ -1,0 +1,31 @@
+name: Sentinel data refresh
+
+on:
+  schedule:
+    # Every 4 hours. Fuel/FX/KPDN prices and news don't move faster than
+    # that, so no need to hit data.gov.my/BNM/RSS feeds more often.
+    - cron: "0 */4 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call internal refresh endpoint
+        env:
+          SENTINEL_API_URL: ${{ secrets.SENTINEL_API_URL }}
+          SENTINEL_INTERNAL_TOKEN: ${{ secrets.SENTINEL_INTERNAL_TOKEN }}
+        run: |
+          if [ -z "$SENTINEL_API_URL" ] || [ -z "$SENTINEL_INTERNAL_TOKEN" ]; then
+            echo "SENTINEL_API_URL and/or SENTINEL_INTERNAL_TOKEN repo secrets are not set — skipping." >&2
+            echo "See PR description / CLAUDE.md for setup steps." >&2
+            exit 1
+          fi
+          http_status=$(curl -sS -o response.json -w "%{http_code}" -X POST \
+            "${SENTINEL_API_URL%/}/api/sentinel/internal/refresh-data" \
+            -H "X-Internal-Token: ${SENTINEL_INTERNAL_TOKEN}")
+          echo "HTTP status: $http_status"
+          cat response.json
+          if [ "$http_status" -ge 300 ]; then
+            exit 1
+          fi

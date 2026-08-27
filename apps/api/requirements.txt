@@ -8,6 +8,7 @@ supabase>=2.15.0
 python-dotenv
 httpx
 feedparser
+pyarrow
 openai>=1.0.0
 python-multipart
 pymupdf
