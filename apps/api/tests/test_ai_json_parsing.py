@@ -130,6 +130,20 @@ class OcrVisionResponseParsingTests(unittest.TestCase):
         result = _parse_vision_response(raw)
         self.assertEqual(result.transactions[0].transaction_type, "debit")
 
+    def test_ewallet_unrecognized_wallet_transaction_type_preserves_row_direction(self) -> None:
+        # An omitted/unrecognized wallet_transaction_type ("other") must not
+        # blindly force every row to debit — that would flip a correctly
+        # extracted credit row to the wrong direction.
+        raw = (
+            '{"document_type": "ewallet_screenshot", "wallet_provider": "tng", '
+            '"wallet_transaction_type": "some_unrecognized_value", '
+            '"transactions": [{"merchant": "Ah Beng", "amount": 30, '
+            '"transaction_type": "credit", "category": "income", "date": "", "note": ""}]}'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.wallet_transaction_type, "other")
+        self.assertEqual(result.transactions[0].transaction_type, "credit")
+
     def test_receipt_described_as_a_screenshot_is_not_misclassified_as_ewallet(self) -> None:
         # A photo of a receipt can legitimately be described as "a screenshot
         # of a receipt" — only "wallet" in the string should trigger e-wallet

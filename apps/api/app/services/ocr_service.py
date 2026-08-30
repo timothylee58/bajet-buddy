@@ -377,12 +377,16 @@ def _parse_vision_response(raw_text: str) -> OCRScanResult:
     # For e-wallet screenshots, the confirmation screen's direction
     # (wallet_transaction_type) is a more reliable signal than a per-row
     # transaction_type the model may omit or get wrong — "receive" always
-    # means credit, everything else (send/payment/topup/bill_payment) is
-    # always debit. Receipt/bank_statement rows keep the model's per-row
-    # transaction_type unchanged.
+    # means credit, send/payment/topup/bill_payment are always debit. Only
+    # force a direction for those recognized types; an omitted/unrecognized
+    # ("other") wallet_transaction_type falls back to the row's own value
+    # instead of blindly forcing debit. Receipt/bank_statement rows are
+    # never touched here.
     forced_row_direction = None
-    if doc_type == "ewallet_screenshot":
-        forced_row_direction = "credit" if wallet_transaction_type == "receive" else "debit"
+    if wallet_transaction_type == "receive":
+        forced_row_direction = "credit"
+    elif wallet_transaction_type in {"send", "payment", "topup", "bill_payment"}:
+        forced_row_direction = "debit"
 
     transactions: list[OCRTransaction] = [
         OCRTransaction(
