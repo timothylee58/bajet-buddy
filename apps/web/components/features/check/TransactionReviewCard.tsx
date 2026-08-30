@@ -5,14 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check, Edit2, X, Store, CreditCard, Tag, Calendar, Database, CheckCircle2, AlertCircle, Zap, ScanLine, Receipt, Landmark, Wallet, Trash2, Plus } from "lucide-react";
 import { motion } from "framer-motion";
+import { WALLET_PROVIDER_LABEL } from "@/lib/constants";
 import type { OCRScanResponse, OCRTransaction } from "@/types";
-
-const WALLET_PROVIDER_LABEL: Record<string, string> = {
-  tng: "Touch 'n Go eWallet",
-  mae: "MAE by Maybank",
-  grabpay: "GrabPay",
-  other: "E-Wallet",
-};
 
 interface TransactionReviewCardProps {
   scanResponse: OCRScanResponse;

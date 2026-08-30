@@ -347,18 +347,6 @@ def _parse_vision_response(raw_text: str) -> OCRScanResult:
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to parse OCR response as JSON: {e}. Raw: {clean[:500]}")
 
-    transactions: list[OCRTransaction] = [
-        OCRTransaction(
-            merchant=str(t.get("merchant") or ""),
-            amount=float(t.get("amount") or 0),
-            category=str(t.get("category") or "other"),
-            date=str(t.get("date") or ""),
-            note=str(t.get("note") or ""),
-            transaction_type=str(t.get("transaction_type") or "debit"),
-        )
-        for t in data.get("transactions", []) or []
-    ]
-
     raw_doc_type = str(data.get("document_type") or "receipt").lower()
     # Match on "wallet" only, not "screenshot" — a receipt or bank statement
     # can legitimately be described as "a screenshot of a receipt" and would
@@ -385,6 +373,28 @@ def _parse_vision_response(raw_text: str) -> OCRScanResult:
             if raw_wallet_txn_type in {"send", "receive", "payment", "topup", "bill_payment"}
             else "other"
         )
+
+    # For e-wallet screenshots, the confirmation screen's direction
+    # (wallet_transaction_type) is a more reliable signal than a per-row
+    # transaction_type the model may omit or get wrong — "receive" always
+    # means credit, everything else (send/payment/topup/bill_payment) is
+    # always debit. Receipt/bank_statement rows keep the model's per-row
+    # transaction_type unchanged.
+    forced_row_direction = None
+    if doc_type == "ewallet_screenshot":
+        forced_row_direction = "credit" if wallet_transaction_type == "receive" else "debit"
+
+    transactions: list[OCRTransaction] = [
+        OCRTransaction(
+            merchant=str(t.get("merchant") or ""),
+            amount=float(t.get("amount") or 0),
+            category=str(t.get("category") or "other"),
+            date=str(t.get("date") or ""),
+            note=str(t.get("note") or ""),
+            transaction_type=forced_row_direction or str(t.get("transaction_type") or "debit"),
+        )
+        for t in data.get("transactions", []) or []
+    ]
 
     total_amount = float(data.get("total_amount") or 0)
     if total_amount == 0 and doc_type == "ewallet_screenshot" and transactions:

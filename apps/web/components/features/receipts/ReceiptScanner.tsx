@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { scanReceiptFile, awardPetXP } from "@/lib/api";
 import { useToast } from "@/components/ui/ToastProvider";
+import { WALLET_PROVIDER_LABEL } from "@/lib/constants";
 import type { OCRScanResponse, OCRTransaction } from "@/types";
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -37,13 +38,6 @@ const CATEGORY_EMOJI: Record<string, string> = {
   entertainment: "🎬",
   income: "💰",
   other: "📦",
-};
-
-const WALLET_PROVIDER_LABEL: Record<string, string> = {
-  tng: "Touch 'n Go eWallet",
-  mae: "MAE by Maybank",
-  grabpay: "GrabPay",
-  other: "E-Wallet",
 };
 
 function TxnRow({ txn, idx }: { txn: OCRTransaction; idx: number }) {

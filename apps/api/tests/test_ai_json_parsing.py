@@ -107,6 +107,29 @@ class OcrVisionResponseParsingTests(unittest.TestCase):
         result = _parse_vision_response(raw)
         self.assertEqual(result.total_amount, 0)
 
+    def test_ewallet_receive_forces_transaction_row_to_credit_even_if_model_said_debit(self) -> None:
+        # The confirmation screen's overall direction is more reliable than a
+        # per-row transaction_type the model may get wrong — receiving money
+        # must never be saved as a debit (money spent).
+        raw = (
+            '{"document_type": "ewallet_screenshot", "wallet_provider": "mae", '
+            '"wallet_transaction_type": "receive", '
+            '"transactions": [{"merchant": "Ah Beng", "amount": 50, '
+            '"transaction_type": "debit", "category": "income", "date": "", "note": ""}]}'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.transactions[0].transaction_type, "credit")
+
+    def test_ewallet_payment_forces_transaction_row_to_debit(self) -> None:
+        raw = (
+            '{"document_type": "ewallet_screenshot", "wallet_provider": "tng", '
+            '"wallet_transaction_type": "payment", '
+            '"transactions": [{"merchant": "Ah Beng", "amount": 12, '
+            '"transaction_type": "credit", "category": "food", "date": "", "note": ""}]}'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.transactions[0].transaction_type, "debit")
+
     def test_receipt_described_as_a_screenshot_is_not_misclassified_as_ewallet(self) -> None:
         # A photo of a receipt can legitimately be described as "a screenshot
         # of a receipt" — only "wallet" in the string should trigger e-wallet
