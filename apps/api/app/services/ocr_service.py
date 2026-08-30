@@ -39,7 +39,7 @@ Return a valid JSON object:
 {
   "document_type": "receipt" or "bank_statement" or "ewallet_screenshot",
   "store_name": "for receipts: merchant name",
-  "total_amount": for receipts: total in RM as float,
+  "total_amount": total in RM as float — for receipts the receipt total, for ewallet_screenshot the payment amount shown,
   "wallet_provider": "for ewallet_screenshot only: tng|mae|grabpay|other, else omit",
   "counterparty": "for ewallet_screenshot only: the recipient/sender name shown, else omit",
   "reference_id": "for ewallet_screenshot only: the transaction reference/receipt number shown, else omit",
@@ -383,10 +383,17 @@ def _parse_vision_response(raw_text: str) -> OCRScanResult:
             else "other"
         )
 
+    total_amount = float(data.get("total_amount") or 0)
+    if total_amount == 0 and doc_type == "ewallet_screenshot" and transactions:
+        # The prompt only asks the model for total_amount in receipt mode; for
+        # e-wallet screenshots (usually a single payment) fall back to the sum
+        # of extracted transactions rather than showing RM0.00.
+        total_amount = round(sum(t.amount for t in transactions), 2)
+
     return OCRScanResult(
         document_type=doc_type,
         store_name=str(data.get("store_name") or ""),
-        total_amount=float(data.get("total_amount") or 0),
+        total_amount=total_amount,
         line_items=list(transactions),
         transactions=transactions,
         raw_text=str(data.get("raw_text") or clean[:500]),

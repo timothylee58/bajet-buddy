@@ -75,6 +75,37 @@ class OcrVisionResponseParsingTests(unittest.TestCase):
         self.assertEqual(result.reference_id, "TNG20260830123456")
         self.assertEqual(result.wallet_transaction_type, "payment")
         self.assertEqual(result.transactions[0].amount, 25.5)
+        # total_amount wasn't in the payload — falls back to the transaction sum
+        # instead of showing RM0.00 (see the omitted-total_amount test below for
+        # the multi-transaction case).
+        self.assertEqual(result.total_amount, 25.5)
+
+    def test_ewallet_screenshot_falls_back_to_transaction_sum_when_total_amount_omitted(self) -> None:
+        raw = (
+            '{"document_type": "ewallet_screenshot", "wallet_provider": "mae", '
+            '"transactions": ['
+            '{"merchant": "Grocer", "amount": 12.3, "transaction_type": "debit", "category": "groceries", "date": "", "note": ""}, '
+            '{"merchant": "Grocer", "amount": 7.7, "transaction_type": "debit", "category": "groceries", "date": "", "note": ""}'
+            ']}'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.total_amount, 20.0)
+
+    def test_ewallet_screenshot_total_amount_stays_zero_with_no_transactions(self) -> None:
+        raw = '{"document_type": "ewallet_screenshot", "wallet_provider": "grabpay", "transactions": []}'
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.total_amount, 0)
+
+    def test_receipt_total_amount_is_not_overridden_by_transaction_sum(self) -> None:
+        # Receipt mode keeps its existing behavior: total_amount is whatever
+        # the model reports (e.g. after tax/discount), not a transaction sum.
+        raw = (
+            '{"document_type": "receipt", "store_name": "Guardian", "total_amount": 0, '
+            '"transactions": [{"merchant": "Guardian", "amount": 18.5, "transaction_type": "debit", '
+            '"category": "health", "date": "", "note": ""}]}'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.total_amount, 0)
 
     def test_ewallet_screenshot_detected_from_prose_wrapped_json_without_fences(self) -> None:
         raw = (
