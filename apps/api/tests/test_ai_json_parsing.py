@@ -58,6 +58,49 @@ class OcrVisionResponseParsingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             _parse_vision_response("not json at all")
 
+    def test_parses_ewallet_screenshot_with_wallet_fields(self) -> None:
+        raw = (
+            '```json\n'
+            '{"document_type": "ewallet_screenshot", "wallet_provider": "tng", '
+            '"counterparty": "Ah Beng Trading", "reference_id": "TNG20260830123456", '
+            '"wallet_transaction_type": "payment", '
+            '"transactions": [{"merchant": "Ah Beng Trading", "amount": 25.5, '
+            '"transaction_type": "debit", "category": "food", "date": "2026-08-30", "note": ""}]}'
+            '\n```'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.document_type, "ewallet_screenshot")
+        self.assertEqual(result.wallet_provider, "tng")
+        self.assertEqual(result.counterparty, "Ah Beng Trading")
+        self.assertEqual(result.reference_id, "TNG20260830123456")
+        self.assertEqual(result.wallet_transaction_type, "payment")
+        self.assertEqual(result.transactions[0].amount, 25.5)
+
+    def test_ewallet_screenshot_detected_from_prose_wrapped_json_without_fences(self) -> None:
+        raw = (
+            'This looks like an e-wallet screenshot:\n'
+            '{"document_type": "e-wallet screenshot", "wallet_provider": "grabpay", '
+            '"counterparty": "Grab Driver", "reference_id": "GP987654", '
+            '"wallet_transaction_type": "send", "transactions": []}\n'
+            'Let me know if you need anything else!'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.document_type, "ewallet_screenshot")
+        self.assertEqual(result.wallet_provider, "grabpay")
+
+    def test_unrecognized_wallet_provider_falls_back_to_other(self) -> None:
+        raw = '{"document_type": "ewallet_screenshot", "wallet_provider": "boost", "transactions": []}'
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.wallet_provider, "other")
+
+    def test_receipt_and_bank_statement_leave_wallet_fields_none(self) -> None:
+        receipt = _parse_vision_response('{"document_type": "receipt", "store_name": "Guardian", "transactions": []}')
+        self.assertIsNone(receipt.wallet_provider)
+        self.assertIsNone(receipt.counterparty)
+
+        statement = _parse_vision_response('{"document_type": "bank_statement", "transactions": []}')
+        self.assertIsNone(statement.wallet_provider)
+
 
 class OcrSummaryResponseParsingTests(unittest.TestCase):
     def test_parses_prose_wrapped_json_without_fences(self) -> None:

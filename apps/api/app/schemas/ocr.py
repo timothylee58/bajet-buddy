@@ -39,9 +39,15 @@ class OCRTransaction(BaseModel):
 class OCRScanResult(BaseModel):
     """Structured data extracted by the OCR agent (ChatGPT-4o).
     For receipts: store_name + line_items are populated.
-    For bank statements: transactions list is populated."""
+    For bank statements: transactions list is populated.
+    For e-wallet screenshots (TnG/MAE/GrabPay "Payment Successful" screens):
+    wallet_provider/counterparty/reference_id/wallet_transaction_type are
+    populated instead of store_name — these screens rarely have a store name
+    or itemized line items."""
 
-    document_type: Literal["receipt", "bank_statement"] = Field(default="receipt")
+    document_type: Literal["receipt", "bank_statement", "ewallet_screenshot"] = Field(
+        default="receipt"
+    )
     store_name: str = Field(default="", description="Merchant name (receipt mode)")
     total_amount: float = Field(
         default=0.0, description="Total receipt amount (receipt mode)"
@@ -55,6 +61,20 @@ class OCRScanResult(BaseModel):
         description="All extracted transactions (always populated)",
     )
     raw_text: str = Field(default="", description="Raw OCR text for debugging")
+
+    # ── E-wallet screenshot mode only (all optional; None for receipt/statement) ──
+    wallet_provider: Literal["tng", "mae", "grabpay", "other"] | None = Field(
+        default=None, description="E-wallet provider detected from the screenshot"
+    )
+    counterparty: str | None = Field(
+        default=None, description="Recipient/sender name shown on the confirmation screen"
+    )
+    reference_id: str | None = Field(
+        default=None, description="Transaction reference / receipt number shown on the screen"
+    )
+    wallet_transaction_type: (
+        Literal["send", "receive", "payment", "topup", "bill_payment", "other"] | None
+    ) = Field(default=None, description="Kind of e-wallet transaction")
 
 
 class OCRSpendingSummary(BaseModel):

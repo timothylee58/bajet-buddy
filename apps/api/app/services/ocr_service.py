@@ -26,19 +26,27 @@ logger = logging.getLogger("ocr_service")
 
 # ── Prompts ────────────────────────────────────────────────────────────────────
 
-RECEIPT_SYSTEM_PROMPT = """You are a receipt and bank statement OCR engine for BajetBuddy.
+RECEIPT_SYSTEM_PROMPT = """You are a receipt, bank statement, and e-wallet screenshot OCR engine for BajetBuddy.
 Extract structured transaction data from the image.
 
-First, determine the document type: "receipt" or "bank_statement".
+First, determine the document type: "receipt", "bank_statement", or "ewallet_screenshot".
+"ewallet_screenshot" is a Malaysian e-wallet app's "Payment Successful" / "Transfer Successful" /
+"Top Up Successful" confirmation screen (Touch 'n Go eWallet, MAE by Maybank, GrabPay, etc.) —
+recognizable by the wallet app's branding/logo, a big checkmark/success icon, a counterparty name,
+and a transaction reference number, but usually NO itemized line items or store name.
 
 Return a valid JSON object:
 {
-  "document_type": "receipt" or "bank_statement",
+  "document_type": "receipt" or "bank_statement" or "ewallet_screenshot",
   "store_name": "for receipts: merchant name",
   "total_amount": for receipts: total in RM as float,
+  "wallet_provider": "for ewallet_screenshot only: tng|mae|grabpay|other, else omit",
+  "counterparty": "for ewallet_screenshot only: the recipient/sender name shown, else omit",
+  "reference_id": "for ewallet_screenshot only: the transaction reference/receipt number shown, else omit",
+  "wallet_transaction_type": "for ewallet_screenshot only: send|receive|payment|topup|bill_payment|other, else omit",
   "transactions": [
     {
-      "merchant": "store or payee name",
+      "merchant": "store/payee name, or the counterparty for ewallet_screenshot",
       "amount": amount in RM as POSITIVE float (always positive),
       "transaction_type": "debit" or "credit",
       "category": "food|groceries|shopping|transport|utilities|health|entertainment|income|other",
@@ -54,6 +62,7 @@ transaction_type rules:
 - "credit" = money RECEIVED (salary, refunds, transfers in, deposits)
 - Bank statements label debits/credits per row — respect those labels.
 - Receipts are always debit.
+- E-wallet screenshots: "send"/"payment"/"topup"/"bill_payment" are debit; "receive" is credit.
 
 Category mapping:
 - food: restaurants, cafes, mamak, foodpanda, GrabFood
@@ -351,7 +360,28 @@ def _parse_vision_response(raw_text: str) -> OCRScanResult:
     ]
 
     raw_doc_type = str(data.get("document_type") or "receipt").lower()
-    doc_type = "bank_statement" if "bank" in raw_doc_type or "statement" in raw_doc_type else "receipt"
+    if "wallet" in raw_doc_type or "screenshot" in raw_doc_type:
+        doc_type = "ewallet_screenshot"
+    elif "bank" in raw_doc_type or "statement" in raw_doc_type:
+        doc_type = "bank_statement"
+    else:
+        doc_type = "receipt"
+
+    wallet_provider = None
+    counterparty = None
+    reference_id = None
+    wallet_transaction_type = None
+    if doc_type == "ewallet_screenshot":
+        raw_provider = str(data.get("wallet_provider") or "other").lower()
+        wallet_provider = raw_provider if raw_provider in {"tng", "mae", "grabpay"} else "other"
+        counterparty = str(data.get("counterparty") or "") or None
+        reference_id = str(data.get("reference_id") or "") or None
+        raw_wallet_txn_type = str(data.get("wallet_transaction_type") or "other").lower()
+        wallet_transaction_type = (
+            raw_wallet_txn_type
+            if raw_wallet_txn_type in {"send", "receive", "payment", "topup", "bill_payment"}
+            else "other"
+        )
 
     return OCRScanResult(
         document_type=doc_type,
@@ -360,6 +390,10 @@ def _parse_vision_response(raw_text: str) -> OCRScanResult:
         line_items=list(transactions),
         transactions=transactions,
         raw_text=str(data.get("raw_text") or clean[:500]),
+        wallet_provider=wallet_provider,
+        counterparty=counterparty,
+        reference_id=reference_id,
+        wallet_transaction_type=wallet_transaction_type,
     )
 
 

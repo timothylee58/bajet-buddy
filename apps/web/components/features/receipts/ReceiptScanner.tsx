@@ -13,6 +13,7 @@ import {
   Sparkles,
   Receipt,
   Landmark,
+  Wallet,
   TrendingDown,
   TrendingUp,
   Lightbulb,
@@ -36,6 +37,13 @@ const CATEGORY_EMOJI: Record<string, string> = {
   entertainment: "🎬",
   income: "💰",
   other: "📦",
+};
+
+const WALLET_PROVIDER_LABEL: Record<string, string> = {
+  tng: "Touch 'n Go eWallet",
+  mae: "MAE by Maybank",
+  grabpay: "GrabPay",
+  other: "E-Wallet",
 };
 
 function TxnRow({ txn, idx }: { txn: OCRTransaction; idx: number }) {
@@ -330,13 +338,21 @@ export function ReceiptScanner() {
             {/* Doc type + store header */}
             <div className="flex items-center gap-3 rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#BA6200]/10 text-2xl">
-                {scanResult.document_type === "receipt" ? <Receipt className="h-6 w-6 text-[#BA6200]" /> : <Landmark className="h-6 w-6 text-[#BA6200]" />}
+                {scanResult.document_type === "receipt" ? (
+                  <Receipt className="h-6 w-6 text-[#BA6200]" />
+                ) : scanResult.document_type === "ewallet_screenshot" ? (
+                  <Wallet className="h-6 w-6 text-[#BA6200]" />
+                ) : (
+                  <Landmark className="h-6 w-6 text-[#BA6200]" />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="truncate text-lg font-bold text-zinc-900">
                   {scanResult.document_type === "receipt"
                     ? scanResult.store_name || "Receipt"
-                    : "Bank Statement"}
+                    : scanResult.document_type === "ewallet_screenshot"
+                      ? scanResult.counterparty || WALLET_PROVIDER_LABEL[scanResult.wallet_provider || "other"]
+                      : "Bank Statement"}
                 </p>
                 <p className="text-sm text-zinc-500">
                   {scanResult.transactions.length} transactions · RM{scanResult.total_amount.toFixed(2)}
