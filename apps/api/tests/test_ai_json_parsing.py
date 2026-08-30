@@ -58,6 +58,126 @@ class OcrVisionResponseParsingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             _parse_vision_response("not json at all")
 
+    def test_parses_ewallet_screenshot_with_wallet_fields(self) -> None:
+        raw = (
+            '```json\n'
+            '{"document_type": "ewallet_screenshot", "wallet_provider": "tng", '
+            '"counterparty": "Ah Beng Trading", "reference_id": "TNG20260830123456", '
+            '"wallet_transaction_type": "payment", '
+            '"transactions": [{"merchant": "Ah Beng Trading", "amount": 25.5, '
+            '"transaction_type": "debit", "category": "food", "date": "2026-08-30", "note": ""}]}'
+            '\n```'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.document_type, "ewallet_screenshot")
+        self.assertEqual(result.wallet_provider, "tng")
+        self.assertEqual(result.counterparty, "Ah Beng Trading")
+        self.assertEqual(result.reference_id, "TNG20260830123456")
+        self.assertEqual(result.wallet_transaction_type, "payment")
+        self.assertEqual(result.transactions[0].amount, 25.5)
+        # total_amount wasn't in the payload — falls back to the transaction sum
+        # instead of showing RM0.00 (see the omitted-total_amount test below for
+        # the multi-transaction case).
+        self.assertEqual(result.total_amount, 25.5)
+
+    def test_ewallet_screenshot_falls_back_to_transaction_sum_when_total_amount_omitted(self) -> None:
+        raw = (
+            '{"document_type": "ewallet_screenshot", "wallet_provider": "mae", '
+            '"transactions": ['
+            '{"merchant": "Grocer", "amount": 12.3, "transaction_type": "debit", "category": "groceries", "date": "", "note": ""}, '
+            '{"merchant": "Grocer", "amount": 7.7, "transaction_type": "debit", "category": "groceries", "date": "", "note": ""}'
+            ']}'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.total_amount, 20.0)
+
+    def test_ewallet_screenshot_total_amount_stays_zero_with_no_transactions(self) -> None:
+        raw = '{"document_type": "ewallet_screenshot", "wallet_provider": "grabpay", "transactions": []}'
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.total_amount, 0)
+
+    def test_receipt_total_amount_is_not_overridden_by_transaction_sum(self) -> None:
+        # Receipt mode keeps its existing behavior: total_amount is whatever
+        # the model reports (e.g. after tax/discount), not a transaction sum.
+        raw = (
+            '{"document_type": "receipt", "store_name": "Guardian", "total_amount": 0, '
+            '"transactions": [{"merchant": "Guardian", "amount": 18.5, "transaction_type": "debit", '
+            '"category": "health", "date": "", "note": ""}]}'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.total_amount, 0)
+
+    def test_ewallet_receive_forces_transaction_row_to_credit_even_if_model_said_debit(self) -> None:
+        # The confirmation screen's overall direction is more reliable than a
+        # per-row transaction_type the model may get wrong — receiving money
+        # must never be saved as a debit (money spent).
+        raw = (
+            '{"document_type": "ewallet_screenshot", "wallet_provider": "mae", '
+            '"wallet_transaction_type": "receive", '
+            '"transactions": [{"merchant": "Ah Beng", "amount": 50, '
+            '"transaction_type": "debit", "category": "income", "date": "", "note": ""}]}'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.transactions[0].transaction_type, "credit")
+
+    def test_ewallet_payment_forces_transaction_row_to_debit(self) -> None:
+        raw = (
+            '{"document_type": "ewallet_screenshot", "wallet_provider": "tng", '
+            '"wallet_transaction_type": "payment", '
+            '"transactions": [{"merchant": "Ah Beng", "amount": 12, '
+            '"transaction_type": "credit", "category": "food", "date": "", "note": ""}]}'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.transactions[0].transaction_type, "debit")
+
+    def test_ewallet_unrecognized_wallet_transaction_type_preserves_row_direction(self) -> None:
+        # An omitted/unrecognized wallet_transaction_type ("other") must not
+        # blindly force every row to debit — that would flip a correctly
+        # extracted credit row to the wrong direction.
+        raw = (
+            '{"document_type": "ewallet_screenshot", "wallet_provider": "tng", '
+            '"wallet_transaction_type": "some_unrecognized_value", '
+            '"transactions": [{"merchant": "Ah Beng", "amount": 30, '
+            '"transaction_type": "credit", "category": "income", "date": "", "note": ""}]}'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.wallet_transaction_type, "other")
+        self.assertEqual(result.transactions[0].transaction_type, "credit")
+
+    def test_receipt_described_as_a_screenshot_is_not_misclassified_as_ewallet(self) -> None:
+        # A photo of a receipt can legitimately be described as "a screenshot
+        # of a receipt" — only "wallet" in the string should trigger e-wallet
+        # classification, not "screenshot" alone.
+        raw = '{"document_type": "receipt screenshot", "store_name": "Guardian", "transactions": []}'
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.document_type, "receipt")
+        self.assertIsNone(result.wallet_provider)
+
+    def test_ewallet_screenshot_detected_from_prose_wrapped_json_without_fences(self) -> None:
+        raw = (
+            'This looks like an e-wallet screenshot:\n'
+            '{"document_type": "e-wallet screenshot", "wallet_provider": "grabpay", '
+            '"counterparty": "Grab Driver", "reference_id": "GP987654", '
+            '"wallet_transaction_type": "send", "transactions": []}\n'
+            'Let me know if you need anything else!'
+        )
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.document_type, "ewallet_screenshot")
+        self.assertEqual(result.wallet_provider, "grabpay")
+
+    def test_unrecognized_wallet_provider_falls_back_to_other(self) -> None:
+        raw = '{"document_type": "ewallet_screenshot", "wallet_provider": "boost", "transactions": []}'
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.wallet_provider, "other")
+
+    def test_receipt_and_bank_statement_leave_wallet_fields_none(self) -> None:
+        receipt = _parse_vision_response('{"document_type": "receipt", "store_name": "Guardian", "transactions": []}')
+        self.assertIsNone(receipt.wallet_provider)
+        self.assertIsNone(receipt.counterparty)
+
+        statement = _parse_vision_response('{"document_type": "bank_statement", "transactions": []}')
+        self.assertIsNone(statement.wallet_provider)
+
 
 class OcrSummaryResponseParsingTests(unittest.TestCase):
     def test_parses_prose_wrapped_json_without_fences(self) -> None:

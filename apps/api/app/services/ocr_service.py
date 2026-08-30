@@ -26,19 +26,27 @@ logger = logging.getLogger("ocr_service")
 
 # ── Prompts ────────────────────────────────────────────────────────────────────
 
-RECEIPT_SYSTEM_PROMPT = """You are a receipt and bank statement OCR engine for BajetBuddy.
+RECEIPT_SYSTEM_PROMPT = """You are a receipt, bank statement, and e-wallet screenshot OCR engine for BajetBuddy.
 Extract structured transaction data from the image.
 
-First, determine the document type: "receipt" or "bank_statement".
+First, determine the document type: "receipt", "bank_statement", or "ewallet_screenshot".
+"ewallet_screenshot" is a Malaysian e-wallet app's "Payment Successful" / "Transfer Successful" /
+"Top Up Successful" confirmation screen (Touch 'n Go eWallet, MAE by Maybank, GrabPay, etc.) —
+recognizable by the wallet app's branding/logo, a big checkmark/success icon, a counterparty name,
+and a transaction reference number, but usually NO itemized line items or store name.
 
 Return a valid JSON object:
 {
-  "document_type": "receipt" or "bank_statement",
+  "document_type": "receipt" or "bank_statement" or "ewallet_screenshot",
   "store_name": "for receipts: merchant name",
-  "total_amount": for receipts: total in RM as float,
+  "total_amount": total in RM as float — for receipts the receipt total, for ewallet_screenshot the payment amount shown,
+  "wallet_provider": "for ewallet_screenshot only: tng|mae|grabpay|other, else omit",
+  "counterparty": "for ewallet_screenshot only: the recipient/sender name shown, else omit",
+  "reference_id": "for ewallet_screenshot only: the transaction reference/receipt number shown, else omit",
+  "wallet_transaction_type": "for ewallet_screenshot only: send|receive|payment|topup|bill_payment|other, else omit",
   "transactions": [
     {
-      "merchant": "store or payee name",
+      "merchant": "store/payee name, or the counterparty for ewallet_screenshot",
       "amount": amount in RM as POSITIVE float (always positive),
       "transaction_type": "debit" or "credit",
       "category": "food|groceries|shopping|transport|utilities|health|entertainment|income|other",
@@ -54,6 +62,7 @@ transaction_type rules:
 - "credit" = money RECEIVED (salary, refunds, transfers in, deposits)
 - Bank statements label debits/credits per row — respect those labels.
 - Receipts are always debit.
+- E-wallet screenshots: "send"/"payment"/"topup"/"bill_payment" are debit; "receive" is credit.
 
 Category mapping:
 - food: restaurants, cafes, mamak, foodpanda, GrabFood
@@ -338,6 +347,47 @@ def _parse_vision_response(raw_text: str) -> OCRScanResult:
     except json.JSONDecodeError as e:
         raise ValueError(f"Failed to parse OCR response as JSON: {e}. Raw: {clean[:500]}")
 
+    raw_doc_type = str(data.get("document_type") or "receipt").lower()
+    # Match on "wallet" only, not "screenshot" — a receipt or bank statement
+    # can legitimately be described as "a screenshot of a receipt" and would
+    # otherwise get mislabeled as an e-wallet payment.
+    if "wallet" in raw_doc_type:
+        doc_type = "ewallet_screenshot"
+    elif "bank" in raw_doc_type or "statement" in raw_doc_type:
+        doc_type = "bank_statement"
+    else:
+        doc_type = "receipt"
+
+    wallet_provider = None
+    counterparty = None
+    reference_id = None
+    wallet_transaction_type = None
+    if doc_type == "ewallet_screenshot":
+        raw_provider = str(data.get("wallet_provider") or "other").lower()
+        wallet_provider = raw_provider if raw_provider in {"tng", "mae", "grabpay"} else "other"
+        counterparty = str(data.get("counterparty") or "") or None
+        reference_id = str(data.get("reference_id") or "") or None
+        raw_wallet_txn_type = str(data.get("wallet_transaction_type") or "other").lower()
+        wallet_transaction_type = (
+            raw_wallet_txn_type
+            if raw_wallet_txn_type in {"send", "receive", "payment", "topup", "bill_payment"}
+            else "other"
+        )
+
+    # For e-wallet screenshots, the confirmation screen's direction
+    # (wallet_transaction_type) is a more reliable signal than a per-row
+    # transaction_type the model may omit or get wrong — "receive" always
+    # means credit, send/payment/topup/bill_payment are always debit. Only
+    # force a direction for those recognized types; an omitted/unrecognized
+    # ("other") wallet_transaction_type falls back to the row's own value
+    # instead of blindly forcing debit. Receipt/bank_statement rows are
+    # never touched here.
+    forced_row_direction = None
+    if wallet_transaction_type == "receive":
+        forced_row_direction = "credit"
+    elif wallet_transaction_type in {"send", "payment", "topup", "bill_payment"}:
+        forced_row_direction = "debit"
+
     transactions: list[OCRTransaction] = [
         OCRTransaction(
             merchant=str(t.get("merchant") or ""),
@@ -345,21 +395,29 @@ def _parse_vision_response(raw_text: str) -> OCRScanResult:
             category=str(t.get("category") or "other"),
             date=str(t.get("date") or ""),
             note=str(t.get("note") or ""),
-            transaction_type=str(t.get("transaction_type") or "debit"),
+            transaction_type=forced_row_direction or str(t.get("transaction_type") or "debit"),
         )
         for t in data.get("transactions", []) or []
     ]
 
-    raw_doc_type = str(data.get("document_type") or "receipt").lower()
-    doc_type = "bank_statement" if "bank" in raw_doc_type or "statement" in raw_doc_type else "receipt"
+    total_amount = float(data.get("total_amount") or 0)
+    if total_amount == 0 and doc_type == "ewallet_screenshot" and transactions:
+        # The prompt only asks the model for total_amount in receipt mode; for
+        # e-wallet screenshots (usually a single payment) fall back to the sum
+        # of extracted transactions rather than showing RM0.00.
+        total_amount = round(sum(t.amount for t in transactions), 2)
 
     return OCRScanResult(
         document_type=doc_type,
         store_name=str(data.get("store_name") or ""),
-        total_amount=float(data.get("total_amount") or 0),
+        total_amount=total_amount,
         line_items=list(transactions),
         transactions=transactions,
         raw_text=str(data.get("raw_text") or clean[:500]),
+        wallet_provider=wallet_provider,
+        counterparty=counterparty,
+        reference_id=reference_id,
+        wallet_transaction_type=wallet_transaction_type,
     )
 
 

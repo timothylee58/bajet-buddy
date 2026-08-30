@@ -21,3 +21,10 @@ export {
   LEVELS,
   type CategoryId,
 } from "@bajetbuddy/shared";
+
+export const WALLET_PROVIDER_LABEL: Record<string, string> = {
+  tng: "Touch 'n Go eWallet",
+  mae: "MAE by Maybank",
+  grabpay: "GrabPay",
+  other: "E-Wallet",
+};

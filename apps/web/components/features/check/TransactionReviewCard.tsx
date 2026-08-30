@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Edit2, X, Store, CreditCard, Tag, Calendar, Database, CheckCircle2, AlertCircle, Zap, ScanLine, Receipt, Landmark, Trash2, Plus } from "lucide-react";
+import { Check, Edit2, X, Store, CreditCard, Tag, Calendar, Database, CheckCircle2, AlertCircle, Zap, ScanLine, Receipt, Landmark, Wallet, Trash2, Plus } from "lucide-react";
 import { motion } from "framer-motion";
+import { WALLET_PROVIDER_LABEL } from "@/lib/constants";
 import type { OCRScanResponse, OCRTransaction } from "@/types";
 
 interface TransactionReviewCardProps {
@@ -23,10 +24,18 @@ export function TransactionReviewCard({
   onCancel,
 }: TransactionReviewCardProps) {
   const result = scanResponse.scan_result!;
+  const isEwallet = result.document_type === "ewallet_screenshot";
   const [transactions, setTransactions] = useState<OCRTransaction[]>(
     result.transactions.length > 0
       ? result.transactions.map(t => ({ ...t }))
-      : [{ merchant: result.store_name || "", amount: result.total_amount || 0, category: "other", date: "", note: "", transaction_type: "debit" as const }]
+      : [{
+          merchant: (isEwallet ? result.counterparty : result.store_name) || "",
+          amount: result.total_amount || 0,
+          category: "other",
+          date: "",
+          note: isEwallet && result.reference_id ? `Ref: ${result.reference_id}` : "",
+          transaction_type: isEwallet && result.wallet_transaction_type === "receive" ? "credit" as const : "debit" as const,
+        }]
   );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editField, setEditField] = useState<{ key: keyof OCRTransaction; value: string } | null>(null);
@@ -77,7 +86,17 @@ export function TransactionReviewCard({
   };
 
   const isReceipt = result.document_type === "receipt";
-  const DocIcon = isReceipt ? Receipt : Landmark;
+  const DocIcon = isEwallet ? Wallet : isReceipt ? Receipt : Landmark;
+  const docLabel = isEwallet
+    ? WALLET_PROVIDER_LABEL[result.wallet_provider || "other"]
+    : isReceipt
+      ? "Receipt"
+      : "Bank Statement";
+  const docTitle = isEwallet
+    ? result.counterparty || docLabel
+    : isReceipt
+      ? result.store_name || "Receipt"
+      : "Bank Statement";
 
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 p-4 backdrop-blur-sm">
@@ -94,10 +113,11 @@ export function TransactionReviewCard({
                 <DocIcon size={24} className="text-brand" />
                 <div>
                   <h3 className="text-xl font-bold text-zinc-900">
-                    {isReceipt ? result.store_name || "Receipt" : "Bank Statement"}
+                    {docTitle}
                   </h3>
                   <p className="text-xs text-zinc-400">
                     {transactions.length} transaction{transactions.length !== 1 ? "s" : ""} detected
+                    {isEwallet && result.reference_id ? ` · Ref: ${result.reference_id}` : ""}
                   </p>
                 </div>
               </div>
@@ -108,10 +128,10 @@ export function TransactionReviewCard({
 
             {/* Document type pill */}
             <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
-              isReceipt ? "bg-blue-50 text-blue-700" : "bg-purple-50 text-purple-700"
+              isEwallet ? "bg-emerald-50 text-emerald-700" : isReceipt ? "bg-blue-50 text-blue-700" : "bg-purple-50 text-purple-700"
             }`}>
               <DocIcon size={14} />
-              {isReceipt ? "Receipt" : "Bank Statement"}
+              {docLabel}
             </div>
 
             {/* Transaction list */}

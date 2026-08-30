@@ -408,12 +408,24 @@ export interface OCRTransaction {
 }
 
 export interface OCRScanResult {
-  document_type: "receipt" | "bank_statement";
+  document_type: "receipt" | "bank_statement" | "ewallet_screenshot";
   store_name: string;
   total_amount: number;
   line_items: OCRTransaction[];
   transactions: OCRTransaction[];
   raw_text: string;
+  /** E-wallet screenshot mode only (TnG/MAE/GrabPay) — null for receipt/bank_statement */
+  wallet_provider: "tng" | "mae" | "grabpay" | "other" | null;
+  counterparty: string | null;
+  reference_id: string | null;
+  wallet_transaction_type:
+    | "send"
+    | "receive"
+    | "payment"
+    | "topup"
+    | "bill_payment"
+    | "other"
+    | null;
 }
 
 export interface OCRInsertResult {
