@@ -40,7 +40,7 @@ export function TransactionReviewCard({
           category: "other",
           date: "",
           note: isEwallet && result.reference_id ? `Ref: ${result.reference_id}` : "",
-          transaction_type: "debit" as const,
+          transaction_type: isEwallet && result.wallet_transaction_type === "receive" ? "credit" as const : "debit" as const,
         }]
   );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);

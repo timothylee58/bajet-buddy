@@ -107,6 +107,15 @@ class OcrVisionResponseParsingTests(unittest.TestCase):
         result = _parse_vision_response(raw)
         self.assertEqual(result.total_amount, 0)
 
+    def test_receipt_described_as_a_screenshot_is_not_misclassified_as_ewallet(self) -> None:
+        # A photo of a receipt can legitimately be described as "a screenshot
+        # of a receipt" — only "wallet" in the string should trigger e-wallet
+        # classification, not "screenshot" alone.
+        raw = '{"document_type": "receipt screenshot", "store_name": "Guardian", "transactions": []}'
+        result = _parse_vision_response(raw)
+        self.assertEqual(result.document_type, "receipt")
+        self.assertIsNone(result.wallet_provider)
+
     def test_ewallet_screenshot_detected_from_prose_wrapped_json_without_fences(self) -> None:
         raw = (
             'This looks like an e-wallet screenshot:\n'

@@ -360,7 +360,10 @@ def _parse_vision_response(raw_text: str) -> OCRScanResult:
     ]
 
     raw_doc_type = str(data.get("document_type") or "receipt").lower()
-    if "wallet" in raw_doc_type or "screenshot" in raw_doc_type:
+    # Match on "wallet" only, not "screenshot" — a receipt or bank statement
+    # can legitimately be described as "a screenshot of a receipt" and would
+    # otherwise get mislabeled as an e-wallet payment.
+    if "wallet" in raw_doc_type:
         doc_type = "ewallet_screenshot"
     elif "bank" in raw_doc_type or "statement" in raw_doc_type:
         doc_type = "bank_statement"
