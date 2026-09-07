@@ -155,7 +155,7 @@ export function ReceiptScanner() {
       <div className="pt-2 text-center">
         <div className="inline-flex items-center gap-2 rounded-full bg-[#BA6200]/10 px-4 py-1.5 text-sm font-semibold text-[#BA6200] mb-3">
           <ScanLine className="h-4 w-4" />
-          Agent 4 — Receipt Scanner
+          Kakak Resit — Receipt Scanner
         </div>
         <h1 className="text-2xl font-bold text-zinc-900">Scan Receipt</h1>
         <p className="mt-1 text-sm text-zinc-500">

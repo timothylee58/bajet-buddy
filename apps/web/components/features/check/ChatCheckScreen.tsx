@@ -95,7 +95,7 @@ function VerdictChatCard({ msg, result }: { msg: ChatMessage; result: CheckRespo
         )}
       </div>
 
-      {/* Agent 2: 3-way trade-off options */}
+      {/* Abang Bajet: 3-way trade-off options */}
       <div className="space-y-2 mb-3">
         <p className="text-xs font-semibold text-muted uppercase tracking-wide">Finance Planner Negotiation</p>
 

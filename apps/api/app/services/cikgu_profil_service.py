@@ -8,11 +8,11 @@ from openai import AsyncOpenAI
 
 from app.core.config import get_settings
 from app.core.database import get_supabase
-from app.schemas.agent1 import Agent1ProfileResponse, SpendingSignal
+from app.schemas.cikgu_profil import CikguProfilResponse, SpendingSignal
 
 MIN_TRANSACTIONS = 10
 
-AGENT1_SYSTEM_PROMPT = """You are Agent 1 "Character Assigner" for BajetBuddy, a Malaysian personal finance app.
+CIKGU_PROFIL_SYSTEM_PROMPT = """You are Cikgu Profil "Character Assigner" for BajetBuddy, a Malaysian personal finance app.
 Analyse a user's transaction history and assign a financial persona.
 
 Available persona classes:
@@ -42,14 +42,14 @@ Return a valid JSON object:
 Be honest: if the data is sparse or mixed, set confidence lower. Don't force a persona if patterns aren't clear."""
 
 
-async def run_agent1_profile(user_id: str = "00000000-0000-0000-0000-000000000001") -> Agent1ProfileResponse:
+async def run_cikgu_profil(user_id: str = "00000000-0000-0000-0000-000000000001") -> CikguProfilResponse:
     t0 = time.monotonic()
     settings = get_settings()
 
     # 1. Fetch transactions from Supabase
     supabase = get_supabase()
     if supabase is None:
-        return Agent1ProfileResponse(
+        return CikguProfilResponse(
             status="error", error="Supabase not available",
             min_required=MIN_TRANSACTIONS,
         )
@@ -77,14 +77,14 @@ async def run_agent1_profile(user_id: str = "00000000-0000-0000-0000-00000000000
 
         transactions = result.data if hasattr(result, "data") and result.data else []
     except Exception as e:
-        return Agent1ProfileResponse(
+        return CikguProfilResponse(
             status="error", error=f"DB fetch failed: {e}",
             min_required=MIN_TRANSACTIONS,
         )
 
     # 2. Check minimum data threshold
     if len(transactions) < MIN_TRANSACTIONS:
-        return Agent1ProfileResponse(
+        return CikguProfilResponse(
             status="insufficient_data",
             transaction_count=len(transactions),
             min_required=MIN_TRANSACTIONS,
@@ -129,7 +129,7 @@ async def run_agent1_profile(user_id: str = "00000000-0000-0000-0000-00000000000
 
     # 4. Call DeepSeek for persona analysis
     if not settings.deepseek_api_key:
-        return Agent1ProfileResponse(
+        return CikguProfilResponse(
             status="error",
             error="DEEPSEEK_API_KEY not configured",
             transaction_count=len(transactions),
@@ -144,13 +144,13 @@ async def run_agent1_profile(user_id: str = "00000000-0000-0000-0000-00000000000
             try:
                 analysis = await _call_openai_analysis(transaction_summary, settings)
             except Exception as e2:
-                return Agent1ProfileResponse(
+                return CikguProfilResponse(
                     status="error", error=f"AI analysis failed: {e2}",
                     transaction_count=len(transactions),
                     processing_time_ms=round((time.monotonic() - t0) * 1000, 1),
                 )
         else:
-            return Agent1ProfileResponse(
+            return CikguProfilResponse(
                 status="error", error=f"AI analysis failed: {e}",
                 transaction_count=len(transactions),
                 processing_time_ms=round((time.monotonic() - t0) * 1000, 1),
@@ -166,7 +166,7 @@ async def run_agent1_profile(user_id: str = "00000000-0000-0000-0000-00000000000
         for s in analysis.get("signals", []) or []
     ]
 
-    return Agent1ProfileResponse(
+    return CikguProfilResponse(
         status="ok",
         persona_code=analysis.get("persona_code", ""),
         persona_name=analysis.get("persona_name", ""),
@@ -186,7 +186,7 @@ async def _call_deepseek_analysis(summary: str, settings: Any) -> dict[str, Any]
     response = await client.chat.completions.create(
         model="deepseek-chat",
         messages=[
-            {"role": "system", "content": AGENT1_SYSTEM_PROMPT},
+            {"role": "system", "content": CIKGU_PROFIL_SYSTEM_PROMPT},
             {"role": "user", "content": summary},
         ],
         max_tokens=1024,
@@ -201,7 +201,7 @@ async def _call_deepseek_analysis(summary: str, settings: Any) -> dict[str, Any]
 
 # ── Onboarding-specific persona analysis from Q&A answers ──
 
-ONBOARDING_SYSTEM_PROMPT = """You are Agent 1 "Character Assigner" for BajetBuddy, a Malaysian personal finance app.
+ONBOARDING_SYSTEM_PROMPT = """You are Cikgu Profil "Character Assigner" for BajetBuddy, a Malaysian personal finance app.
 A new user just answered 5 onboarding questions. Based solely on these answers, assign them a financial persona.
 
 The 5 questions and their meanings:
@@ -360,7 +360,7 @@ async def _call_openai_analysis(summary: str, settings: Any) -> dict[str, Any]:
     response = await client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": AGENT1_SYSTEM_PROMPT},
+            {"role": "system", "content": CIKGU_PROFIL_SYSTEM_PROMPT},
             {"role": "user", "content": summary},
         ],
         response_format={"type": "json_object"},

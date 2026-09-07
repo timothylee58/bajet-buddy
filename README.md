@@ -293,7 +293,7 @@ http://localhost:8000/docs once the API is running.
 | GET | `/api/recurring` | Detected recurring subscriptions + annual cost |
 | GET | `/api/persona` · POST `/api/persona/analyze` · POST `/api/persona/reroll` | Spending persona |
 | POST | `/api/simulations/future-you` | 6-month cashflow simulation |
-| POST | `/api/agent1/profile` · `/api/agent1/onboard` | Profile & balance agent |
+| POST | `/api/cikgu-profil/profile` · `/api/cikgu-profil/onboard` | Profile & balance agent |
 | GET | `/api/profiling/summary` · POST `/api/profiling/goals/activate` | Progressive profiling |
 | POST | `/api/onboarding/roast` | 5-answer financial persona + roast |
 

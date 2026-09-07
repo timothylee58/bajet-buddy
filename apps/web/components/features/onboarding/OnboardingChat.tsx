@@ -107,7 +107,7 @@ export function OnboardingChat({ onComplete }: OnboardingChatProps) {
           </div>
         </div>
         <div className="flex-1">
-          <h3 className="font-bold tracking-wide text-foreground">Agent 1 · Profile Scanner</h3>
+          <h3 className="font-bold tracking-wide text-foreground">Cikgu Profil · Profile Scanner</h3>
           <p className="text-xs font-medium text-primary-dark flex items-center gap-1.5">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>

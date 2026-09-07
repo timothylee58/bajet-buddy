@@ -34,7 +34,7 @@ export function SentinelReasoningTrace() {
 
   return (
     <div className="bg-white border border-zinc-100 rounded-3xl p-5 shadow-sm">
-      <h2 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-4">Agent 5 Logic Chain</h2>
+      <h2 className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-4">Harga Sentinel Logic Chain</h2>
       <div className="space-y-4">
         {steps.map((step, i) => (
           <div key={step.id} className="relative">

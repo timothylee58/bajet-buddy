@@ -181,7 +181,7 @@ export function ConversationalOnboarding() {
             </div>
             <h2 className="text-2xl font-bold">Snap a receipt or statement 📸</h2>
             <p className="text-sm text-muted leading-relaxed">
-              Agent 4 (OCR) reads your receipts so you don&apos;t have to type.
+              Kakak Resit (OCR) reads your receipts so you don&apos;t have to type.
               Even a screenshot works — it helps sharpen your persona.
             </p>
           </motion.div>
@@ -211,7 +211,7 @@ export function ConversationalOnboarding() {
                 className="w-full rounded-xl bg-primary py-3 font-semibold text-white transition-colors hover:brightness-105 flex items-center justify-center gap-2"
               >
                 <Camera size={18} />
-                Scan with Agent 4
+                Scan with Kakak Resit
               </button>
               <button onClick={() => setScanImage(null)} className="w-full text-xs text-muted hover:text-primary-dark">
                 Choose different file
@@ -222,7 +222,7 @@ export function ConversationalOnboarding() {
           {isScanning && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-5 py-10">
               <Loader2 size={36} className="text-primary animate-spin" />
-              <p className="text-sm font-medium text-foreground">Agent 4 is scanning your receipt...</p>
+              <p className="text-sm font-medium text-foreground">Kakak Resit is scanning your receipt...</p>
               <p className="text-xs text-muted">Extracting merchant, amount, and category</p>
             </motion.div>
           )}

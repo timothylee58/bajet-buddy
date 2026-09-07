@@ -3,8 +3,8 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 
-class Agent1ProfileRequest(BaseModel):
-    """Request to run Agent 1 profiling for a user."""
+class CikguProfilRequest(BaseModel):
+    """Request to run Cikgu Profil profiling for a user."""
     user_id: str = Field(default="demo")
 
 
@@ -26,7 +26,7 @@ class OnboardingAnswersRequest(BaseModel):
 
 
 class OnboardingAnalysisResponse(BaseModel):
-    """Agent 1 analysis of onboarding Q&A."""
+    """Cikgu Profil analysis of onboarding Q&A."""
     status: str = Field(default="ok")  # "ok" | "error"
     persona_code: str = Field(default="")
     persona_name: str = Field(default="")
@@ -41,8 +41,8 @@ class OnboardingAnalysisResponse(BaseModel):
     raw_analysis: str = Field(default="")
 
 
-class Agent1ProfileResponse(BaseModel):
-    """Agent 1 profile analysis result."""
+class CikguProfilResponse(BaseModel):
+    """Cikgu Profil profile analysis result."""
     status: str = Field(default="ok")  # "ok" | "insufficient_data" | "error"
     persona_code: str = Field(default="", description="Persona type code")
     persona_name: str = Field(default="", description="Localised persona name")
