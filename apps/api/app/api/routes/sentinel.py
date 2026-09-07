@@ -42,7 +42,7 @@ async def complete_quest(quest_id: str) -> dict:
 
 @router.post("/scan")
 async def scan_commodities() -> dict:
-    """Agent 5: Scan user transactions → correlate with market news → predict price impact."""
+    """Harga Sentinel: Scan user transactions → correlate with market news → predict price impact."""
     return await sentinel_service.scan_commodities(_DEMO_USER)
 
 

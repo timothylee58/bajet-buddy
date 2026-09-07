@@ -576,7 +576,7 @@ async def complete_quest(user_id: str, quest_id: str) -> dict:
     return {"success": False, "message": "Quest not found", "xp_awarded": 0}
 
 
-# ── Agent 5: Commodity Scanner ──────────────────────────────────────────
+# ── Harga Sentinel: Commodity Scanner ───────────────────────────────────
 
 COMMODITY_CATALOG = [
     {
@@ -685,7 +685,7 @@ def _humanize_fetched_at(fetched_at: str | None) -> str | None:
 
 
 async def scan_commodities(user_id: str) -> dict:
-    """Agent 5 steps:
+    """Harga Sentinel steps:
     1. Check user's recent transactions for affected categories
     2. Correlate with current market news/price data
     3. Return commodity cards with personalized predictions

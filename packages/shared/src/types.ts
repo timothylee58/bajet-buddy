@@ -397,7 +397,7 @@ export interface UnlockableAgent {
   progress_label: string;
 }
 
-// ─── OCR (Agent 4: Receipt Scanner) ──────────────────────────────────────────
+// ─── OCR (Kakak Resit: Receipt Scanner) ──────────────────────────────────
 export interface OCRTransaction {
   merchant: string;
   amount: number;

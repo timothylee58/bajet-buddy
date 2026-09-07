@@ -107,7 +107,7 @@ export function SentinelDashboard() {
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-1">
           <span className="inline-block text-4xl">🤖</span>
           <h1 className="text-2xl font-black text-zinc-900">
-            Agent 5: Harga Sentinel
+            Harga Sentinel
           </h1>
           <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">
             Macro-Market Intelligence

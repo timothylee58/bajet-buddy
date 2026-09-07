@@ -48,7 +48,7 @@ const FEATURES = [
     bg: "bg-secondary-light",
     color: "text-secondary-dark",
     title: "Snap Receipts Instantly",
-    desc: "Photo your receipt and Agent 4 extracts merchant, amount, and category automatically. No typing needed.",
+    desc: "Photo your receipt and Kakak Resit extracts merchant, amount, and category automatically. No typing needed.",
   },
   {
     emoji: "📊",

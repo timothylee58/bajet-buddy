@@ -185,7 +185,7 @@ export async function activateProfilingGoal(
   return response.summary;
 }
 
-/** POST /api/ocr/scan — Agent 4: Receipt Scanner (base64 JSON path) */
+/** POST /api/ocr/scan — Kakak Resit: Receipt Scanner (base64 JSON path) */
 export async function scanReceipt(imageBase64: string): Promise<OCRScanResponse> {
   return apiFetch<OCRScanResponse>("/api/ocr/scan", {
     method: "POST",

@@ -60,7 +60,7 @@ export function GuestOnboardingFlow({ onComplete }: GuestOnboardingFlowProps) {
     setStep("analyzing");
     await new Promise(r => setTimeout(r, 200)); // let React paint
 
-    // Call Agent 1 with Q&A + real transactions
+    // Call Cikgu Profil with Q&A + real transactions
     await runCombinedAnalysis(answers, txns, xpEarned, true);
 
     // Save transactions to guest state
@@ -119,14 +119,14 @@ export function GuestOnboardingFlow({ onComplete }: GuestOnboardingFlowProps) {
     };
 
     try {
-      const res = await fetch("/api/agent1/onboard", {
+      const res = await fetch("/api/cikgu-profil/onboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(apiPayload),
       });
       if (res.ok) {
         const data = await res.json();
-        console.log("[AGENT 1] Response:", data.status, data.persona_code || "no code");
+        console.log("[CIKGU PROFIL] Response:", data.status, data.persona_code || "no code");
         if (data.status === "ok" && data.persona_code) {
           personaData = {
             from_api: true,
@@ -152,7 +152,7 @@ export function GuestOnboardingFlow({ onComplete }: GuestOnboardingFlowProps) {
         }
       }
     } catch (err: unknown) {
-      console.error("[AGENT 1] API call failed:", err instanceof Error ? err.message : err);
+      console.error("[CIKGU PROFIL] API call failed:", err instanceof Error ? err.message : err);
       // API down or network error — use local fallback
     }
 
@@ -178,7 +178,7 @@ export function GuestOnboardingFlow({ onComplete }: GuestOnboardingFlowProps) {
 
     // Debug dump
     const debugDump = {
-      agent: "Agent 1 — Profile Scanner",
+      agent: "Cikgu Profil — Profile Scanner",
       data_sources: hasRealData
         ? "Q&A + bank statement transactions"
         : "Q&A only (no real transactions — confidence reduced)",
@@ -190,7 +190,7 @@ export function GuestOnboardingFlow({ onComplete }: GuestOnboardingFlowProps) {
         ? "Assigned by DeepSeek AI (real API)"
         : "Assigned locally (API unavailable — using fallback rules)",
     };
-    console.log("[AGENT 1] Combined analysis:", debugDump);
+    console.log("[CIKGU PROFIL] Combined analysis:", debugDump);
 
     setStep("roast");
   };
@@ -264,7 +264,7 @@ function AnalyzingAnimation() {
     "Reading your financial DNA...",
     "Cross-referencing spending patterns...",
     "Comparing with 10,000 Malaysian profiles...",
-    "Agent 1 is building your persona...",
+    "Cikgu Profil is building your persona...",
     "Almost there...",
   ];
   const [msgIdx, setMsgIdx] = React.useState(0);
@@ -308,7 +308,7 @@ function AnalyzingAnimation() {
 
       {/* Animated text */}
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold text-foreground">Agent 1 analyzing your data</h2>
+        <h2 className="text-2xl font-bold text-foreground">Cikgu Profil analyzing your data</h2>
         <AnimatePresence mode="wait">
           <motion.p
             key={msgIdx}

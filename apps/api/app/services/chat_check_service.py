@@ -205,7 +205,7 @@ def _build_chat_messages(
     verdict_emoji = {"boleh": "✅", "fikir_dulu": "🤔", "jangan_dulu": "❌"}
     emoji = verdict_emoji.get(result.verdict, "🤖")
 
-    # Agent 2: Finance Planner — negotiation intro
+    # Abang Bajet: Finance Planner — negotiation intro
     if result.verdict == "jangan_dulu":
         negotiation_intro = (
             "I ada 3 options for you:\n"
@@ -258,7 +258,7 @@ def _build_chat_messages(
         tags = [friendly_names.get(c, c) for c in result.reason_codes[:4]]
         risk_tags = "🔍 " + " · ".join(tags) + "\n"
 
-    # Agent 2: Finance Planner — negotiation intro
+    # Abang Bajet: Finance Planner — negotiation intro
     if result.verdict == "jangan_dulu":
         negotiation_intro = (
             "I ada 3 options for you:\n"

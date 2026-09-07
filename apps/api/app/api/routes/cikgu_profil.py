@@ -3,33 +3,36 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 
 from app.core.auth import AuthenticatedUser, get_optional_user
-from app.schemas.agent1 import (
-    Agent1ProfileRequest,
-    Agent1ProfileResponse,
+from app.schemas.cikgu_profil import (
+    CikguProfilRequest,
+    CikguProfilResponse,
     OnboardingAnalysisResponse,
     OnboardingAnswersRequest,
 )
-from app.services.agent1_service import analyze_onboarding_answers, run_agent1_profile
+from app.services.cikgu_profil_service import (
+    analyze_onboarding_answers,
+    run_cikgu_profil,
+)
 
 router = APIRouter()
 
 
-@router.post("/profile", response_model=Agent1ProfileResponse)
-async def agent1_profile_endpoint(
-    payload: Agent1ProfileRequest,
+@router.post("/profile", response_model=CikguProfilResponse)
+async def cikgu_profil_endpoint(
+    payload: CikguProfilRequest,
     current_user: AuthenticatedUser | None = Depends(get_optional_user),
-) -> Agent1ProfileResponse:
-    """Agent 1: Profile & Balance Agent — analyse spending habits from DB transactions."""
+) -> CikguProfilResponse:
+    """Cikgu Profil: Profile & Balance Agent — analyse spending habits from DB transactions."""
     user_id = current_user.user_id if current_user and current_user.user_id else payload.user_id
-    return await run_agent1_profile(user_id=user_id)
+    return await run_cikgu_profil(user_id=user_id)
 
 
 @router.post("/onboard", response_model=OnboardingAnalysisResponse)
-async def agent1_onboard_endpoint(
+async def cikgu_profil_onboard_endpoint(
     payload: OnboardingAnswersRequest,
     current_user: AuthenticatedUser | None = Depends(get_optional_user),
 ) -> OnboardingAnalysisResponse:
-    """Agent 1 onboarding: analyse 5 Q&A answers via DeepSeek to assign initial persona."""
+    """Cikgu Profil onboarding: analyse 5 Q&A answers via DeepSeek to assign initial persona."""
     user_id = current_user.user_id if current_user and current_user.user_id else "00000000-0000-0000-0000-000000000001"
     answers = {
         "coffee_boba_weekly_estimate": payload.coffee_boba_weekly_estimate,
