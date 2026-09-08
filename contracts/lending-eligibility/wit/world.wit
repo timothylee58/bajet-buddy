@@ -1,0 +1,22 @@
+package z:lending-eligibility@0.1.0;
+
+// ABI versions are pinned to what wit/deps/ vendors. The host refuses to load a
+// contract importing a version its tenant world does not provide, and that is a
+// load failure at runtime rather than a compile error — so these three must stay
+// in step: this file, wit/deps/, and the target cluster.
+world lending-eligibility {
+  import host:tenant/tenant-context@1.0.0;
+  import host:interfaces/logging@2.1.0;
+
+  export contracts;
+}
+
+interface contracts {
+  record generic-input {
+    input:        option<list<u8>>,
+    user-profile: option<list<u8>>,
+    context:      option<list<u8>>,
+  }
+
+  check-eligibility: func(req: generic-input) -> result<list<u8>, string>;
+}
