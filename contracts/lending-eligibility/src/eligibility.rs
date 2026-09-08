@@ -51,13 +51,16 @@ pub struct Decision {
 
 /// Pure referral-eligibility rules. No host calls, no I/O — the WASM boundary
 /// stays in lib.rs so this stays unit-testable on the native target.
+/// Error strings must never interpolate the applicant's answers: they are
+/// logged by the host and returned to the caller, so an interpolated value
+/// leaves the enclave exactly as a leaked field would.
 fn decide(age: u32, residency: &str) -> Result<Decision, String> {
     if age >= IMPLAUSIBLE_AGE_YEARS {
-        return Err(format!("age {age} is out of range"));
+        return Err("age is out of range".to_string());
     }
 
     let Some(residency) = Residency::parse(residency) else {
-        return Err(format!("unrecognised residency: {residency:?}"));
+        return Err("unrecognised residency".to_string());
     };
 
     if age < MIN_AGE_YEARS {
@@ -90,8 +93,17 @@ fn decide(age: u32, residency: &str) -> Result<Decision, String> {
 /// Parse the JSON request, apply the rules, serialise the response.
 /// `audit_id` is supplied by the caller so this stays free of host calls.
 pub fn check(input: &[u8], audit_id: String) -> Result<Vec<u8>, String> {
-    let req: EligibilityRequest =
-        serde_json::from_slice(input).map_err(|e| format!("invalid request: {e}"))?;
+    // serde's Display echoes the offending value ("invalid value: integer -5"),
+    // which here is applicant PII. Report only the position and category, which
+    // is enough to debug a malformed payload without carrying its contents out.
+    let req: EligibilityRequest = serde_json::from_slice(input).map_err(|e| {
+        format!(
+            "invalid request: {:?} at line {}, column {}",
+            e.classify(),
+            e.line(),
+            e.column()
+        )
+    })?;
 
     let decision = decide(req.age, &req.residency)?;
 
@@ -181,5 +193,36 @@ mod tests {
         let body = String::from_utf8(out).unwrap();
         assert!(!body.contains("42"), "age leaked into the response: {body}");
         assert!(!body.contains("\"residency\""), "residency leaked: {body}");
+    }
+
+    // Error strings are logged by the host and returned to the caller, so they
+    // leave the enclave just as the response body does. Covering only the
+    // success path above missed that, so cover every error path here.
+
+    #[test]
+    fn decide_errors_carry_no_input_values() {
+        let err = decide(133, "citizen").unwrap_err();
+        assert!(!err.contains("133"), "age leaked into an error: {err}");
+
+        let err = decide(30, "atlantean").unwrap_err();
+        assert!(!err.contains("atlantean"), "residency leaked into an error: {err}");
+    }
+
+    #[test]
+    fn deserialisation_errors_carry_no_input_values() {
+        // serde's own message would echo the rejected value; the wrapper must not.
+        let err = check(br#"{"age":-987,"residency":"citizen"}"#, "a".into()).unwrap_err();
+        assert!(!err.contains("987"), "age leaked via the serde error: {err}");
+
+        let err = check(br#"{"age":"seventeen","residency":"citizen"}"#, "a".into()).unwrap_err();
+        assert!(!err.contains("seventeen"), "value leaked via the serde error: {err}");
+    }
+
+    #[test]
+    fn deserialisation_errors_still_locate_the_problem() {
+        // Redaction must not cost all diagnostic value.
+        let err = check(b"{ oops", "a".into()).unwrap_err();
+        assert!(err.contains("line"), "error should carry a position: {err}");
+        assert!(err.contains("column"), "error should carry a position: {err}");
     }
 }
