@@ -81,9 +81,6 @@ app.include_router(simulations.router, prefix="/api/simulations", tags=["simulat
 app.include_router(profiling.router, prefix="/api/profiling", tags=["profiling"])
 app.include_router(ocr.router, prefix="/api/ocr", tags=["ocr"])
 app.include_router(cikgu_profil.router, prefix="/api/cikgu-profil", tags=["cikgu-profil"])
-# Legacy alias: the deployed frontend may still call /api/agent1 until it ships the
-# rename. Web and API deploy independently, so both prefixes must answer.
-app.include_router(cikgu_profil.router, prefix="/api/agent1", tags=["cikgu-profil"])
 app.include_router(receipts.router, prefix="/api/receipts", tags=["receipts"])
 app.include_router(voice.router, prefix="/api/voice", tags=["voice"])
 app.include_router(onboarding_roast.router, prefix="/api/onboarding", tags=["onboarding"])
